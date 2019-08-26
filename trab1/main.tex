@@ -1,32 +1,3 @@
-%% abtex2-modelo-artigo.tex, v-1.9.7 laurocesar
-%% Copyright 2012-2018 by abnTeX2 group at http://www.abntex.net.br/ 
-%%
-%% This work may be distributed and/or modified under the
-%% conditions of the LaTeX Project Public License, either version 1.3
-%% of this license or (at your option) any later version.
-%% The latest version of this license is in
-%%   http://www.latex-project.org/lppl.txt
-%% and version 1.3 or later is part of all distributions of LaTeX
-%% version 2005/12/01 or later.
-%%
-%% This work has the LPPL maintenance status `maintained'.
-%% 
-%% The Current Maintainer of this work is the abnTeX2 team, led
-%% by Lauro César Araujo. Further information are available on 
-%% http://www.abntex.net.br/
-%%
-%% This work consists of the files abntex2-modelo-artigo.tex and
-%% abntex2-modelo-references.bib
-%%
-
-% ------------------------------------------------------------------------
-% ------------------------------------------------------------------------
-% abnTeX2: Modelo de Artigo Acadêmico em conformidade com
-% ABNT NBR 6022:2018: Informação e documentação - Artigo em publicação 
-% periódica científica - Apresentação
-% ------------------------------------------------------------------------
-% ------------------------------------------------------------------------
-
 \documentclass[
 	% -- opções da classe memoir --
 	article,			% indica que é um artigo acadêmico
@@ -73,6 +44,9 @@
 % ---
 \usepackage[brazilian,hyperpageref]{backref}	 % Paginas com as citações na bibl
 \usepackage[alf]{abntex2cite}	% Citações padrão ABNT
+
+\usepackage{backnaur} %  especificação da grmática
+\usepackage{syntax}
 % ---
 
 % ---
@@ -93,16 +67,11 @@
 % ---
 
 % --- Informações de dados para CAPA e FOLHA DE ROSTO ---
-\titulo{Modelo Canônico de Artigo científico com \abnTeX}
-\tituloestrangeiro{Canonical article template in \abnTeX: optional foreign title}
+\titulo{C-minus com operações matriciais}
+%\tituloestrangeiro{Canonical article template in \abnTeX: optional foreign title}
 
 \autor{
-Equipe \abnTeX\thanks{``Recomenda-se que os dados de vinculação e
-endereço constem em nota, com sistema de chamada próprio, diferente do sistema 
-adotado para citações no texto.'' \url{http://www.abntex.net.br/}} 
-\\[0.5cm] 
-Lauro César Araujo\thanks{``Constar currículo sucinto de cada autor, com 
-vinculação corporativa e endereço de contato.''} }
+Leonardo Maffei da Silva\thanks{leoitu22hotmail.com@gmail.com. \url{https://www.linkedin.com/in/leonardo-maffei-ti/}} }
 
 \local{Brasil}
 \data{2018, v-1.9.7}
@@ -195,36 +164,111 @@ vinculação corporativa e endereço de contato.''} }
 
 % resumo em português
 \begin{resumoumacoluna}
- Conforme a ABNT NBR 6022:2018, o resumo no idioma do documento é elemento obrigatório. 
- Constituído de uma sequência de frases concisas e objetivas e não de uma 
- simples enumeração de tópicos, não ultrapassando 250 palavras, seguido, logo 
- abaixo, das palavras representativas do conteúdo do trabalho, isto é, 
- palavras-chave e/ou descritores, conforme a NBR 6028. (\ldots) As 
- palavras-chave devem figurar logo abaixo do resumo, antecedidas da expressão 
- Palavras-chave:, separadas entre si por ponto e finalizadas também por ponto.
- 
+ Neste documento encontra-se a especificação da gramática de uma linguagem que estende uma versão mínima do C (conhecida por \textit{C-minus}). A nova linguagem proposta apresenta como primitivo o tipo matriz, bem como a realização das operações aritmécas básicas e outras operações mais complexas tais como escalonamento e potenciação.
  \vspace{\onelineskip}
  
  \noindent
- \textbf{Palavras-chave}: latex. abntex. editoração de texto.
+ \textbf{Palavras-chave}: C, linguagem, matriz, primitiva.
 \end{resumoumacoluna}
 
 
-% resumo em inglês
-\renewcommand{\resumoname}{Abstract}
-\begin{resumoumacoluna}
- \begin{otherlanguage*}{english}
-   According to ABNT NBR 6022:2018, an abstract in foreign language is optional.
-
-   \vspace{\onelineskip}
- 
-   \noindent
-   \textbf{Keywords}: latex. abntex.
- \end{otherlanguage*}  
-\end{resumoumacoluna}
 
 % ]  				% FIM DE ARTIGO EM DUAS COLUNAS
 % ---
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\terminal}[1]{ \bnfpn{\textbf{#1}} }
+
+\newcommand{\production}[1]{\bnfpn{\textit{#1}}}
+\newcommand{\IT}[1]{\textit{#1}}
+
+%\setlength{\grammarparsep}{20pt plus 1pt minus 1pt} % increase separation between rules
+%\setlength{\grammarindent}{12em} % increase separation between LHS/RHS 
+
+\begin{grammar}	
+
+%\setlength{\grammarparsep}{100pt plus 1pt minus 1pt} % increase separation between rules
+%\setlength{\grammarindent}{-10em} % increase separation between LHS/RHS 
+
+%\begin{grammar}
+	
+%	<statement> ::= <ident> `=' <expr> 
+%	\alt `for' <ident> `=' <expr> `to' <expr> `do' <statement> 
+%	\alt `{' <stat-list> `}' 
+%	\alt <empty> 
+	
+%	<stat-list> ::= <statement> `;' <stat-list> | <statement> 
+	
+%\end{grammar}
+
+	<program> ::= <declaration-list> 
+
+	<declaration-list> ::= <declaration-list> <declaration> \alt <declaration> 
+	
+	<declaration> ::= <var-declaration> \alt <fun-declaration>
+
+	<var-declaration> ::= <type-specifier> ID ; \alt <type-specifier> ID [<expression>]; \alt mat(<type-specifier>) ID [<expression>][<expression>] ;
+	
+	<type-specifier> ::= int \alt float
+	
+	<fun-declaration> ::= <type-specifier> ID ( <params> ) <compound-stmt> 
+	
+	<params> ::= <param-list> \alt $\epsilon$ 
+	
+	<param-list> ::= <param-list> , <param> \alt <param> 
+	
+	<param> ::= <type-specifier> ID \alt <type-specifier> ID [] \alt mat<<type-specifier-base>> ID 
+	
+	<compound-stmt> ::= { <local-declarations> <statement-list> } 
+	
+	<local-declarations> ::= <local-declarations> <var-declarations> \alt $\epsilon$ 
+	
+	<statement-list> ::= <statement-list> <statement> \alt $\epsilon$
+	
+	<statement> ::= <expression-stmt> \alt <compound-stmt> \alt <selection-stmt> \alt <iteration-stmt> \alt <return-stmt> 
+	
+	<expression-stmt> ::= <expression> ; \alt ; 
+
+	<selection-stmt> ::= if ( <expression> ) <statement> \alt if ( <expression> ) <statement> else <statement> 
+	
+	<iteration-stmt> ::= while ( <expression> ) <statement> 
+	
+	<return-stmt> ::= return ; \alt return <expression> ;
+	
+	<expression> ::= <var> = <expression> \alt <simple-expression>
+	
+	<var> ::= ID \alt ID [ <expression> ]
+	
+	<simple-expression> ::= <additive-expression> <relop> <additive-expression> \alt <additive-expression>
+	
+	<relop> ::= <= \alt < \alt > \alt >= \alt == \alt !=
+		
+	<additive-expression> ::= <additive-expression> <addop> <term> \alt <term>
+	
+	<addop> ::= + \alt - 
+	
+	<term> ::= <term> <mulop> <bin> \alt <bin>
+	
+	<mulop> ::= * \alt / 
+	
+	<bin> ::= <bin> <bin-logi> <unary> \alt <unary>
+	
+	<bin-logi> ::= \&\& \alt || \alt \^ \\
+	
+	<unary> ::= <unary-op> <factor> \alt <factor> 
+	
+	<unary-op> ::= ! \alt \&
+	
+	<factor> ::= ( <expression> ) \alt <var> \alt <call> \alt NUM
+	
+	<call> ::= ID ( <args> ) 
+	
+	<args> ::= <arg-list> \alt <empty> 
+	
+	<arg-list> ::= <arg-list> , <expression> \alt <expression> 
+\end{grammar}
+%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{center}\smaller
 \textbf{Data de submissão e aprovação}: elemento obrigatório. Indicar dia, mês e ano
