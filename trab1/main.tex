@@ -46,12 +46,53 @@
 \usepackage[alf]{abntex2cite}	% Citações padrão ABNT
 
 \usepackage{backnaur} %  especificação da grmática
-\usepackage{syntax}
+\usepackage{syntax} % especificação gramática
+\usepackage{subfiles} % modularização em arquivos
+\usepackage{hyperref} % hyper-links
+
+%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%% https://tex.stackexchange.com/questions/348651/c-code-to-add-in-the-document
+%%%%%%%%%%%%%%%%%%%
+\usepackage{xcolor}
+\usepackage{listings}
+
+\definecolor{mGreen}{rgb}{0,0.6,0}
+\definecolor{mGray}{rgb}{0.5,0.5,0.5}
+\definecolor{mPurple}{rgb}{0.58,0,0.82}
+\definecolor{backgroundColour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{CStyle}{
+	backgroundcolor=\color{backgroundColour},   
+	commentstyle=\color{mGreen},
+	keywordstyle=\color{magenta},
+	numberstyle=\tiny\color{mGray},
+	stringstyle=\color{mPurple},
+	basicstyle=\footnotesize,
+	breakatwhitespace=false,         
+	breaklines=true,                 
+	captionpos=b,                    
+	keepspaces=true,                 
+	numbers=left,                    
+	numbersep=5pt,                  
+	showspaces=false,                
+	showstringspaces=false,
+	showtabs=false,                  
+	tabsize=2,
+	language=C
+}
+%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%
+
 % ---
 
 % ---
 % Configurações do pacote backref
 % Usado sem a opção hyperpageref de backref
+
+\renewcommand{\it}[1]{\textit{#1}}
+\renewcommand{\bf}[1]{\textbf{#1}}
+
 \renewcommand{\backrefpagesname}{Citado na(s) página(s):~}
 % Texto padrão antes do número das páginas
 \renewcommand{\backref}{}
@@ -74,7 +115,7 @@
 Leonardo Maffei da Silva\thanks{leoitu22hotmail.com@gmail.com. \url{https://www.linkedin.com/in/leonardo-maffei-ti/}} }
 
 \local{Brasil}
-\data{2018, v-1.9.7}
+\data{2019}
 % ---
 
 % ---
@@ -164,7 +205,7 @@ Leonardo Maffei da Silva\thanks{leoitu22hotmail.com@gmail.com. \url{https://www.
 
 % resumo em português
 \begin{resumoumacoluna}
- Neste documento encontra-se a especificação da gramática de uma linguagem que estende uma versão mínima do C (conhecida por \textit{C-minus}). A nova linguagem proposta apresenta como primitivo o tipo matriz, bem como a realização das operações aritmécas básicas e outras operações mais complexas tais como escalonamento e potenciação.
+ Neste documento encontra-se a especificação da gramática de uma linguagem que estende uma versão mínima do C (conhecida por \textit{C-minus}). A nova linguagem proposta apresenta como primitivo o tipo matriz, bem como a realização das operações aritméticas básicas e outras operações mais complexas tais como potenciação e escalonamento, sendo a última realizada por função da linguagem.
  \vspace{\onelineskip}
  
  \noindent
@@ -173,10 +214,6 @@ Leonardo Maffei da Silva\thanks{leoitu22hotmail.com@gmail.com. \url{https://www.
 
 
 
-% ]  				% FIM DE ARTIGO EM DUAS COLUNAS
-% ---
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \newcommand{\terminal}[1]{ \bnfpn{\textbf{#1}} }
 
@@ -186,275 +223,54 @@ Leonardo Maffei da Silva\thanks{leoitu22hotmail.com@gmail.com. \url{https://www.
 %\setlength{\grammarparsep}{20pt plus 1pt minus 1pt} % increase separation between rules
 %\setlength{\grammarindent}{12em} % increase separation between LHS/RHS 
 
-\begin{grammar}	
-
-%\setlength{\grammarparsep}{100pt plus 1pt minus 1pt} % increase separation between rules
-%\setlength{\grammarindent}{-10em} % increase separation between LHS/RHS 
-
-%\begin{grammar}
-	
-%	<statement> ::= <ident> `=' <expr> 
-%	\alt `for' <ident> `=' <expr> `to' <expr> `do' <statement> 
-%	\alt `{' <stat-list> `}' 
-%	\alt <empty> 
-	
-%	<stat-list> ::= <statement> `;' <stat-list> | <statement> 
-	
-%\end{grammar}
-
-	<program> ::= <declaration-list> 
-
-	<declaration-list> ::= <declaration-list> <declaration> \alt <declaration> 
-	
-	<declaration> ::= <var-declaration> \alt <fun-declaration>
-
-	<var-declaration> ::= <type-specifier> ID ; \alt <type-specifier> ID [<expression>]; \alt mat(<type-specifier>) ID [<expression>][<expression>] ;
-	
-	<type-specifier> ::= int \alt float
-	
-	<fun-declaration> ::= <type-specifier> ID ( <params> ) <compound-stmt> 
-	
-	<params> ::= <param-list> \alt $\epsilon$ 
-	
-	<param-list> ::= <param-list> , <param> \alt <param> 
-	
-	<param> ::= <type-specifier> ID \alt <type-specifier> ID [] \alt mat<<type-specifier-base>> ID 
-	
-	<compound-stmt> ::= { <local-declarations> <statement-list> } 
-	
-	<local-declarations> ::= <local-declarations> <var-declarations> \alt $\epsilon$ 
-	
-	<statement-list> ::= <statement-list> <statement> \alt $\epsilon$
-	
-	<statement> ::= <expression-stmt> \alt <compound-stmt> \alt <selection-stmt> \alt <iteration-stmt> \alt <return-stmt> 
-	
-	<expression-stmt> ::= <expression> ; \alt ; 
-
-	<selection-stmt> ::= if ( <expression> ) <statement> \alt if ( <expression> ) <statement> else <statement> 
-	
-	<iteration-stmt> ::= while ( <expression> ) <statement> 
-	
-	<return-stmt> ::= return ; \alt return <expression> ;
-	
-	<expression> ::= <var> = <expression> \alt <simple-expression>
-	
-	<var> ::= ID \alt ID [ <expression> ]
-	
-	<simple-expression> ::= <additive-expression> <relop> <additive-expression> \alt <additive-expression>
-	
-	<relop> ::= <= \alt < \alt > \alt >= \alt == \alt !=
-		
-	<additive-expression> ::= <additive-expression> <addop> <term> \alt <term>
-	
-	<addop> ::= + \alt - 
-	
-	<term> ::= <term> <mulop> <bin> \alt <bin>
-	
-	<mulop> ::= * \alt / 
-	
-	<bin> ::= <bin> <bin-logi> <unary> \alt <unary>
-	
-	<bin-logi> ::= \&\& \alt || \alt \^ \\
-	
-	<unary> ::= <unary-op> <factor> \alt <factor> 
-	
-	<unary-op> ::= ! \alt \&
-	
-	<factor> ::= ( <expression> ) \alt <var> \alt <call> \alt NUM
-	
-	<call> ::= ID ( <args> ) 
-	
-	<args> ::= <arg-list> \alt <empty> 
-	
-	<arg-list> ::= <arg-list> , <expression> \alt <expression> 
-\end{grammar}
-%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\begin{center}\smaller
-\textbf{Data de submissão e aprovação}: elemento obrigatório. Indicar dia, mês e ano
-
-\textbf{Identificação e disponibilidade}: elemento opcional. Pode ser indicado 
-o endereço eletrônico, DOI, suportes e outras informações relativas ao acesso.
-\end{center}
-
-% ----------------------------------------------------------
-% ELEMENTOS TEXTUAIS
-% ----------------------------------------------------------
-\textual
-
 % ----------------------------------------------------------
 % Introdução
 % ----------------------------------------------------------
 \section{Introdução}
+Implementar-se-á, até a versão final deste artigo, um compilador para a linguagem proposta. Para sua realização, serão utilizados os conhecimentos adquiridos na disciplina \textit{Tradutores}, ministrada pela professora \hyperref{http://lattes.cnpq.br/7793795625581127}{}{}{Cláudia Nalon.}
 
-Este documento e seu código-fonte são exemplos de referência de uso da classe
-\textsf{abntex2} e do pacote \textsf{abntex2cite}. O documento exemplifica a
-elaboração de publicação periódica científica impressa produzida conforme a ABNT
-NBR 6022:2018 \emph{Informação e documentação - Artigo em publicação periódica
-científica - Apresentação}.
+\section{Usuário característico}
+Destina-se ao estudante de álgebra linear, o qual pode usar a linguagem para, por exmeplo, confirmar se sua resolução de um sisema linear encontra-se correta, tudo isso de maneira rápida, eficiente e \it{offline}.
 
-A expressão ``Modelo canônico'' é utilizada para indicar que \abnTeX\ não é
-modelo específico de nenhuma universidade ou instituição, mas que implementa tão
-somente os requisitos das normas da ABNT. Uma lista completa das normas
-observadas pelo \abnTeX\ é apresentada em \citeonline{abntex2classe}.
-
-Sinta-se convidado a participar do projeto \abnTeX! Acesse o site do projeto em
-\url{http://www.abntex.net.br/}. Também fique livre para conhecer,
-estudar, alterar e redistribuir o trabalho do \abnTeX, desde que os arquivos
-modificados tenham seus nomes alterados e que os créditos sejam dados aos
-autores originais, nos termos da ``The \LaTeX\ Project Public
-License''\footnote{\url{http://www.latex-project.org/lppl.txt}}.
-
-Encorajamos que sejam realizadas customizações específicas deste documento.
-Porém, recomendamos que ao invés de se alterar diretamente os arquivos do
-\abnTeX, distribua-se arquivos com as respectivas customizações. Isso permite
-que futuras versões do \abnTeX~não se tornem automaticamente incompatíveis com
-as customizações promovidas. Consulte \citeonline{abntex2-wiki-como-customizar}
-para mais informações.
-
-Este exemplo deve ser utilizado como complemento do manual da classe
-\textsf{abntex2} \cite{abntex2classe}, dos manuais do pacote
-\textsf{abntex2cite} \cite{abntex2cite,abntex2cite-alf} e do manual da classe
-\textsf{memoir} \cite{memoir}. Consulte o \citeonline{abntex2modelo} para obter
-exemplos e informações adicionais de uso de \abnTeX\ e de \LaTeX.
-
+\section{Motivação}
+Durante a realização do curso de Cálculo Numérico, o grupo do autor notou a ausência dessa \it{feature} na linguagem C++. Desse modo, foi necessária a simulação desse tipo de dados, à época implementada por meio de Orientação a Objetos. Se houvese um tipo nativo para matriz bem como operações elementares sobre seus elementos, teria sido de grande auxílio à codificação dos diversos métodos numéricos requeridos pela disciplina.
 % ----------------------------------------------------------
 % Seção de explicações
 % ----------------------------------------------------------
-\section{Exemplos de comandos}
 
-\subsection{Margens}
 
-A norma ABNT NBR 6022:2018 não estabelece uma margem específica a ser utilizada
-no artigo científico. Dessa maneira, caso deseje alterar as margens, utilize os
-comandos abaixo:
+\section{Gramática}
+A seguir, encontra-se a gramática da linguagem proposta:
+%% BEGIN GRAMÁTICA
+	\subfile{grammar.tex}
+%% END GRMÁTICA
+Os \textit{tokens} da linguagem são: '\bf{,}', '\bf{.}', '\bf{>=}', '\bf{>}', '\bf{<}', '\bf{<=}', '\bf{==}', '\bf{!=}', '\bf{int}', '\bf{float}', '\bf{while}', '\bf{return}', '\bf{if}', '\bf{else}', '\bf{mat}', '\bf{EOL}', '\bf{+}', '\bf{-}', '\bf{*}', '\bf{/}', '\bf{\&\&}', '\bf{\^}', '\bf{||}', '\bf{!}', '\bf{\&}', '\bf{;}', '\bf{(}', '\bf{)}', '\bf{[}', '\bf{]}', '\bf{{}', '\bf{}}' e '\bf{//}',  sendo este último um caso especial por delimitar comentários de uma linha. \it{EOL} simboliza o final de uma linha qualquer, e as seguintes palavras são reservadas e portanto não podem ser utilizadas como identificadores: \bf{else}, \bf{float}, \bf{if}, \bf{int}, \bf{mat} e \bf{return}. A regra de produção \it{ASCII} produz qualquer símbolo contido na tabela \it{ascii}. Por fim, não constam na gramática, mas as funções  \it{scan} e \it{print} fazem parte da linguagem, sendo responsáveis pelas operações de leitura e impressão na saída padrão do ambiente de execução do programa (usualmente, o console).
 
-\begin{verbatim}
-   \setlrmarginsandblock{3cm}{3cm}{*}
-   \setulmarginsandblock{3cm}{3cm}{*}
-   \checkandfixthelayout
-\end{verbatim}
+\section{Semântica}
+A semântica da linguagem é quase idêntica à da linguagem C: declarações de variável (a menos do tipo \bf{mat}), funções e expressões têm semãntica similar. Sendo esta linguagem uma estensão de um subconjunto da linguagem \it{C}, a principal diferença está no tipo de dados \bf{mat} (abreviação de \it{matrix}, "matrix" em inglês). Esse tipo de dados é similar aos \it{arrays} em C, porém limitado do ponto de vista da composição pois não é possível a criação de matrizes aninhadas. Entretando, é possível a realização das quatro operações aritméticas básicas diretamente com matrizes, bem como a realização de potenciação de matrizes de forma \it{rápida} e algumas operações sobre elas, como resolução de sistemas lineares e escalonamento. Tais operações mais complexas estarão presentes por meio de funções padrão da linguagem.
 
-\subsection{Duas colunas}
+\section{Exemplo de programa na linguagem}
+A seguir, trechos de código pertencente à nova linguagem.
 
-É comum que artigos científicos sejam escritos em duas colunas. Para isso,
-adicione a opção \texttt{twocolumn} à classe do documento, como no exemplo:
+\begin{lstlisting}[style=CStyle]
+int foo(void);
+mat<int> matriz[3][4];	// Criacao de um sistema 
+matrix = {
+	{1, 2, 3, 4},
+	{4, 3 ,2, 1},
+	{-1, -2, -3, -4},
+	{45, 87, 9, 18}
+};
 
-\begin{verbatim}
-   \documentclass[article,11pt,oneside,a4paper,twocolumn]{abntex2}
-\end{verbatim}
+int main(){
+	int x;
+	mat<float> casted = matriz + matriz;
+	
+	scan(x);
+	print(x); 
+}
+\end{lstlisting}
 
-É possível indicar pontos do texto que se deseja manter em apenas uma coluna,
-geralmente o título e os resumos. Os resumos em única coluna em documentos com
-a opção \texttt{twocolumn} devem ser escritos no ambiente
-\texttt{resumoumacoluna}:
-
-\begin{verbatim}
-   \twocolumn[              % INICIO DE ARTIGO EM DUAS COLUNAS
-
-     \maketitle             % pagina de titulo
-
-     \renewcommand{\resumoname}{Nome do resumo}
-     \begin{resumoumacoluna}
-        Texto do resumo.
-      
-        \vspace{\onelineskip}
- 
-        \noindent
-        \textbf{Palavras-chave}: latex. abntex. editoração de texto.
-     \end{resumoumacoluna}
-   
-   ]                        % FIM DE ARTIGO EM DUAS COLUNAS
-\end{verbatim}
-
-\subsection{Recuo do ambiente \texttt{citacao}}
-
-Na produção de artigos (opção \texttt{article}), pode ser útil alterar o recuo
-do ambiente \texttt{citacao}. Nesse caso, utilize o comando:
-
-\begin{verbatim}
-   \setlength{\ABNTEXcitacaorecuo}{1.8cm}
-\end{verbatim}
-
-Quando um documento é produzido com a opção \texttt{twocolumn}, a classe
-\textsf{abntex2} automaticamente altera o recuo padrão de 4 cm, definido pela
-ABNT NBR 10520:2002 seção 5.3, para 1.8 cm.
-
-\section{Cabeçalhos e rodapés customizados}
-
-Diferentes estilos de cabeçalhos e rodapés podem ser criados usando os
-recursos padrões do \textsf{memoir}.
-
-Um estilo próprio de cabeçalhos e rodapés pode ser diferente para páginas pares
-e ímpares. Observe que a diferenciação entre páginas pares e ímpares só é
-utilizada se a opção \texttt{twoside} da classe \textsf{abntex2} for utilizado.
-Caso contrário, apenas o cabeçalho padrão da página par (\emph{even}) é usado.
-
-Veja o exemplo abaixo cria um estilo chamado \texttt{meuestilo}. O código deve
-ser inserido no preâmbulo do documento.
-
-\begin{verbatim}
-%%criar um novo estilo de cabeçalhos e rodapés
-\makepagestyle{meuestilo}
-  %%cabeçalhos
-  \makeevenhead{meuestilo} %%pagina par
-     {topo par à esquerda}
-     {centro \thepage}
-     {direita}
-  \makeoddhead{meuestilo} %%pagina ímpar ou com oneside
-     {topo ímpar/oneside à esquerda}
-     {centro\thepage}
-     {direita}
-  \makeheadrule{meuestilo}{\textwidth}{\normalrulethickness} %linha
-  %% rodapé
-  \makeevenfoot{meuestilo}
-     {rodapé par à esquerda} %%pagina par
-     {centro \thepage}
-     {direita} 
-  \makeoddfoot{meuestilo} %%pagina ímpar ou com oneside
-     {rodapé ímpar/onside à esquerda}
-     {centro \thepage}
-     {direita}
-\end{verbatim}
-
-Para usar o estilo criado, use o comando abaixo imediatamente após um dos
-comandos de divisão do documento. Por exemplo:
-
-\begin{verbatim}
-   \begin{document}
-     %%usar o estilo criado na primeira página do artigo:
-     \pretextual
-     \pagestyle{meuestilo}
-     
-     \maketitle
-     ...
-     
-     %%usar o estilo criado nas páginas textuais
-     \textual
-     \pagestyle{meuestilo}
-     
-     \chapter{Novo capítulo}
-     ...
-   \end{document}  
-\end{verbatim}
-   
-Outras informações sobre cabeçalhos e rodapés estão disponíveis na seção 7.3 do
-manual do \textsf{memoir} \cite{memoir}.
-
-\section{Mais exemplos no Modelo Canônico de Trabalhos Acadêmicos}
-
-Este modelo de artigo é limitado em número de exemplos de comandos, pois são
-apresentados exclusivamente comandos diretamente relacionados com a produção de
-artigos.
-
-Para exemplos adicionais de \abnTeX\ e \LaTeX, como inclusão de figuras,
-fórmulas matemáticas, citações, e outros, consulte o documento
-\citeonline{abntex2modelo}.
-
-\section{Consulte o manual da classe \textsf{abntex2}}
-
-Consulte o manual da classe \textsf{abntex2} \cite{abntex2classe} para uma
-referência completa das macros e ambientes disponíveis.
 
 % ---
 % Finaliza a parte no bookmark do PDF, para que se inicie o bookmark na raiz
@@ -465,78 +281,5 @@ referência completa das macros e ambientes disponíveis.
 % ---
 % Conclusão
 % ---
-\section{Considerações finais}
-
-\lipsum[1]
-
-\begin{citacao}
-\lipsum[2]
-\end{citacao}
-
-\lipsum[3]
-
-% ----------------------------------------------------------
-% ELEMENTOS PÓS-TEXTUAIS
-% ----------------------------------------------------------
-\postextual
-
-% ----------------------------------------------------------
-% Referências bibliográficas
-% ----------------------------------------------------------
-\bibliography{abntex2-modelo-references}
-
-% ----------------------------------------------------------
-% Glossário
-% ----------------------------------------------------------
-%
-% Há diversas soluções prontas para glossário em LaTeX. 
-% Consulte o manual do abnTeX2 para obter sugestões.
-%
-%\glossary
-
-% ----------------------------------------------------------
-% Apêndices
-% ----------------------------------------------------------
-
-% ---
-% Inicia os apêndices
-% ---
-\begin{apendicesenv}
-
-% ----------------------------------------------------------
-\chapter{Nullam elementum urna vel imperdiet sodales elit ipsum pharetra ligula
-ac pretium ante justo a nulla curabitur tristique arcu eu metus}
-% ----------------------------------------------------------
-\lipsum[55-56]
-
-\end{apendicesenv}
-% ---
-
-% ----------------------------------------------------------
-% Anexos
-% ----------------------------------------------------------
-\cftinserthook{toc}{AAA}
-% ---
-% Inicia os anexos
-% ---
-%\anexos
-\begin{anexosenv}
-
-% ---
-\chapter{Cras non urna sed feugiat cum sociis natoque penatibus et magnis dis
-parturient montes nascetur ridiculus mus}
-% ---
-
-\lipsum[31]
-
-\end{anexosenv}
-
-% ----------------------------------------------------------
-% Agradecimentos
-% ----------------------------------------------------------
-
-\section*{Agradecimentos}
-Texto sucinto aprovado pelo periódico em que será publicado. Último 
-elemento pós-textual.
 
 \end{document}
