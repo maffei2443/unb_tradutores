@@ -1,0 +1,96 @@
+\begin{grammar}
+	<program> ::= <declaration-list> 
+	% % % % % % % % % % % % % % %
+	<declaration-list> ::= <declaration-list> <declaration> | <declaration> | <comment>
+	
+	<declaration> ::= <var-declaration> | <fun-declaration>
+	
+	<comment> ::= // <ASCII>$^*$ \textbf{EOL}
+	% % % % % % % % % % % % % % %	
+	<type-specifier> ::= <base-type-specifier> | <mat-specifier>
+	
+	<mat-specifier> ::= \textbf{mat} \textless <base-type-specifier> \textgreater 
+
+	<base-type-specifier> ::= \textbf{int} | \textbf{float}
+	% % % % % % % % % % % % % % %
+
+	<var-declaration> ::= <base-type-specifier> ID ; | <base-type-specifier> ID [<simple-expr>];
+	\alt <mat-specifier> ID [<simple-expr>][<simple-expr>] ;
+	
+	<fun-declaration> ::= <type-specifier> <ID> ( <params> ) <compound-stmt> | <type-specifier> <ID> ( <params> );
+	
+	<params> ::= <param-list> | \textbf{void}
+	
+	<param-list> ::= <param-list> , <param> | <param> 
+	
+	<param> ::= <type-specifier> <ID> | <type-specifier> <ID> $[$\ $]$ | mat\textless<type-specifier-base>> <ID> 
+	
+	<compound-stmt> ::= { <local-declarations> <statement-list> } 
+	
+	<local-declarations> ::= <local-declarations> <var-declaration> | $\epsilon$ 
+	
+	<statement-list> ::= <statement-list> <statement> | $\epsilon$
+	
+	<statement> ::= <expr-stmt> | <compound-stmt> | <selection-stmt> \alt <while-stmt> | <return-stmt> 
+	
+	<expr-stmt> ::= <expr> ; | ; 
+	
+	<selection-stmt> ::= \textbf{if} ( <expr> ) <statement> | \textbf{if} ( <expr> ) <statement> \textbf{else} <statement> 
+	
+	<while-stmt> ::= \textbf{while} ( <expr> ) <statement> 
+	
+	<return-stmt> ::= \textbf{return} ; | \textbf{return} <expr> ;
+	
+	<expr> ::= <var> = <expr> | <simple-expr> | {<int-seq>} | {<float-seq>} | {<int-nested-seq>} | {<float-nested-seq>}
+	
+	<int-seq> ::= <simple-expr> | <int-seq>, <simple-expr>
+	
+	<float-seq> ::= <simple-expr> | <float-seq>, <simple-expr>
+	
+	<int-nested-seq> ::= <int-seq> | <int-nested-seq>, <int-seq> | $\epsilon$
+	
+	<float-nested-seq> ::= <float-seq> | <float-nested-seq>, <float-seq> | $\epsilon$
+	
+	<var> ::= <ID> | <ID> [ <simple-expr> ]
+	
+	<simple-expr> ::= <add-expr> <relop> <add-expr> | <add-expr>
+	
+	<relop> ::= \textless= | \textless\ | > | >= | == | !=
+	
+	<add-expr> ::= <add-expr> <addop> <term> | <term>
+	
+	<addop> ::= + | - 
+	
+	<term> ::= <term> <mulop> <bin> | <bin>
+	
+	<mulop> ::= * | / 
+	
+	<bin> ::= <bin> <bin-logi> <unary> | <unary>
+	
+	<bin-logi> ::= \&\& \alt || \alt \^ \\
+	
+	<unary> ::= <unary-op> <factor> | <factor> 
+	
+	<unary-op> ::= ! | \&
+	
+	<factor> ::= ( <expr> ) | <var> | <call> | <NUM>
+	
+	<call> ::= <ID> ( <args> ) 
+	
+	<args> ::= <arg-list> || $\epsilon$
+	
+	<arg-list> ::= <arg-list> , <simple-expr> | <simple-expr>
+	
+	<\textbf{\textit{letter\_}}> ::= a | ... | z | A | ... | Z | \_
+	
+	<\textbf{digit}> ::= 0 | ... | 9
+	
+	<\textbf{ID}> ::= <letter\_> (<letter\_> | <digit>)$^*$
+	
+	<\textbf{NUM}> ::= <INT> | <FLOAT>
+	
+	<\textbf{INT}> ::= <digit>$^+$
+	
+	<\textbf{FLOAT}> ::= <digit>$^+$. | <digit>$^+$
+	
+\end{grammar}
