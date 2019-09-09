@@ -249,13 +249,13 @@ A seguir, encontra-se a gramática da linguagem proposta:
 Os \textit{tokens} da linguagem são: '\bf{,}', '\bf{.}', '\bf{>=}', '\bf{>}', '\bf{<}', '\bf{<=}', '\bf{==}', '\bf{!=}', '\bf{int}', '\bf{float}', '\bf{while}', '\bf{return}', '\bf{if}', '\bf{else}', '\bf{mat}', '\bf{EOL}', '\bf{+}', '\bf{-}', '\bf{*}', '\bf{/}', '\bf{\&\&}', '\bf{\^}', '\bf{||}', '\bf{!}', '\bf{\&}', '\bf{;}', '\bf{(}', '\bf{)}', '\bf{[}', '\bf{]}', '\bf{{}', '\bf{}}' e '\bf{//}',  sendo este último um caso especial por delimitar comentários de uma linha. \it{EOL} simboliza o final de uma linha qualquer, e as seguintes palavras são reservadas e portanto não podem ser utilizadas como identificadores: \bf{else}, \bf{float}, \bf{if}, \bf{int}, \bf{mat} e \bf{return}. A regra de produção \it{ASCII} produz qualquer símbolo contido na tabela \it{ascii}. Por fim, não constam na gramática, mas as funções  \it{scan} e \it{print} fazem parte da linguagem, sendo responsáveis pelas operações de leitura e impressão na saída padrão do ambiente de execução do programa (usualmente, o console).
 
 \section{Semântica}
-A semântica da linguagem é quase idêntica à da linguagem C: declarações de variável (a menos das do tipo \bf{mat}), funções e expressões têm semãntica similar. Sendo esta linguagem uma estensão de um subconjunto da linguagem \it{C}, a principal diferença está no tipo de dados \bf{mat} (abreviação de \it{matrix}, "matriz" em inglês). Esse tipo de dados é similar aos \it{arrays} em C, porém limitado do ponto de vista da composição pois não é possível a criação de matrizes aninhadas. Entretando, é possível a realização das quatro operações aritméticas básicas diretamente com matrizes, bem como a realização de potenciação de matrizes de forma \it{rápida} e algumas operações sobre elas, como resolução de sistemas lineares e escalonamento. Tais operações mais complexas estarão presentes por meio de funções padrão da linguagem.
+A semântica da linguagem é quase idêntica à da linguagem C: declarações de variáveis (a menos das do tipo \bf{mat}), funções e expressões têm semântica similar. Sendo esta linguagem uma extensão de um subconjunto da linguagem \it{C}, a principal diferença está no tipo de dados \bf{mat} (abreviação de \it{matrix}). Esse tipo de dados é similar aos \it{arrays} em C, porém limitado do ponto de vista da composição pois não é possível a criação de matrizes aninhadas, nem de matrizes de vetores. Entretando, é possível a realização das quatro operações aritméticas básicas diretamente com matrizes, bem como a realização de potenciação de matrizes de forma \it{rápida} e algumas operações sobre elas, como resolução de sistemas lineares e escalonamento. Tais operações mais complexas estarão presentes por meio de funções padrão da linguagem.
 
 \section{Exemplo de programa na linguagem}
 A seguir, trechos de código pertencente à nova linguagem.
 
 \begin{lstlisting}[style=CStyle]
-int foo(void);
+int foo();
 mat<int> matriz[3][4];	// Criacao de um sistema 
 matrix = {
 	{1, 2, 3, 4},
