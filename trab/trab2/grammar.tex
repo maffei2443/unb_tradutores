@@ -1,33 +1,34 @@
 \begin{grammar}
-	<program> ::= <declaration-list> 
+	<program> ::= <decl-list> 
 	% % % % % % % % % % % % % % %
-	<declaration-list> ::= <declaration-list> <declaration> | <declaration> | <comment>
+	<decl-list> ::= <decl-list> <decl> | <decl> | <comment> | <expr-stmt>
 	
-	<declaration> ::= <var-declaration> | <fun-declaration>
+	<decl> ::= <var-decl> | <var-decl-init> | <fun-decl>
 	
 	<comment> ::= // <ASCII>$^*$ \textbf{EOL}
 	% % % % % % % % % % % % % % %	
-	<type-specifier> ::= <base-type-specifier> | <mat-specifier>
+	<type-spec> ::= <base-type-spec> | <mat-spec>
 	
-	<mat-specifier> ::= \textbf{mat} \textless <base-type-specifier> \textgreater 
+	<mat-spec> ::= \textbf{mat} \textless <base-type-spec> \textgreater 
 
-	<base-type-specifier> ::= \textbf{int} | \textbf{float}
+	<base-type-spec> ::= \textbf{int} | \textbf{float}
 	% % % % % % % % % % % % % % %
 
-	<var-declaration> ::= <base-type-specifier> ID ; | <base-type-specifier> ID [<simple-expr>];
-	\alt <mat-specifier> ID [<simple-expr>][<simple-expr>] ;
+	<var-decl> ::= <base-type-spec> <var> ; | <mat-spec> ID [<simple-expr>][<simple-expr>] ;
 	
-	<fun-declaration> ::= <type-specifier> <ID> ( <params> ) <compound-stmt> | <type-specifier> <ID> ( <params> );
+	<var-decl-init> ::= <base-type-spec> <var> = <expr>; | <mat-spec> ID [<simple-expr>][<simple-expr>] = {<seq-list>};
 	
-	<params> ::= <param-list> | \textbf{void}
+	<fun-decl> ::= <type-spec> <ID> ( <params> ) <compound-stmt> | <type-spec> <ID> ( <params> );
+	
+	<params> ::= <param-list> | \textbf{void} | $\epsilon$
 	
 	<param-list> ::= <param-list> , <param> | <param> 
 	
-	<param> ::= <type-specifier> <ID> | <type-specifier> <ID> $[$\ $]$ | mat\textless<type-specifier-base>> <ID> 
+	<param> ::= <type-spec> <ID> | <type-spec> <ID> $[$\ $]$ | mat\textless<type-spec-base>> <ID> 
 	
-	<compound-stmt> ::= { <local-declarations> <statement-list> } 
+	<compound-stmt> ::= { <local-decls> <statement-list> } 
 	
-	<local-declarations> ::= <local-declarations> <var-declaration> | $\epsilon$ 
+	<local-decls> ::= <local-decls> <var-decl> | $\epsilon$ 
 	
 	<statement-list> ::= <statement-list> <statement> | $\epsilon$
 	
@@ -41,15 +42,17 @@
 	
 	<return-stmt> ::= \textbf{return} ; | \textbf{return} <expr> ;
 	
-	<expr> ::= <var> = <expr> | <simple-expr> | {<int-seq>} | {<float-seq>} | {<int-nested-seq>} | {<float-nested-seq>}
+	<expr> ::= <var> = <expr> | <simple-expr> | {<int-seq>} | {<float-seq>} | {<int-seq-list>} | {<float-seq-list>}
 	
+	<seq-list> ::= <int-seq-list> | <float-seq-list>
+
 	<int-seq> ::= <simple-expr> | <int-seq>, <simple-expr>
 	
+	<int-seq-list> ::= {<int-seq>} | <int-seq-list>, {<int-seq>} | $\epsilon$
+
 	<float-seq> ::= <simple-expr> | <float-seq>, <simple-expr>
-	
-	<int-nested-seq> ::= <int-seq> | <int-nested-seq>, <int-seq> | $\epsilon$
-	
-	<float-nested-seq> ::= <float-seq> | <float-nested-seq>, <float-seq> | $\epsilon$
+		
+	<float-seq-list> ::= {<float-seq>} | <float-seq-list>, {<float-seq>} | $\epsilon$
 	
 	<var> ::= <ID> | <ID> [ <simple-expr> ]
 	
