@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include "Array.h"
 int num_lines = 0, num_chars = 0;
 %}
 
@@ -22,15 +23,19 @@ relOp >=|<=|==|!=|>|<
 binMathOp [+-*/]
 binLogiOp &&|\|\||^|&
 unaryOp !|-|&
-comment //.*
+comment \/\/.*
 
 base_types int|float
 types mat|{base_types}
 flux_control while|if|else|return
 reserved_words {types}|{flux_control}
 
-sep [ \t\n\(\)<>[\]\{},.;]
+sep [ \t\n\(\)<>[\]\{},.;=]
+par [()]
+
 %%
+{par} printf("%s-parenthesis: %c\n", yytext[0] == '(' ? "left": "right", yytext[0]);
+;     printf("Statement-end: ;\n");
 {matType}                  printf("Ops! matType = %s\n", yytext);
 
 {reserved_words}/{sep}     printf("Found a reserved word: %s\n", yytext);
@@ -49,8 +54,10 @@ r/{INT} printf("yytext: %s\n", yytext);
             else printf("skipping '.'!");
 }
 {INT}      {
-            printf("INT: %s", yytext);
+            printf("Int: %s", yytext);
 }
+
+{comment} {printf("GG silent: %s\n", yytext); }
 
 [ \t] {printf("espaco: >%s<\n", yytext);}
 
