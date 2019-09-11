@@ -10,51 +10,83 @@ Cada conjunto de regras foi baseado nos arquivos:
   - clear_blockComments.l
   -clear_lineComment.l
 */
-int numlines = 0, numcolumns = 0;
-int linesBlComment, charBlComment, notCharBlComment;  // contador de linhas e caracteres alpha-num
+int numlines = 1, numcolumns = 1;
+// int comm_block.line, comm_block.isChar, comm_block.notChar;  // contador de linhas e caracteres alpha-num
+
+typedef struct {
+  int lines, isChar, notChar;
+  int lineInit, colInit;
+} CommBlock;
+
+CommBlock comm_block;
 
 int charLnComment, notCharLnComment;
 %}
-%s LN_COMMENT
-%s BL_COMMENT
+%x LN_COMMENT
+%x BL_COMMENT
 
 
 EOL \n
 %%
 
 "/*"       {
-        linesBlComment = 0; charBlComment = 0;
+        comm_block.lines = 0; comm_block.isChar = 0; comm_block.notChar=0;
+        comm_block.lineInit = numlines; comm_block.colInit = numcolumns;
+        numcolumns ++;
         BEGIN (BL_COMMENT);
   }
 <BL_COMMENT>"*/"    {
     fprintf(stdout, "Comment has %d lines, %d alpha-num and %d others",
-           linesBlComment+1,
-           charBlComment,
-           notCharBlComment);
+           comm_block.lines+1,
+           comm_block.isChar,
+           comm_block.notChar);
+    fprintf(stdout, "");
     BEGIN (INITIAL);
 }
-<BL_COMMENT>[a-zA-Z0-9_]       {++ charBlComment; }
+<BL_COMMENT>[a-zA-Z0-9_]       {++ comm_block.isChar; ++numcolumns;}
 <BL_COMMENT>{EOL}   {
-  ++ numlines;  linesBlComment++;
+  ++numlines; comm_block.lines++;
   numcolumns = 1;
 }
-<BL_COMMENT>. {++notCharBlComment;};
+<BL_COMMENT><<EOF>> {
+  fprintf(stdout,"Fim de arquivo! Comentario iniciado em :\n");
+  fprintf(stdout,"linha %d, coluna %d carece de fechamento.\n",
+    comm_block.lineInit,
+    comm_block.colInit);
+  BEGIN(INITIAL); // FUNDAMENTAL
+}
+
+<BL_COMMENT>. {++comm_block.notChar;};
 
 "//"       {
         charLnComment = 0; notCharLnComment = 0;
         BEGIN (LN_COMMENT);
   }
-<LN_COMMENT>[a-zA-Z0-9_]       {++ charLnComment; }
+<LN_COMMENT>[a-zA-Z0-9_]       {
+  charLnComment ++;
+  numcolumns ++;
+}
 <LN_COMMENT>{EOL}    {
-    fprintf(stdout, "Comment line has %d alpha-num, %d others\n",
-    charLnComment,
-    notCharLnComment);
+    // fprintf(stdout, "Comment line has %d alpha-num, %d others\n",
+    ++numlines;
+    // charLnComment,
+    // notCharLnComment);
     BEGIN (INITIAL);
   }
-<LN_COMMENT>. {++notCharLnComment;};
+<LN_COMMENT>. {
+  ++notCharLnComment;
+  ++numcolumns;
+}
 
-\n printf("\n");
-. printf("%s", yytext);
+\n {
+  printf("\n");
+  numlines++;
+  numcolumns=1;
+}
+. {
+  printf("%s", yytext);
+  numcolumns=1;
+}
 %% 
   
 int yywrap(){return 1;} 

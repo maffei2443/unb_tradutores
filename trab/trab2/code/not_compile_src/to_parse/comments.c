@@ -1,4 +1,4 @@
-//
+//1234 [[
 /*
 non existirei
 mais!
@@ -7,7 +7,7 @@ mais!
   ueh
   uehue
   */
-/***************************/
+/* * */
 
 /*
 sdlfjsf
@@ -25,3 +25,6 @@ int main() {
   printf("huehue brbr");
   return 0;
 }
+
+int var();
+/*
