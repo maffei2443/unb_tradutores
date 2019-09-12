@@ -13,9 +13,9 @@ typedef struct{
 } Array;
 
 
-void Array_Init(Array * a, size_t initSize);
-void Array_Insert(Array * a, char * other);
-void Array_Delete(Array* a);
+extern void Array_Init(Array * a, size_t initSize);
+extern void Array_Insert(Array * a, char * other);
+extern void Array_Delete(Array* a);
 
 
 

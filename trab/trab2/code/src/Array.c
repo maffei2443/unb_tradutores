@@ -7,7 +7,7 @@ void Array_Init(Array * a, size_t initSize) {
 
 void Array_Insert(Array * a, char * other) {
   size_t tam = strlen(other);
-  printf("TAM: %lu\n", tam);
+  // printf("TAM: %lu\n", tam);
   if(a->used + tam + 1 >= a->size) {
     a->size = (a->used + tam) * 2 + 1;
     a->array = (char*)realloc(a->array, a->size * sizeof(char));

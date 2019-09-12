@@ -3,14 +3,17 @@
 %}
 letter [a-zA-Z]
 %%
-[0-9]{letter}{2} {
+[0-9]{letter}+ {
   printf("matched! %s\n", yytext);
-  unput(yytext[0]);
-  printf("unputted! %c\n", yytext[0]);
+  unput('P');
+  unput('U');
+  unput('T');
+  unput('A');
+  printf("match after unput: %s\n", yytext);
 }
-[0-9]{letter} {
+[0-9]+{letter}+ {
   printf("HACK²! %s\n", yytext);
 }
-. printf("rejected: %s\n", yytext);
+.+ printf("rejected: %s\n", yytext);
 
 

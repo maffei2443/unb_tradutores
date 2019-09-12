@@ -43,7 +43,7 @@ EOL \n
     fprintf(stdout, "");
     BEGIN (INITIAL);
 }
-<BL_COMMENT>[a-zA-Z0-9_]       {++ comm_block.isChar; ++numcolumns;}
+<BL_COMMENT>[a-zA-Z0-9_]       {++comm_block.isChar; ++numcolumns;}
 <BL_COMMENT>{EOL}   {
   ++numlines; comm_block.lines++;
   numcolumns = 1;
@@ -67,10 +67,8 @@ EOL \n
   numcolumns ++;
 }
 <LN_COMMENT>{EOL}    {
-    // fprintf(stdout, "Comment line has %d alpha-num, %d others\n",
     ++numlines;
-    // charLnComment,
-    // notCharLnComment);
+    fprintf(stdout, "Comment line has %d alpha-num, %d others\n", charLnComment, notCharLnComment);
     BEGIN (INITIAL);
   }
 <LN_COMMENT>. {

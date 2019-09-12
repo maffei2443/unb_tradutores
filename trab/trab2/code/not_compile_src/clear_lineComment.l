@@ -15,7 +15,7 @@ EOL \n
   }
 <LN_COMMENT>. ;
 
-. ;
+. {;}
 %% 
   
 int yywrap(){return 1;} 

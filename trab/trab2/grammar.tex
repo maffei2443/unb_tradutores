@@ -1,18 +1,17 @@
 \begin{grammar}
-	<program> ::= <decl-list> 
-	% % % % % % % % % % % % % % %
+	<program> ::= <decl-list>
+
 	<decl-list> ::= <decl-list> <decl> | <decl> | <comment> | <expr-stmt>
 	
 	<decl> ::= <var-decl> | <var-decl-init> | <fun-decl>
 	
 	<comment> ::= // <ASCII>$^*$ \textbf{EOL}
-	% % % % % % % % % % % % % % %	
+
 	<type-spec> ::= <base-type-spec> | <mat-spec>
 	
 	<mat-spec> ::= \textbf{mat} \textless <base-type-spec> \textgreater 
 
-	<base-type-spec> ::= \textbf{int} | \textbf{float}
-	% % % % % % % % % % % % % % %
+	<base-type-spec> ::= \textbf{int} | \textbf{float} | \textbf{char}
 
 	<var-decl> ::= <base-type-spec> <var> ; | <mat-spec> ID [<simple-expr>][<simple-expr>] ;
 	
@@ -66,7 +65,7 @@
 	
 	<term> ::= <term> <mulop> <bin> | <bin>
 	
-	<mulop> ::= * | / 
+	<mulop> ::= * | / | @ | @@
 	
 	<bin> ::= <bin> <bin-logi> <unary> | <unary>
 	
@@ -74,7 +73,7 @@
 	
 	<unary> ::= <unary-op> <factor> | <factor> 
 	
-	<unary-op> ::= ! | \&
+	<unary-op> ::= ! | \& | -
 	
 	<factor> ::= ( <expr> ) | <var> | <call> | <NUM>
 	
@@ -93,7 +92,11 @@
 	<\textbf{NUM}> ::= <INT> | <FLOAT>
 	
 	<\textbf{INT}> ::= <digit>$^+$
+
+	<\textbf{CHAR}> ::= '<ASCII>'
 	
+	<\textbf{STRING}> ::= "<ASCII_>"
+
 	<\textbf{FLOAT}> ::= <digit>$^+$. | <digit>$^+$
 	
 \end{grammar}
