@@ -199,7 +199,7 @@ void showID() {
   fprintf(stdout, ">\n");
   Reset();
 }
-
+// {digit}*("."{digit}*{exp}?|("."{digit}*)?{exp})
 %}
 %x LN_COMMENT
 %x BL_COMMENT
@@ -216,7 +216,7 @@ matType <\s*(int|float|char)\s*>
 
 INT [0-9]+
 exp [eE][+-]?{digit}+
-FLOAT {digit}*("."{digit}*{exp}?|("."{digit}*)?{exp})
+FLOAT {digit}+"."{digit}*|{digit}*"."{digit}+
 NUM {FLOAT}|{INT}
 
 ID {letter_}({letter_}|{digit})*
