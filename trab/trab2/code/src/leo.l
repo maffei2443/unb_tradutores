@@ -48,6 +48,18 @@ void showLineComment() {
   fprintf(stdout, "###########\n\n");
   Reset();
 }
+void showString() {
+  Magenta();
+  fprintf(stdout, "String[l. %d, c. %d]\n", lineComm.lineInit, lineComm.colInit);
+  Green();
+  fprintf(stdout, "###########");
+  BoldYellow();
+  fprintf(stdout, "%s", currString.array);
+  Green();
+  fprintf(stdout, "###########\n\n");
+  Reset();
+
+}
 
 %}
 %x LN_COMMENT
@@ -177,7 +189,7 @@ par [()]
   fprintf(stdout, "Scaped quotes\n");
 }
 <STRING>\" {
-  fprintf(stdout, "End of string: |%s|\n", currString.array);
+  showString();
   BEGIN(INITIAL);
 }
 <STRING>\n {
