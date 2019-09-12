@@ -3,6 +3,9 @@
 
 #pragma once
 #include <stdio.h>
+#define rfprintf(x, y, z) fprintf(x,y,z), Reset();
+#define rprintf(x, y) fprintf(x,y), Reset();
+
 void Reset();
 
 void Red();

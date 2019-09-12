@@ -22,5 +22,6 @@ Node * Node_Init();
 SymTable * SymTable_Init();
 void SymTable_Destroy(SymTable * table);
 Node* SymTable_Insert(SymTable * table, char * sym);
+Node* SymTable_Show(SymTable * table);
 
 #endif

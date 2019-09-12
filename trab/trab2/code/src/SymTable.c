@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "SymTable.h"
-
+#include "Colorfy.h"
 // typedef struct {
 //   int counter;
 //   int isUsed;
@@ -69,7 +69,32 @@ Node* SymTable_Insert(SymTable * table, char * sym) {
     entry->val = malloc(sizeof(char) * strlen(sym));
     strcpy(entry->val, sym); entry->isUsed = 1;
     entry->counter++;
+    table->size++;
   }
   entry->prev = prev;
   return entry;
+}
+
+Node* SymTable_Show(SymTable * table) {
+  BoldGreen();
+  rfprintf(stdout, "%45s\n", "SYMBOL\tTABLE\t-\tSTART");
+  Node * curr = table->first;
+  BoldMagenta();
+  fprintf(stdout, "%s%40s%40s\n", "TOKEN", "VAL", "COUNT");
+  if(table->size){
+    while(curr) {
+      Blue();
+      fprintf(stdout, "________________________________________");
+      fprintf(stdout, "______________________________________________\n");
+      Reset();
+      fprintf(stdout,"%s%40s%40d\n", "<stub>", curr->val, curr->counter);
+      curr = curr->next;
+    }
+  }
+  else {
+    fprintf(stdout, "Empty!\n");
+  }
+  BoldGreen();
+  fprintf(stdout, "%44s\n", "SYMBOL\tTABLE\t-\tEND\n");
+  Reset();
 }

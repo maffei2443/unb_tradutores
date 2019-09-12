@@ -29,6 +29,7 @@ typedef struct {
 
 StringStart stringStart;
 
+SymTable* table;
 void showBlockComment() {
   Magenta();
   fprintf(stdout, "Comentario[l. %d, c. %d]\n", comm_block.lineInit, comm_block.colInit);
@@ -203,6 +204,7 @@ par [()]
         BEGIN (LN_COMMENT);
   }
 <LN_COMMENT>[a-zA-Z0-9_]+       {
+  Array_Insert(table, yytext);
   lineComm.isChar += yyleng;
   currCol += yyleng;
   Array_Insert(&currString, yytext);
@@ -269,7 +271,10 @@ par [()]
   Array_Insert(&currString, yytext);
 }
 
-{par} printf("%s-parenthesis: %c\n", yytext[0] == '(' ? "left": "right", yytext[0]);
+{par} {
+  printf("%s-parenthesis: %c\n", yytext[0] == '(' ? "left": "right", yytext[0]);
+  SymTable_Insert(table, yytext);
+}
 ;     printf("Statement-end: ;\n");
 {matType}                  printf("Ops! matType = %s\n", yytext);
 
@@ -340,7 +345,7 @@ void delete(void* p) {
 }
 
 int main(int argc, int** argv) {
-
+/* 
   SymTable* table = SymTable_Init();
 
 
@@ -386,25 +391,25 @@ int main(int argc, int** argv) {
   fprintf(stdout, "Back-ptr: %d\n", first->next->prev->counter);
 
   return 0;
+ */
+  Array_Init(&currString, 20);
+  table = SymTable_Init();
+  extern FILE *yyin, *yyout; 
+  int open = 0;
+  char* path = malloc(200 * sizeof(char));
+  if(argc > 1) {
+    if(!(yyin = fopen(argv[1], "r"))) {
+        perror(argv[1]);
+        return (1);
+    }
+  }
+  yylex();
+  if (open)    fclose(yyin);
+  delete(path);
+  Cyan();
+  printf("\n------EOF-------\n");
+  SymTable_Show(table);
+  Array_Delete(&currString);
 
-  // Array_Init(&currString, 20);
-
-  // extern FILE *yyin, *yyout; 
-  // int open = 0;
-  // char* path = malloc(200 * sizeof(char));
-  // if(argc > 1) {
-  //   if(!(yyin = fopen(argv[1], "r"))) {
-  //       perror(argv[1]);
-  //       return (1);
-  //   }
-  // }
-  // yylex();
-  // if (open)    fclose(yyin);
-  // delete(path);
-  // Cyan();
-  // printf("\n------EOF-------\n");
-
-  // Array_Delete(&currString);
-
-  // return 0; 
+  return 0; 
 }
