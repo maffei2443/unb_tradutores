@@ -26,6 +26,8 @@ typedef struct {
       col;
 } StringStart;
 
+StringStart stringStart;
+
 void showBlockComment() {
   Magenta();
   fprintf(stdout, "Comentario[l. %d, c. %d]\n", comm_block.lineInit, comm_block.colInit);
@@ -58,8 +60,30 @@ void showString() {
   Green();
   fprintf(stdout, "###########\n\n");
   Reset();
-
 }
+void showMissingString() {
+  BoldRed();
+  fprintf(stdout, "Unterminated string[l. %d, c. %d]\n", stringStart.line, stringStart.col);
+  Red();
+  fprintf(stdout, "##########");
+  BoldYellow();
+  fprintf(stdout, "%s", currString.array);
+  Red();
+  fprintf(stdout, "##########\n\n");
+  Reset();
+}
+void showType() {
+  Magenta();
+  fprintf(stdout, "String[l. %d, c. %d]\n", lineComm.lineInit, lineComm.colInit);
+  Green();
+  fprintf(stdout, "###########");
+  BoldYellow();
+  fprintf(stdout, "%s", currString.array);
+  Green();
+  fprintf(stdout, "###########\n\n");
+  Reset();
+}
+
 
 %}
 %x LN_COMMENT
@@ -148,8 +172,8 @@ par [()]
 }
 <LN_COMMENT>{EOL}    {
     ++numlines;
-    currCol = 1;
     showLineComment();
+    currCol = 1;
     Array_Delete(&currString);
     BEGIN (INITIAL);
   }
@@ -167,6 +191,9 @@ par [()]
 
 \" {
   // <STRING> HEAD
+  ++currCol;
+  stringStart.line = numlines;
+  stringStart.col = currCol;
   Array_Delete(&currString);
   Array_Init(&currString, 10);
   BEGIN(STRING);
@@ -193,12 +220,12 @@ par [()]
   BEGIN(INITIAL);
 }
 <STRING>\n {
-  fprintf(stdout, "Unterminated string: |%s|\n", currString.array);
-  BEGIN(INITIAL);
+  showMissingString();
   ++numlines, currCol = 1;
+  BEGIN(INITIAL);
 }
 <STRING><<EOF>> {
-  fprintf(stdout, "Unterminated string: |%s|\n", currString.array);
+  showMissingString();
   BEGIN(INITIAL);
 }
 <STRING>. {
