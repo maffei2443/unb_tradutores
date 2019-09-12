@@ -26,6 +26,18 @@ typedef struct {
       col;
 } StringStart;
 
+void showComment() {
+  Magenta();
+  fprintf(stdout, "Comentario\n");
+  Yellow();
+  fprintf(stdout, "###########");
+  Red();
+  fprintf(stdout, "%s", currString.array);
+  Yellow();
+  fprintf(stdout, "###########\n");
+  Reset();
+}
+
 %}
 %x LN_COMMENT
 %x BL_COMMENT
@@ -65,17 +77,14 @@ par [()]
 "/*"       {
         comm_block.lines = 0; comm_block.isChar = 0; comm_block.notChar=0;
         comm_block.lineInit = numlines; comm_block.colInit = currCol;
-        currCol += 2;
+        currCol += 2;        
+        Array_Init(&currString, 20);
         BEGIN (BL_COMMENT);
   }
 <BL_COMMENT>"*/"    {
-    fprintf(stdout, "Comment has %d lines, %d alpha-num and %d others\n",
-           comm_block.lines+1,
-           comm_block.isChar,
-           comm_block.notChar);
-
-    fprintf(stdout, "Comentario: |%s|\n", currString.array);
+    showComment();
     currCol += 2;
+    Array_Delete(&currString);
     BEGIN (INITIAL);  
 }
 <BL_COMMENT>[a-zA-Z0-9_]+       {

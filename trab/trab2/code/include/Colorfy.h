@@ -2,8 +2,8 @@
 #define COLORFY_H
 
 #pragma once
-
-void reset();
+#include <stdio.h>
+void Reset();
 
 void Red();
 void BoldRed();
