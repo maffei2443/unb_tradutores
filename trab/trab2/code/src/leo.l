@@ -1,7 +1,8 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
-#include "Array.c"
+#include "Array.h"
+#include "Colorfy.h"
 int numlines = 1, currCol = 1;
 
 typedef struct {
@@ -18,8 +19,6 @@ typedef struct  {
       isChar;
 } LineComment;
 LineComment lineComm;
-
-
 
 Array currString;
 typedef struct {
@@ -53,7 +52,7 @@ binLogiOp &&|\|\||^|&
 unaryOp !|-|&
 comment \/\/.*
 
-base_types int|float
+base_types int|float|char
 types mat|{base_types}
 flux_control while|if|else|return
 reserved_words {types}|{flux_control}
@@ -75,6 +74,7 @@ par [()]
            comm_block.isChar,
            comm_block.notChar);
 
+    fprintf(stdout, "Comentario: |%s|\n", currString.array);
     currCol += 2;
     BEGIN (INITIAL);  
 }
@@ -93,11 +93,14 @@ par [()]
   fprintf(stdout,"linha %d, coluna %d carece de fechamento.\n",
     comm_block.lineInit,
     comm_block.colInit);
+  fprintf(stdout, "Comentario: %s\n", currString.array);
   BEGIN(INITIAL); // FUNDAMENTAL
-  fprintf("Comentario: %s\n", currString.array);
 }
 
-<BL_COMMENT>. {++comm_block.notChar;};
+<BL_COMMENT>. {
+  ++comm_block.notChar; ++currCol;
+  Array_Insert(&currString, yytext);
+};
 
 "//"       {
         lineComm.isChar = 0; lineComm.notChar = 0;
@@ -217,6 +220,7 @@ int main(int argc, int** argv) {
   yylex();
   if (open)    fclose(yyin);
   delete(path);
+  Cyan();
   printf("\n------EOF-------\n");
 
   Array_Delete(&currString);
