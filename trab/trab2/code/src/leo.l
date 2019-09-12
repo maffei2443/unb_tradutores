@@ -26,15 +26,26 @@ typedef struct {
       col;
 } StringStart;
 
-void showComment() {
+void showBlockComment() {
   Magenta();
-  fprintf(stdout, "Comentario\n");
+  fprintf(stdout, "Comentario[l. %d, c. %d]\n", comm_block.lineInit, comm_block.colInit);
   Yellow();
   fprintf(stdout, "###########");
   Red();
   fprintf(stdout, "%s", currString.array);
   Yellow();
-  fprintf(stdout, "###########\n");
+  fprintf(stdout, "###########\n\n");
+  Reset();
+}
+void showLineComment() {
+  Magenta();
+  fprintf(stdout, "Comentario[l. %d, c. %d]\n", lineComm.lineInit, lineComm.colInit);
+  Yellow();
+  fprintf(stdout, "###########");
+  Red();
+  fprintf(stdout, "%s", currString.array);
+  Yellow();
+  fprintf(stdout, "###########\n\n");
   Reset();
 }
 
@@ -82,7 +93,7 @@ par [()]
         BEGIN (BL_COMMENT);
   }
 <BL_COMMENT>"*/"    {
-    showComment();
+    showBlockComment();
     currCol += 2;
     Array_Delete(&currString);
     BEGIN (INITIAL);  
@@ -112,22 +123,28 @@ par [()]
 };
 
 "//"       {
+        lineComm.lineInit = numlines; lineComm.colInit = currCol+2;
         lineComm.isChar = 0; lineComm.notChar = 0;
+        currCol+= 2;
+        Array_Init(&currString, 20);
         BEGIN (LN_COMMENT);
   }
-<LN_COMMENT>[a-zA-Z0-9_]       {
-  lineComm.isChar ++;
-  currCol ++;
+<LN_COMMENT>[a-zA-Z0-9_]+       {
+  lineComm.isChar += yyleng;
+  currCol += yyleng;
+  Array_Insert(&currString, yytext);
 }
 <LN_COMMENT>{EOL}    {
     ++numlines;
     currCol = 1;
-    fprintf(stdout, "Comment line has %d alpha-num, %d others\n", lineComm.isChar, lineComm.notChar);
+    showLineComment();
+    Array_Delete(&currString);
     BEGIN (INITIAL);
   }
 <LN_COMMENT>. {
   ++lineComm.notChar;
   ++currCol;
+  Array_Insert(&currString, yytext);
 }
 
 \\/\" {
@@ -199,8 +216,12 @@ par [()]
 }
 
 \n  ++numlines, currCol = 1;
-.   {
-      printf("fora da linguagem: %s\n", yytext);
+" "+   {
+  currCol += yyleng;
+}
+. {
+  fprintf(stdout, "Unknown: %c\n", yytext[0]);
+  currCol++;
 }
 %%
 
