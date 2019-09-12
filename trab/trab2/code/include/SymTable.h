@@ -21,6 +21,6 @@ typedef struct {
 Node * Node_Init();
 SymTable * SymTable_Init();
 void SymTable_Destroy(SymTable * table);
-void SymTable_Insert(SymTable * table, char * sym);
+Node* SymTable_Insert(SymTable * table, char * sym);
 
 #endif

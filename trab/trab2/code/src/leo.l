@@ -343,6 +343,7 @@ int main(int argc, int** argv) {
 
   SymTable* table = SymTable_Init();
 
+
   SymTable_Insert(table, "primeiro");
   SymTable_Insert(table, "segundo");
   SymTable_Insert(table, "primeiro");
@@ -350,21 +351,39 @@ int main(int argc, int** argv) {
   SymTable_Insert(table, "terceiro");
   SymTable_Insert(table, "primeiro");
 
-  fprintf(stdout, "%s\n", table->first->val);
-  fprintf(stdout, "%d\n", table->first->counter);
+  Node * first = table->first;
+  Node * sec = first->next;
+  Node * ter = sec->next;
 
-  fprintf(stdout, "%s\n", table->first->next->val);
-  fprintf(stdout, "%d\n", table->first->next->counter);
+  fprintf(stdout, "%s\n", first->val);
+  fprintf(stdout, "%d\n", first->counter);
 
-  fprintf(stdout, "%s\n", table->first->next->next->val);
-  fprintf(stdout, "%d\n", table->first->next->next->counter);
+  fprintf(stdout, "%s\n", sec->val);
+  fprintf(stdout, "%d\n", sec->counter);
 
-  printf("%p\n", table->first);
-  printf("%p\n", table->first->next);
-  printf("%p\n", table->first->next->next);
-  // printf("%p\n", table->first->next->prev);
-  // fprintf(stdout, "Back-ptr: %s\n", table->first->next->prev->val);
-  // fprintf(stdout, "Back-ptr: %d\n", table->first->next->prev->counter);
+  fprintf(stdout, "%s\n", ter->val);
+  fprintf(stdout, "%d\n", ter->counter);
+
+  printf("addr: \n");
+  printf("\t%p\n", first);
+  printf("\t%p\n", first->next);
+  printf("\t%p\n", first->next->next);
+  printf("end-addr: \n");
+
+  printf("prev: \n");
+  printf("\t%p\n", first->prev);
+  printf("\t%p\n", first->next->prev);
+  printf("\t%p\n", first->next->next->prev);
+  printf("end-prev: \n");
+
+  printf("next: \n");
+  printf("\t%p\n", first->next);
+  printf("\t%p\n", first->next->next);
+  printf("\t%p\n", first->next->next->next);
+  printf("end-prev: \n");
+
+  fprintf(stdout, "Back-ptr: %s\n", first->next->prev->val);
+  fprintf(stdout, "Back-ptr: %d\n", first->next->prev->counter);
 
   return 0;
 
