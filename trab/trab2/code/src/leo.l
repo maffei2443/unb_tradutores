@@ -86,6 +86,12 @@ void showMissingString() {
   fprintf(stdout, "##########\n\n");
   Reset();
 }
+void showAttrOp() {
+  BoldGray();
+  fprintf(stdout, "attr-op ");
+  _blue_dash_red_token();
+}
+
 void showBaseType() {
   char c = yytext[0];
   BoldGreen();
@@ -170,6 +176,17 @@ void showUnaryOp() {
   _blue_dash_red_token();
 }
 
+void showDotOrComma() {
+  Gray();
+  fprintf(stdout,"token ");
+  _blue_dash_red_token();
+}
+void showErrorCharMessage() {
+  BoldRed(),  fprintf(stdout,"Error:"), Reset();
+  fprintf(stdout, " stray ");
+  BoldRed(), fprintf(stdout, "'%c'[l. %d, c. %d]", yytext[0], numlines, currCol), Reset();
+  fprintf(stdout, " in program.\n");
+}
 
 void showID() {
   BoldRed();
@@ -290,11 +307,12 @@ achar ('.')
   // N faz parte da linguagem. Tratamento: considerar que a string
   // começa em >"<.
   fprintf(stdout,"Error: |%s| encontered at l. %d, r. %d.\n", yytext, numlines, currCol);
+  currCol += yyleng;
 }
 
 \" {
   // <STRING> HEAD
-  ++currCol;
+  currCol += yyleng;
   stringStart.line = numlines;
   stringStart.col = currCol;
   Array_Delete(&currString);
@@ -313,13 +331,16 @@ achar ('.')
 <STRING>\\\\ {
   Array_Insert(&currString, yytext);
   fprintf(stdout, "Escaped back-slash\n");
+  currCol += yyleng;
 }
 <STRING>\\\" {
   Array_Insert(&currString, yytext);
   fprintf(stdout, "Scaped quotes\n");
+  currCol += yyleng;
 }
 <STRING>\" {
   showString();
+  currCol += yyleng;
   BEGIN(INITIAL);
 }
 <STRING>\n {
@@ -329,31 +350,41 @@ achar ('.')
 }
 <STRING><<EOF>> {
   showMissingString();
+  currCol += yyleng;
   BEGIN(INITIAL);
 }
 <STRING>. {
+  currCol += yyleng;
   Array_Insert(&currString, yytext);
 }
 
 {matType} {
-      showMatParam();
+    showMatParam();
+    currCol += yyleng;
 }
 
 {par} {
   showPar();
+  currCol += yyleng;
   // SymTable_Insert(table, yytext);
 }
 
 {square} {
   showSquare();
+  currCol += yyleng;
 }
 {bracket} {
   showBracket();
+  currCol += yyleng;
 }
 ;     {
     showStmtEnd();
+    currCol += yyleng;
 }
-[,.]
+[,.] {
+  showDotOrComma();
+  currCol += yyleng;
+}
 
 {reserved_words}/[^a-zA-Z0-9_] {
   switch(yytext[0]) {
@@ -380,26 +411,28 @@ achar ('.')
       printf("OPS! FALTOU PRINT para %s\n", yytext);
       abort();
   }
+  currCol += yyleng;
 }
 
 {ID}    {          
-          showID();
-  }
+    showID();
+    currCol += yyleng;
+}
 {relOp} {
   showRelOp();
+  currCol += yyleng;
 }
 {binMathOp} {
   showBinMathOp();
+  currCol += yyleng;
 }
 {binLogiOp} {
-  showBinLogiOp();  // wrapper for above function
+  showBinLogiOp();
+  currCol += yyleng;
 }
 
 {FLOAT}    {
-            if(strlen(yytext) > 1)showFloatVal();
-            else {
-              printf("Simbolo: .\n");
-            }          
+            if(strlen(yytext) > 1)showFloatVal();            
 }
 {INT}      {
       showIntVal();
@@ -409,9 +442,12 @@ achar ('.')
 " "+   {
   currCol += yyleng;
 }
-
+= {
+  currCol++;
+  showAttrOp();
+}
 . {
-  fprintf(stdout, "Unknown: %c\n", yytext[0]);
+  showErrorCharMessage();
   currCol++;
 }
 %%
