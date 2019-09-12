@@ -5,7 +5,7 @@
 #include "Colorfy.h"
 #include "SymTable.h"
 int numlines = 1, currCol = 1;
-
+int IS_SOURCE_IN_LANGUAGE = 1;
 typedef struct {
   int lines, isChar, notChar;
   int lineInit, colInit;
@@ -236,7 +236,7 @@ par [()]
 bracket [\[\]]
 square [{}]
 
-achar ('.')
+achar '(\\|\\?[a-zA-Z0-9_\\])'
 %%
 {achar} {
   showCharVal();
@@ -349,6 +349,7 @@ achar ('.')
   BEGIN(INITIAL);
 }
 <STRING><<EOF>> {
+  --IS_SOURCE_IN_LANGUAGE;
   showMissingString();
   currCol += yyleng;
   BEGIN(INITIAL);
@@ -409,7 +410,6 @@ achar ('.')
       break;
     defaulf:
       printf("OPS! FALTOU PRINT para %s\n", yytext);
-      abort();
   }
   currCol += yyleng;
 }
@@ -447,6 +447,7 @@ achar ('.')
   showAttrOp();
 }
 . {
+  --IS_SOURCE_IN_LANGUAGE;
   showErrorCharMessage();
   currCol++;
 }
