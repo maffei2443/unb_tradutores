@@ -12,7 +12,7 @@ flsfklsadf
 // mais uma linha comentada
 "ggggggii s   \n"
 // tudo a ver!
-int
+int float matt mat
 "fffffffffffffffff 09fs 
 
 // tudo a ver!

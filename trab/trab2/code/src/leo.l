@@ -83,6 +83,42 @@ void showType() {
   fprintf(stdout, "###########\n\n");
   Reset();
 }
+void showInt(){
+  BoldCyan();
+  fprintf(stdout, "<%s>\n", yytext);
+  Reset();
+}
+void showFluxControl(){
+  BoldGreen();
+  fprintf(stdout, "<%s>", yytext);
+  Reset();
+}
+void showChar(){
+  Magenta();
+  fprintf(stdout, "<%s>\n", yytext);
+  Reset();
+}
+
+void showFloat(){
+  BoldCyan();
+  fprintf(stdout, "<%s>\n", yytext);
+  Reset();
+}
+void showMat(){
+  fprintf(stdout, "\033[0;21m");
+  fprintf(stdout, "<%s>\n", yytext);
+  Reset();
+}
+void showReturn(){
+  fprintf(stdout, "\033[0;66m");
+  fprintf(stdout, "<%s>\n", yytext);
+  Reset();
+}
+void showIterationControl(){
+  fprintf(stdout, "\033[0;51m");
+  fprintf(stdout, "<%s>\n", yytext);
+  Reset();
+}
 
 
 %}
@@ -236,7 +272,36 @@ par [()]
 ;     printf("Statement-end: ;\n");
 {matType}                  printf("Ops! matType = %s\n", yytext);
 
-{reserved_words}/{sep}     printf("Found a reserved word: %s\n", yytext);
+{reserved_words}/[^a-zA-Z0-9_] {
+  switch(yytext[0]) {
+    case 'i':
+      if (yytext[1] == 'n') // int
+        showInt();
+      else                  // if
+        showFluxControl();
+      break;
+    // outras palavras reservadas comecam todas com letras diferentes
+    case 'c':
+      showChar();
+      break;
+    case 'e':
+      showFluxControl();
+      break;
+    case 'f':
+      showFloat();
+      break;
+    case 'm':
+      showMat();
+      break;
+    case 'r':
+      showReturn();
+      break;
+    case 'w':
+      showIterationControl();
+      break;
+  }
+  printf("Reserved word: %s\n", yytext);
+}
 
 {ID}    {          
           printf("ID: %s\n", yytext);
