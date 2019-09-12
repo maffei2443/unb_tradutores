@@ -29,7 +29,19 @@ typedef struct {
 
 StringStart stringStart;
 
-SymTable* table;
+// SymTable* table;
+void _blue_dash_red_token() {
+  Blue();
+  fprintf(stdout, "|---> " );
+  BoldCyan();
+  fprintf(stdout, "<");
+  BoldRed();
+  fprintf(stdout, "%s", yytext);
+  BoldCyan();
+  fprintf(stdout, ">\n");
+  Reset();
+}
+
 void showBlockComment() {
   Magenta();
   fprintf(stdout, "Comentario[l. %d, c. %d]\n", comm_block.lineInit, comm_block.colInit);
@@ -74,54 +86,102 @@ void showMissingString() {
   fprintf(stdout, "##########\n\n");
   Reset();
 }
-void showType() {
-  Magenta();
-  fprintf(stdout, "String[l. %d, c. %d]\n", lineComm.lineInit, lineComm.colInit);
-  Green();
-  fprintf(stdout, "###########");
-  BoldYellow();
-  fprintf(stdout, "%s", currString.array);
-  Green();
-  fprintf(stdout, "###########\n\n");
-  Reset();
-}
-void showInt(){
-  BoldCyan();
-  fprintf(stdout, "<%s>\n", yytext);
-  Reset();
-}
-void showFluxControl(){
+void showBaseType() {
+  char c = yytext[0];
   BoldGreen();
-  fprintf(stdout, "<%s>", yytext);
-  Reset();
-}
-void showChar(){
-  Magenta();
-  fprintf(stdout, "<%s>\n", yytext);
+  fprintf(stdout, "%s-type ", c == 'i' ? "int" : (c == 'c' ? "char" : "float" ) );
+  _blue_dash_red_token();
   Reset();
 }
 
-void showFloat(){
-  BoldCyan();
-  fprintf(stdout, "<%s>\n", yytext);
-  Reset();
+void showCharVal(){
+  Green();
+  fprintf(stdout, "char-val ");
+  _blue_dash_red_token();
+}
+void showFloatVal(){
+  Green();
+  fprintf(stdout, "float-val ");
+  _blue_dash_red_token();
+}
+void showIntVal(){
+  Green();
+  fprintf(stdout, "int-val ");
+  _blue_dash_red_token();
+}
+
+void showFluxControl(){
+  BoldMagenta();
+  fprintf(stdout, "flux-control ");
+  _blue_dash_red_token();
 }
 void showMat(){
-  fprintf(stdout, "\033[0;21m");
-  fprintf(stdout, "<%s>\n", yytext);
-  Reset();
-}
-void showReturn(){
-  fprintf(stdout, "\033[0;66m");
-  fprintf(stdout, "<%s>\n", yytext);
-  Reset();
-}
-void showIterationControl(){
-  fprintf(stdout, "\033[0;51m");
-  fprintf(stdout, "<%s>\n", yytext);
-  Reset();
+  Red();
+  fprintf(stdout, "mat-type " );
+  _blue_dash_red_token();
 }
 
+void showPar() {
+  Red();
+  fprintf(stdout, "%s-par ", yytext[0] == '(' ? "left":"right"  );
+  _blue_dash_red_token();
+}
+void showBracket() {
+  Yellow();
+  fprintf(stdout, "%s-bracket ", yytext[0] == '[' ? "left":"right"  );
+  _blue_dash_red_token();
+}
+void showSquare() {
+  Red();
+  fprintf(stdout, "%s-squarebracket ", yytext[0] == '[' ? "left":"right"  );
+  _blue_dash_red_token();
+}
+
+void showMatParam() {
+  Red();
+  fprintf(stdout, "mat-param ");
+  _blue_dash_red_token();
+}
+void showStmtEnd() {
+  BoldRed();
+  fprintf(stdout, "Statement-end ");
+  _blue_dash_red_token();
+}
+void showRelOp() {
+  Gray();
+  fprintf(stdout, "rel-op ");
+  _blue_dash_red_token();
+}
+void showBinLogiOp(){
+  char c = yytext[0];
+  Gray();
+  fprintf(stdout, "logi-op%s ", c == '&' && yyleng < 2 ? "*" : "");
+  _blue_dash_red_token();
+}
+void showBinMathOp() {
+  BoldGray();
+  fprintf(stdout, "math-op ");
+  _blue_dash_red_token();
+}
+void showUnaryOp() {
+  char c = yytext[0];
+  BoldGray();
+  fprintf(stdout, "unary-op%s ", c == '&' || c == '-' ? "*" : "");
+  _blue_dash_red_token();
+}
+
+
+void showID() {
+  BoldRed();
+  fprintf(stdout, "ID ");
+  BoldCyan();
+  fprintf(stdout, "|---> <" );
+  BoldRed();
+  fprintf(stdout, "%s", yytext);
+  BoldCyan();
+  fprintf(stdout, ">\n");
+  Reset();
+}
 
 %}
 %x LN_COMMENT
@@ -144,8 +204,8 @@ NUM {FLOAT}|{INT}
 
 ID {letter_}({letter_}|{digit})*
 relOp >=|<=|==|!=|>|<
-binMathOp [+-*/@]|@@
-binLogiOp &&|\|\||^|&
+binMathOp @@|[-+*/@]
+binLogiOp &&|\|\||^|&|\|
 unaryOp !|-|&
 comment \/\/.*
 
@@ -156,10 +216,15 @@ reserved_words {types}|{flux_control}
 
 sep [ \t\n\(\)<>[\]\{},.;=]
 par [()]
+bracket [\[\]]
+square [{}]
 
+achar ('.')
 %%
-
-"/*"       {
+{achar} {
+  showCharVal();
+}
+"/\*"       {
         comm_block.lines = 0; comm_block.isChar = 0; comm_block.notChar=0;
         comm_block.lineInit = numlines; comm_block.colInit = currCol;
         currCol += 2;        
@@ -204,7 +269,6 @@ par [()]
         BEGIN (LN_COMMENT);
   }
 <LN_COMMENT>[a-zA-Z0-9_]+       {
-  Array_Insert(table, yytext);
   lineComm.isChar += yyleng;
   currCol += yyleng;
   Array_Insert(&currString, yytext);
@@ -271,64 +335,81 @@ par [()]
   Array_Insert(&currString, yytext);
 }
 
-{par} {
-  printf("%s-parenthesis: %c\n", yytext[0] == '(' ? "left": "right", yytext[0]);
-  SymTable_Insert(table, yytext);
+{matType} {
+      showMatParam();
 }
-;     printf("Statement-end: ;\n");
-{matType}                  printf("Ops! matType = %s\n", yytext);
+
+{par} {
+  showPar();
+  // SymTable_Insert(table, yytext);
+}
+
+{square} {
+  showSquare();
+}
+{bracket} {
+  showBracket();
+}
+;     {
+    showStmtEnd();
+}
+[,.]
 
 {reserved_words}/[^a-zA-Z0-9_] {
   switch(yytext[0]) {
     case 'i':
       if (yytext[1] == 'n') // int
-        showInt();
+        showBaseType();
       else                  // if
         showFluxControl();
       break;
     // outras palavras reservadas comecam todas com letras diferentes
     case 'c':
-      showChar();
+    case 'f':
+      showBaseType();
       break;
     case 'e':
+    case 'r':
+    case 'w':
       showFluxControl();
-      break;
-    case 'f':
-      showFloat();
       break;
     case 'm':
       showMat();
       break;
-    case 'r':
-      showReturn();
-      break;
-    case 'w':
-      showIterationControl();
-      break;
+    defaulf:
+      printf("OPS! FALTOU PRINT para %s\n", yytext);
+      abort();
   }
-  printf("Reserved word: %s\n", yytext);
 }
 
 {ID}    {          
-          printf("ID: %s\n", yytext);
+          showID();
   }
 {relOp} {
-          printf("relOp: %s\n", yytext);
+  showRelOp();
 }
+{binMathOp} {
+  showBinMathOp();
+}
+{binLogiOp} {
+  showBinLogiOp();  // wrapper for above function
+}
+
 {FLOAT}    {
-            if(strlen(yytext) > 1)printf("FLOAT: %s\n", yytext);
+            if(strlen(yytext) > 1)showFloatVal();
             else {
               printf("Simbolo: .\n");
             }          
 }
 {INT}      {
-            printf("Int: %s\n", yytext);
+      showIntVal();
 }
 
 \n  ++numlines, currCol = 1;
 " "+   {
   currCol += yyleng;
 }
+
 . {
   fprintf(stdout, "Unknown: %c\n", yytext[0]);
   currCol++;
@@ -343,6 +424,14 @@ void delete(void* p) {
   free(p);
   p = NULL;
 }
+
+// void Show_Gambs(char * token, char * val) {
+//     Blue();
+//     fprintf(stdout, "________________________________________");
+//     fprintf(stdout, "______________________________________________\n");
+//     Reset();
+//     fprintf(stdout,"%s%40s%40d\n", token, val);
+// }
 
 int main(int argc, int** argv) {
 /* 
@@ -391,9 +480,9 @@ int main(int argc, int** argv) {
   fprintf(stdout, "Back-ptr: %d\n", first->next->prev->counter);
 
   return 0;
- */
+*/
   Array_Init(&currString, 20);
-  table = SymTable_Init();
+  // table = SymTable_Init();
   extern FILE *yyin, *yyout; 
   int open = 0;
   char* path = malloc(200 * sizeof(char));
@@ -408,7 +497,7 @@ int main(int argc, int** argv) {
   delete(path);
   Cyan();
   printf("\n------EOF-------\n");
-  SymTable_Show(table);
+  // SymTable_Show(table);
   Array_Delete(&currString);
 
   return 0; 

@@ -5,6 +5,7 @@
 extern int numlines, currCol;
 
 typedef struct node{
+  // int n;
   int counter;
   int isUsed;
   char * val;

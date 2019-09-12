@@ -39,3 +39,10 @@ void Cyan(){
 void BoldCyan(){
   fprintf(stdout, "\033[1;36m");
 }
+
+void Gray() {
+  fprintf(stdout, "\033[0;37m");
+}
+void BoldGray() {
+  fprintf(stdout, "\033[1;37m");
+}

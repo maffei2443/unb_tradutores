@@ -20,5 +20,6 @@ void Magenta();
 void BoldMagenta();
 void Cyan();
 void BoldCyan();
-
+void Gray();
+void BoldGray();
 #endif
