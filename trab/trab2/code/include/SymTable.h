@@ -2,22 +2,24 @@
 #define SYMTABLE_H
 #pragma once
 
-typedef struct {
+extern int numlines, currCol;
+
+typedef struct node{
   int counter;
   int isUsed;
   char * val;
-  struct Node * next;
-  struct Node * prev;
+  struct node * next;
+  struct node * prev;
 } Node;
 
-typedef struct  {
+typedef struct {
   Node * first;
   int isInit;
   int size;
 } SymTable;
 
-void Node_Init(Node * no);
-void SymTable_Init(SymTable * table);
+Node * Node_Init();
+SymTable * SymTable_Init();
 void SymTable_Destroy(SymTable * table);
 void SymTable_Insert(SymTable * table, char * sym);
 

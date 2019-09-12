@@ -18,14 +18,18 @@
 // } SymTable;
 
 
-void Node_Init(Node * no) {
+Node * Node_Init() {
+  Node * no = malloc(sizeof(no));
   no->counter = 0;  no->val = NULL; no->isUsed = 0;
   no->next = NULL; no->prev = NULL;
+  return no;
 }
 
-void SymTable_Init(SymTable * table) {
+SymTable * SymTable_Init() {
+  SymTable * table = malloc(sizeof(SymTable));
   table->isInit = 1;  table->size = 0;
   table->first = NULL; table->first = malloc(sizeof(Node));
+  return table;
 }
 
 void SymTable_Destroy(SymTable * table) {
@@ -39,12 +43,43 @@ void SymTable_Destroy(SymTable * table) {
 void SymTable_Insert(SymTable * table, char * sym) {
   if (table != NULL) {
     if (table->first == NULL) {
-      Node_Init(table->first);
+      table->first = Node_Init();
     }
     Node * entry = table->first;
+    Node * prev = table->first->prev;
     int found = 0;
-    while (!found) {
-      if(entry->isUsed);
+    while (!found && entry->isUsed) {
+      if (strcmp(sym, entry->val) == 0) {  // se achou na tabela, counter++
+        found = 1;
+        ++entry->counter;
+        printf("eq\n");
+        return;
+      }
+      else if (entry->next != NULL) {
+        prev = entry;  entry = entry->next;
+        printf("next\n");
+      }
+      else if (entry->next == NULL) {  // proximo eh NULL; portanto inserir ali
+        printf("EOL\n");
+        entry->next = Node_Init();
+        prev = entry;  entry = entry->next;
+        printf("alloc\n");
+        break;
+      }
     }
+    // Entao nao estah usado o entry, MAS estah alocado!
+    if(!found) {
+      printf("hula\n");
+      printf("it->prev == NULL? %d\n", entry->prev == NULL);
+      printf("prev? %p\n", prev);
+      entry->prev = prev;
+      entry->val = malloc(sizeof(char) * strlen(sym));
+      strcpy(entry->val, sym); entry->isUsed = 1;
+      entry->counter++;
+    }
+    entry->prev = prev;
   }
+  else 
+    abort();
+  printf("---------\n");
 }

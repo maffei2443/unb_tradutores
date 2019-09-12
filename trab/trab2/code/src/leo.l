@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "Array.h"
 #include "Colorfy.h"
+#include "SymTable.h"
 int numlines = 1, currCol = 1;
 
 typedef struct {
@@ -340,24 +341,51 @@ void delete(void* p) {
 
 int main(int argc, int** argv) {
 
-  Array_Init(&currString, 20);
+  SymTable* table = SymTable_Init();
 
-  extern FILE *yyin, *yyout; 
-  int open = 0;
-  char* path = malloc(200 * sizeof(char));
-  if(argc > 1) {
-    if(!(yyin = fopen(argv[1], "r"))) {
-        perror(argv[1]);
-        return (1);
-    }
-  }
-  yylex();
-  if (open)    fclose(yyin);
-  delete(path);
-  Cyan();
-  printf("\n------EOF-------\n");
+  SymTable_Insert(table, "primeiro");
+  SymTable_Insert(table, "segundo");
+  SymTable_Insert(table, "primeiro");
+  SymTable_Insert(table, "terceiro");
+  SymTable_Insert(table, "terceiro");
+  SymTable_Insert(table, "primeiro");
 
-  Array_Delete(&currString);
+  fprintf(stdout, "%s\n", table->first->val);
+  fprintf(stdout, "%d\n", table->first->counter);
 
-  return 0; 
+  fprintf(stdout, "%s\n", table->first->next->val);
+  fprintf(stdout, "%d\n", table->first->next->counter);
+
+  fprintf(stdout, "%s\n", table->first->next->next->val);
+  fprintf(stdout, "%d\n", table->first->next->next->counter);
+
+  printf("%p\n", table->first);
+  printf("%p\n", table->first->next);
+  printf("%p\n", table->first->next->next);
+  // printf("%p\n", table->first->next->prev);
+  // fprintf(stdout, "Back-ptr: %s\n", table->first->next->prev->val);
+  // fprintf(stdout, "Back-ptr: %d\n", table->first->next->prev->counter);
+
+  return 0;
+
+  // Array_Init(&currString, 20);
+
+  // extern FILE *yyin, *yyout; 
+  // int open = 0;
+  // char* path = malloc(200 * sizeof(char));
+  // if(argc > 1) {
+  //   if(!(yyin = fopen(argv[1], "r"))) {
+  //       perror(argv[1]);
+  //       return (1);
+  //   }
+  // }
+  // yylex();
+  // if (open)    fclose(yyin);
+  // delete(path);
+  // Cyan();
+  // printf("\n------EOF-------\n");
+
+  // Array_Delete(&currString);
+
+  // return 0; 
 }
