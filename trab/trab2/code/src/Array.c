@@ -1,4 +1,4 @@
-#include "../include/Array.h"
+#include "Array.h"
 
 void Array_Init(Array * a, size_t initSize) {
   a->array = (char*)malloc(initSize * sizeof(char));
