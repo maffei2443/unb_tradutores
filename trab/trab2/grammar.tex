@@ -23,21 +23,21 @@
 	
 	<param-list> ::= <param-list> , <param> | <param> 
 	
-	<param> ::= <type-spec> <ID> | <type-spec> <ID> $[$\ $]$ | mat\textless<type-spec-base>> <ID> 
+	<param> ::= <type-spec> <ID> | <base-type-spec> <ID> $[$\ $]$ | mat\textless<type-spec-base>> <ID> 
 	
-	<compound-stmt> ::= { <local-decls> <statement-list> } 
+	<compound-stmt> ::= { <local-decls> <stmt-list> } 
 	
 	<local-decls> ::= <local-decls> <var-decl> | $\epsilon$ 
 	
-	<statement-list> ::= <statement-list> <statement> | $\epsilon$
+	<stmt-list> ::= <stmt-list> <stmt> | $\epsilon$
 	
-	<statement> ::= <expr-stmt> | <compound-stmt> | <selection-stmt> \alt <while-stmt> | <return-stmt> 
+	<stmt> ::= <expr-stmt> | <compound-stmt> | <selection-stmt> \alt <while-stmt> | <return-stmt> 
 	
 	<expr-stmt> ::= <expr> ; | ; 
 	
-	<selection-stmt> ::= \textbf{if} ( <expr> ) <statement> | \textbf{if} ( <expr> ) <statement> \textbf{else} <statement> 
+	<selection-stmt> ::= \textbf{if} ( <expr> ) <stmt> | \textbf{if} ( <expr> ) <stmt> \textbf{else} <stmt> 
 	
-	<while-stmt> ::= \textbf{while} ( <expr> ) <statement> 
+	<while-stmt> ::= \textbf{while} ( <expr> ) <stmt> 
 	
 	<return-stmt> ::= \textbf{return} ; | \textbf{return} <expr> ;
 	

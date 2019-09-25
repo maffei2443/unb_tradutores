@@ -5,7 +5,7 @@
 #include "Colorfy.h"
 #include "SymTable.h"
 int numlines = 1, currCol = 1;
-int IS_SOURCE_IN_LANGUAGE = 1;
+long long unsigned ERRORS_IN_SRC = 0;
 typedef struct {
   int lines, isChar, notChar;
   int lineInit, colInit;
@@ -223,7 +223,7 @@ ID {letter_}({letter_}|{digit})*
 relOp >=|<=|==|!=|>|<
 binMathOp @@|[-+*/@]
 binLogiOp &&|\|\||^|&|\|
-unaryOp !|-|&
+unaryOp !|&
 comment \/\/.*
 
 base_types int|float|char
@@ -270,6 +270,7 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
     comm_block.lineInit,
     comm_block.colInit);
   fprintf(stdout, "Comentario: %s\n", currString.array);
+  ++ERRORS_IN_SRC;
   BEGIN(INITIAL); // FUNDAMENTAL
 }
 
@@ -295,6 +296,7 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
     showLineComment();
     currCol = 1;
     Array_Delete(&currString);
+    ++ERRORS_IN_SRC;
     BEGIN (INITIAL);
   }
 <LN_COMMENT>. {
@@ -349,7 +351,7 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
   BEGIN(INITIAL);
 }
 <STRING><<EOF>> {
-  --IS_SOURCE_IN_LANGUAGE;
+  ++ERRORS_IN_SRC;
   showMissingString();
   currCol += yyleng;
   BEGIN(INITIAL);
@@ -447,7 +449,7 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
   showAttrOp();
 }
 . {
-  --IS_SOURCE_IN_LANGUAGE;
+  ++ERRORS_IN_SRC;
   showErrorCharMessage();
   currCol++;
 }
@@ -471,55 +473,7 @@ void delete(void* p) {
 // }
 
 int main(int argc, int** argv) {
-/* 
-  SymTable* table = SymTable_Init();
-
-
-  SymTable_Insert(table, "primeiro");
-  SymTable_Insert(table, "segundo");
-  SymTable_Insert(table, "primeiro");
-  SymTable_Insert(table, "terceiro");
-  SymTable_Insert(table, "terceiro");
-  SymTable_Insert(table, "primeiro");
-
-  Node * first = table->first;
-  Node * sec = first->next;
-  Node * ter = sec->next;
-
-  fprintf(stdout, "%s\n", first->val);
-  fprintf(stdout, "%d\n", first->counter);
-
-  fprintf(stdout, "%s\n", sec->val);
-  fprintf(stdout, "%d\n", sec->counter);
-
-  fprintf(stdout, "%s\n", ter->val);
-  fprintf(stdout, "%d\n", ter->counter);
-
-  printf("addr: \n");
-  printf("\t%p\n", first);
-  printf("\t%p\n", first->next);
-  printf("\t%p\n", first->next->next);
-  printf("end-addr: \n");
-
-  printf("prev: \n");
-  printf("\t%p\n", first->prev);
-  printf("\t%p\n", first->next->prev);
-  printf("\t%p\n", first->next->next->prev);
-  printf("end-prev: \n");
-
-  printf("next: \n");
-  printf("\t%p\n", first->next);
-  printf("\t%p\n", first->next->next);
-  printf("\t%p\n", first->next->next->next);
-  printf("end-prev: \n");
-
-  fprintf(stdout, "Back-ptr: %s\n", first->next->prev->val);
-  fprintf(stdout, "Back-ptr: %d\n", first->next->prev->counter);
-
-  return 0;
-*/
   Array_Init(&currString, 20);
-  // table = SymTable_Init();
   extern FILE *yyin, *yyout; 
   int open = 0;
   char* path = malloc(200 * sizeof(char));
@@ -534,8 +488,16 @@ int main(int argc, int** argv) {
   delete(path);
   Cyan();
   printf("\n------EOF-------\n");
-  // SymTable_Show(table);
   Array_Delete(&currString);
-
+  if (ERRORS_IN_SRC > 0) {
+    BoldRed();
+    fprintf(stdout, "Code does not belong to language.\n");
+    fprintf(stdout, "%lu errors were found.\n", ERRORS_IN_SRC);
+  }
+  else {
+    BoldGreen();
+    fprintf(stdout, "Congrats! The code is in the language.\n");
+  }
+  Reset();
   return 0; 
 }
