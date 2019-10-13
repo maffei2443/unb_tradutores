@@ -1,0 +1,115 @@
+// Passagem de parametro: sempre por REFERENCIA
+// $: dereferencia; pode ler/escrever
+program ::= <global-stmt-list>
+
+global-stmt-list ::= global-stmt-list, global-stmt| global-stmt
+
+global-stmt ::= decl-fun | def-fun | <decl-var>; | <attr-var>;
+
+def-fun ::= fn <ID> (<param-list-void>) -> <base-type> <block>
+
+decl-fun ::= AHEAD fn <ID> | <param-list-void>| -> <base-type>;
+
+decl-var ::= mat <base-type> <ID> [<NUM>] [<NUM>] | <base-type> <ID-ARR>
+
+<ID-ARR> ::= <ID> [NUM-ID] | <ID>
+
+attr-var ::= mat-attr | index-attr | simple-attr
+
+var ::= <ID> [<NUM-ID>] [<NUM-ID>] | <ID> [<NUM-ID>] | <ID>
+
+simple-attr ::= <ID> = <simple-expr>;
+
+index-attr ::= <ID> [NUM-ID] = <simple-expr>;
+
+mat-attr ::= <ID> = [<num-list-list>] | <ID> [<NUM-ID>] = {<num-list>} | <ID> [<NUM-ID>] [<NUM-ID>] = <simple-expr>
+
+num-list-list ::=  <num-list-list>, <num-list> | <num-list>
+
+num-list ::= <num-list> <NUM> | <NUM> | <ID>
+
+stmt ::= return <simple-expr>;
+	| COPY( <ID> <ID>)
+	| READ( <ID> [<NUM-ID>] [<NUM-ID>]);
+	| READ( <ID> [<NUM-ID>] );
+	| READ( <ID> );
+	| PRINT( <ID> [<NUM-ID>] [<NUM-ID>] );
+	| PRINT( <ID> [<NUM-ID>] );
+	| PRINT( <ID> );
+	| <call>;
+	| <decl-var>;
+	| <attr-var>;
+	| <flux-control>
+	| <loop>
+
+param-list-void ::= void | <param-list>
+param-list ::= <param-list>, <param> | <param>
+param ::= <base-type> <ID> [<NUM-ID>] | <base-type> <ID> | mat <<base-type>> <ID> [<NUM-ID>][<NUM-ID>]
+loop ::= while( <simple-expr> ) <block>
+flux-control ::= if(<simple-expr>) <block> else <flux-control> | if(<simple-expr>) <block> else <block>
+block ::= { stmt-list }
+stmt-list ::= <stmt-list>, <stmt> | <stmt>
+
+<simple-expr> ::= <add-expr> <relop> <add-expr> | <add-expr>
+
+<relop> ::= \textless= | \textless\ | > | >= | == | !=
+
+<add-expr> ::= <add-expr> <addop> <term> | <term>
+
+<addop> ::= [+-] 
+
+<term> ::= <term> <mulop> <bin> | <bin>
+
+<mulop> ::= [*/@] | @@
+
+<bin> ::= <bin> <bin-logi> <unary> \alt <unary>
+
+<bin-logi> ::= \&\& \alt ||
+
+<unary> ::= <unary-op> <factor> | <factor> 
+
+<unary-op> ::= [!\&]
+
+<factor> ::= ( <simple-expr> ) | <NUM-ID> | <ID> [<NUM-ID>] | <ID>[<NUM-ID>][<NUM-ID>] | <call>
+
+<NUM-ID> ::= <NUM> | <ID>
+
+call ::= <ID>(<arg-list>) | <ID>()
+
+arg-list ::= arg-list, arg | arg
+
+arg ::= <mat-arg> | <ID>[<NUM-ID>] | <NUM-ID>
+
+mat-arg ::= <ID> <NUM-ID> <NUM-ID>
+
+ID-ascii ::= <ID> | '<ascii>'
+
+base-type ::= char|int|float
+
+
+
+char x;
+int x;
+float x;
+
+fn name |int 1 p1, char 10 p2| -> type {
+	return $p1 * p2[2];	// erro pois sao tipos distintos
+}
+
+int v = 1;
+char g = 'a';
+
+fn main |void| -> int {
+	// Pode:
+	// 	- declarar variavel (OK)
+	// 	- atribuir aa variavel: (<var> = <expr>)
+	// 		+ expressao aritmetica (pos-fixo)
+	// 		
+	// 	- loop [while] (ok)
+	// 		+ break	(ok)
+	// 		+ continue (ok)
+	// 	- controle de fluxo (if/else) (ok)
+	//	- function call
+	// 	- READ/WRITE (ok, ok)
+	// 	
+}
