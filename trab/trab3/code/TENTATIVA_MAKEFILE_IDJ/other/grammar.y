@@ -46,19 +46,16 @@ attr-var : mat-attr
 | index-attr 
 | simple-attr
 
-access-var : ID '[' simple-expr ']' '[' simple-expr ']' 
-| ID '['simple-expr']' 
-| ID
 
-simple-attr : ID '=' simple-expr;
+simple-attr : ID '=' expr;
 
-index-attr : ID '[' num-id ']' '=' simple-expr;
+index-attr : ID '[' num-id ']' '=' expr;
 
 mat-attr : ID '=' '['num-list-list']' 
 
 | ID '['num-id']' '=' '{'num-list'}' 
 
-| ID '['num-id']' '['num-id']' '=' simple-expr
+| ID '['num-id']' '['num-id']' '=' expr
 
 num-list-list :  num-list-list '{' num-list '}'
 | num-list
@@ -67,7 +64,7 @@ num-list : num-list NUM
 | NUM 
 | ID
 
-stmt : RETURN simple-expr;
+stmt : RETURN expr;
 	
 	| COPY'(' ID ID')'
 	
@@ -102,17 +99,17 @@ param-list : param-list param
 param : base-type ID 
 | MAT base-type ID
 
-loop : WHILE'(' simple-expr ')' block
+loop : WHILE'(' expr ')' block
 
-flux-control : IF'(' simple-expr ')' block ELSE flux-control 
-| IF '('simple-expr')' block ELSE block
+flux-control : IF'(' expr ')' block ELSE flux-control 
+| IF '('expr')' block ELSE block
 
 block : LC stmt-list RC
 
 stmt-list : stmt-list stmt 
 | stmt
 
-simple-expr : add-expr relop add-expr 
+expr : add-expr relop add-expr 
 | add-expr
 
 relop : LE 
@@ -147,13 +144,16 @@ unary : unary-op factor
 unary-op : NOT
 | ADDR
 
-factor : LP simple-expr RP 
+factor : LP expr RP 
 | aux
 | call
+| '\''ascii'\''
 
-aux : ID '[' num-id ']' '[' num-id ']' 
-| ID '[' num-id ']' 
-| num-id
+
+aux : ID '[' expr ']' '[' expr ']' 
+| ID '[' expr ']' 
+| ID
+| NUM
 
 num-id : NUM 
 | ID
@@ -169,8 +169,7 @@ arg : mat-arg
 
 mat-arg : ID num-id num-id
 
-id-ascii : ID 
-| '\'' ASCII '\''
+ascii : '\'' ASCII '\''
 
 base-type : CHAR 
 | INT
