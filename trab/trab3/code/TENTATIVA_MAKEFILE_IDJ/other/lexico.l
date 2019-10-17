@@ -45,7 +45,7 @@ void void
 base_types int|float|char
 types mat|{base_types}
 flux_control while|if|else|return
-reserved_words {types}|{flux_control}|{void}
+reserved_words {types}|{flux_control}|{void}|"ahead"
 
 sep [ \t\n\(\)<>[\]\{},.;=]
 par [()]
@@ -258,6 +258,9 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
       return VOID;
     // TODO
     // COPY PRINT READ
+    case 'a':
+      showAhead(); currCol += yyleng;
+      return AHEAD;
     defaulf:
       currCol += yyleng;
       printf("OPS! FALTOU PRINT para %s\n", yytext);
@@ -327,12 +330,13 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
 
 {FLOAT}    {
   yylval = atof(yytext);
-  return FLOAT_TYPE;
+  showFloatVal();
+  return FLOAT;
 }
 {INT}      {
   yylval = atoi(yytext);
   showIntVal();
-  return NUM;
+  return INT;
 }
 
 \n  ++numlines, currCol = 1;

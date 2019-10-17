@@ -7,6 +7,7 @@
 %}
 
 %token CHAR_TYPE INT_TYPE FLOAT_TYPE MAT_TYPE VOID
+%token CHAR INT FLOAT 
 %token LETTER_ DIGIT
 %token ID NUM FN AHEAD
 %token LP RP
@@ -27,6 +28,7 @@ program : global-stmt-list
 
 global-stmt-list : global-stmt-list global-stmt 
 | global-stmt
+| block
 
 global-stmt : decl-fun 
 | def-fun 
@@ -34,9 +36,13 @@ global-stmt : decl-fun
 | attr-var SEMI_COLON
 | NUM {printf("NUMMMMM %d\n", yyval);}
 
-def-fun : ID LP param-list-void RP base-type block
+def-fun : ID LP param-list-void RP base-type block {
+  printf("Definicao de funcao!\n");
+}
 
-decl-fun : AHEAD ID LP param-list-void RP SEMI_COLON
+decl-fun : AHEAD ID LP param-list-void RP base-type SEMI_COLON {
+  printf("DECLARACAO DE FUNCAOO\n");
+}
 
 decl-var : MAT_TYPE base-type ID LS NUM RS LS NUM RS 
 | base-type id-arr
@@ -107,7 +113,10 @@ loop : WHILE '(' expr ')' block
 flux-control : IF LP expr RP block ELSE flux-control 
 | IF LP expr RP block ELSE block
 
-block : LC stmt-list RC {printf("Bloco!\n");}
+block : LC stmt-list RC {
+  printf("BLOCO!!!\n");
+}
+| LC RC {printf("Bloco vazio!\n");}
 
 stmt-list : stmt-list stmt 
 | stmt
@@ -158,7 +167,8 @@ aux : ID LS expr RS LS expr RS
 | ID
 | NUM
 
-num-id : NUM 
+num-id : INT 
+| FLOAT
 | ID
 
 call : ID LP arg-list RP
