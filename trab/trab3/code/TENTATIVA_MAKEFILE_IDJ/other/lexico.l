@@ -1,204 +1,19 @@
 %{
+#include "grammar.tab.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "Array.h"
 #include "Colorfy.h"
 #include "SymTable.h"
+#include "Common.h"
+#include "Prints.h"
 int numlines = 1, currCol = 1;
 long long unsigned ERRORS_IN_SRC = 0;
-typedef struct {
-  int lines, isChar, notChar;
-  int lineInit, colInit;
-} CommBlock;
-
-CommBlock comm_block;
-
-typedef struct  {
-  int lineInit,
-      colInit,
-      notChar,
-      isChar;
-} LineComment;
-LineComment lineComm;
-
-Array currString;
-typedef struct {
-  int line,
-      col;
-} StringStart;
 
 StringStart stringStart;
 
 // SymTable* table;
-void _blue_dash_red_token() {
-  Blue();
-  fprintf(stdout, "|---> " );
-  BoldCyan();
-  fprintf(stdout, "<");
-  BoldRed();
-  fprintf(stdout, "%s", yytext);
-  BoldCyan();
-  fprintf(stdout, ">\n");
-  Reset();
-}
 
-void showBlockComment() {
-  Magenta();
-  fprintf(stdout, "Comentario[l. %d, c. %d]\n", comm_block.lineInit, comm_block.colInit);
-  Yellow();
-  fprintf(stdout, "###########");
-  Red();
-  fprintf(stdout, "%s", currString.array);
-  Yellow();
-  fprintf(stdout, "###########\n\n");
-  Reset();
-}
-void showLineComment() {
-  Magenta();
-  fprintf(stdout, "Comentario[l. %d, c. %d]\n", lineComm.lineInit, lineComm.colInit);
-  Yellow();
-  fprintf(stdout, "###########");
-  Red();
-  fprintf(stdout, "%s", currString.array);
-  Yellow();
-  fprintf(stdout, "###########\n\n");
-  Reset();
-}
-void showString() {
-  Magenta();
-  fprintf(stdout, "String[l. %d, c. %d]\n", lineComm.lineInit, lineComm.colInit);
-  Green();
-  fprintf(stdout, "###########");
-  BoldYellow();
-  fprintf(stdout, "%s", currString.array);
-  Green();
-  fprintf(stdout, "###########\n\n");
-  Reset();
-}
-void showMissingString() {
-  BoldRed();
-  fprintf(stdout, "Unterminated string[l. %d, c. %d]\n", stringStart.line, stringStart.col);
-  Red();
-  fprintf(stdout, "##########");
-  BoldYellow();
-  fprintf(stdout, "%s", currString.array);
-  Red();
-  fprintf(stdout, "##########\n\n");
-  Reset();
-}
-void showAttrOp() {
-  BoldGray();
-  fprintf(stdout, "attr-op ");
-  _blue_dash_red_token();
-}
-
-void showBaseType() {
-  char c = yytext[0];
-  BoldGreen();
-  fprintf(stdout, "%s-type ", c == 'i' ? "int" : (c == 'c' ? "char" : "float" ) );
-  _blue_dash_red_token();
-  Reset();
-}
-
-void showCharVal(){
-  Green();
-  fprintf(stdout, "char-val ");
-  _blue_dash_red_token();
-}
-void showFloatVal(){
-  Green();
-  fprintf(stdout, "float-val ");
-  _blue_dash_red_token();
-}
-void showIntVal(){
-  Green();
-  fprintf(stdout, "int-val ");
-  _blue_dash_red_token();
-}
-
-void showFluxControl(){
-  BoldMagenta();
-  fprintf(stdout, "flux-control ");
-  _blue_dash_red_token();
-}
-void showMat(){
-  Red();
-  fprintf(stdout, "mat-type " );
-  _blue_dash_red_token();
-}
-
-void showPar() {
-  Red();
-  fprintf(stdout, "%s-par ", yytext[0] == '(' ? "left":"right"  );
-  _blue_dash_red_token();
-}
-void showBracket() {
-  Yellow();
-  fprintf(stdout, "%s-bracket ", yytext[0] == '[' ? "left":"right"  );
-  _blue_dash_red_token();
-}
-void showSquare() {
-  Red();
-  fprintf(stdout, "%s-squarebracket ", yytext[0] == '[' ? "left":"right"  );
-  _blue_dash_red_token();
-}
-
-void showMatParam() {
-  Red();
-  fprintf(stdout, "mat-param ");
-  _blue_dash_red_token();
-}
-void showStmtEnd() {
-  BoldRed();
-  fprintf(stdout, "Statement-end ");
-  _blue_dash_red_token();
-}
-void showRelOp() {
-  Gray();
-  fprintf(stdout, "rel-op ");
-  _blue_dash_red_token();
-}
-void showBinLogiOp(){
-  char c = yytext[0];
-  Gray();
-  fprintf(stdout, "logi-op%s ", c == '&' && yyleng < 2 ? "*" : "");
-  _blue_dash_red_token();
-}
-void showBinMathOp() {
-  BoldGray();
-  fprintf(stdout, "math-op ");
-  _blue_dash_red_token();
-}
-void showUnaryOp() {
-  char c = yytext[0];
-  BoldGray();
-  fprintf(stdout, "unary-op%s ", c == '&' || c == '-' ? "*" : "");
-  _blue_dash_red_token();
-}
-
-void showDotOrComma() {
-  Gray();
-  fprintf(stdout,"token ");
-  _blue_dash_red_token();
-}
-void showErrorCharMessage() {
-  BoldRed(),  fprintf(stdout,"Error:"), Reset();
-  fprintf(stdout, " stray ");
-  BoldRed(), fprintf(stdout, "'%c'[l. %d, c. %d]", yytext[0], numlines, currCol), Reset();
-  fprintf(stdout, " in program.\n");
-}
-
-void showID() {
-  BoldRed();
-  fprintf(stdout, "ID ");
-  BoldCyan();
-  fprintf(stdout, "|---> <" );
-  BoldRed();
-  fprintf(stdout, "%s", yytext);
-  BoldCyan();
-  fprintf(stdout, ">\n");
-  Reset();
-}
 // {digit}*("."{digit}*{exp}?|("."{digit}*)?{exp})
 %}
 %x LN_COMMENT
@@ -216,7 +31,7 @@ matType <\s*(int|float|char)\s*>
 
 INT [0-9]+
 exp [eE][+-]?{digit}+
-FLOAT {digit}+"."{digit}*|{digit}*"."{digit}+
+FLOAT {digit}+"."{digit}+
 NUM {FLOAT}|{INT}
 
 ID {letter_}({letter_}|{digit})*
@@ -226,20 +41,33 @@ binLogiOp &&|\|\||^|&|\|
 unaryOp !|&
 comment \/\/.*
 
+void void
 base_types int|float|char
 types mat|{base_types}
 flux_control while|if|else|return
-reserved_words {types}|{flux_control}
+reserved_words {types}|{flux_control}|{void}
 
 sep [ \t\n\(\)<>[\]\{},.;=]
 par [()]
 bracket [\[\]]
-square [{}]
+curly [{}]
 
 achar '(\\|\\?[a-zA-Z0-9_\\])'
 %%
 {achar} {
-  showCharVal();
+
+  if(yyleng == 3 && yytext[1] == '\\'){
+    fprintf(stderr, "Error: missing <'> at l. %d, r. %d\n", numlines, currCol+2);
+    ERRORS_IN_SRC++;
+    currCol += yyleng;
+    // TODO : 
+  }
+  else {
+    currCol += yyleng;
+    showCharVal();
+    return ASCII;
+  }
+  
 }
 "/\*"       {
         comm_block.lines = 0; comm_block.isChar = 0; comm_block.notChar=0;
@@ -364,80 +192,147 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
 {matType} {
     showMatParam();
     currCol += yyleng;
+    return MAT_TYPE;
 }
 
 {par} {
   showPar();
   currCol += yyleng;
-  // SymTable_Insert(table, yytext);
+  return yytext[0] == '(' ? LP : RP;
 }
 
-{square} {
-  showSquare();
+{curly} {
+  showCurly();
   currCol += yyleng;
+  return yytext[0] == '{' ? LC : RC;
 }
 {bracket} {
   showBracket();
   currCol += yyleng;
+  return yytext[0] == '[' ? LS : RS;
 }
 ;     {
-    showStmtEnd();
-    currCol += yyleng;
+  showStmtEnd();
+  currCol += yyleng;
+  return SEMI_COLON;  
 }
 [,.] {
   showDotOrComma();
   currCol += yyleng;
+  return yytext[0] == '.' ? DOT : COMMA;
 }
 
 {reserved_words}/[^a-zA-Z0-9_] {
-  switch(yytext[0]) {
+  printf("RES_WORD: %s\n", yytext);
+  char yy0 = yytext[0];
+  char yy1 = yytext[1];
+  switch(yy0) {
     case 'i':
-      if (yytext[1] == 'n') // int
+      if (yy1 == 'n') // int
         showBaseType();
       else                  // if
         showFluxControl();
-      break;
+      currCol += yyleng;
+      return yy1 == 'n' ? INT_TYPE : IF;
     // outras palavras reservadas comecam todas com letras diferentes
     case 'c':
+      showBaseType(); currCol += yyleng;
+      return CHAR_TYPE;
     case 'f':
-      showBaseType();
-      break;
+      showBaseType(); currCol += yyleng;
+      return FLOAT_TYPE;
     case 'e':
+      showFluxControl(); currCol += yyleng;
+      return ELSE;
     case 'r':
+      showFluxControl(); currCol += yyleng;
+      return RETURN;
     case 'w':
-      showFluxControl();
-      break;
+      showFluxControl(); currCol += yyleng;
+      return WHILE;
     case 'm':
-      showMat();
-      break;
+      showMat(); currCol += yyleng;
+      return MAT_TYPE;
+    case 'v':
+      printf("voide!\n");
+      return VOID;
+    // TODO
+    // COPY PRINT READ
     defaulf:
+      currCol += yyleng;
       printf("OPS! FALTOU PRINT para %s\n", yytext);
   }
-  currCol += yyleng;
 }
 
-{ID}    {          
+{ID} {          
     showID();
     currCol += yyleng;
+    return ID;
 }
 {relOp} {
   showRelOp();
   currCol += yyleng;
+  char yy0 = yytext[0], yy1 = yytext[1];
+  if(yyleng < 2) {
+    switch(yy0) {
+      case '>':        
+        return GT;
+      case '<':
+        return LT;
+    }
+  }
+  else
+    switch(yy0) {
+      case '>': return GE;
+      case '<': return LE;
+      case '=': return EQ;
+      case '!': return NEQ;
+    }
 }
 {binMathOp} {
   showBinMathOp();
   currCol += yyleng;
+  if(yyleng == 2) {
+    return MAT_POW;
+  }
+  else {
+    switch(yytext[0]) {
+      case '-': return SUB;
+      case '+': return ADD;
+      case '/': return DIV;
+      case '*': return MUL;
+      case '@': return MAT_MUL;
+    }
+  }
 }
+
 {binLogiOp} {
   showBinLogiOp();
   currCol += yyleng;
+  if(yyleng == 2) {
+    switch(yytext[0]) {
+      case '&': return AND;
+      case '|': return OR;
+    }
+  }
+  else {
+    switch(yytext[0]) {
+      case '^': return XOR_BITWISE;
+      case '&': return AND_BITWISE;
+      case '|': return OR_BITWISE;
+    }
+  }
+
 }
 
 {FLOAT}    {
-            if(strlen(yytext) > 1)showFloatVal();            
+  yylval = atof(yytext);
+  return FLOAT_TYPE;
 }
 {INT}      {
-      showIntVal();
+  yylval = atoi(yytext);
+  showIntVal();
+  return NUM;
 }
 
 \n  ++numlines, currCol = 1;
@@ -447,6 +342,7 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
 = {
   currCol++;
   showAttrOp();
+  return ATTR;
 }
 . {
   ++ERRORS_IN_SRC;
@@ -472,32 +368,32 @@ void delete(void* p) {
 //     fprintf(stdout,"%s%40s%40d\n", token, val);
 // }
 
-int main(int argc, int** argv) {
-  Array_Init(&currString, 20);
-  extern FILE *yyin, *yyout; 
-  int open = 0;
-  char* path = malloc(200 * sizeof(char));
-  if(argc > 1) {
-    if(!(yyin = fopen(argv[1], "r"))) {
-        perror(argv[1]);
-        return (1);
-    }
-  }
-  yylex();
-  if (open)    fclose(yyin);
-  delete(path);
-  Cyan();
-  printf("\n------EOF-------\n");
-  Array_Delete(&currString);
-  if (ERRORS_IN_SRC > 0) {
-    BoldRed();
-    fprintf(stdout, "Code does not belong to language.\n");
-    fprintf(stdout, "%lu errors were found.\n", ERRORS_IN_SRC);
-  }
-  else {
-    BoldGreen();
-    fprintf(stdout, "Congrats! The code is in the language.\n");
-  }
-  Reset();
-  return 0; 
-}
+// int _main(int argc, int** argv) {
+//   Array_Init(&currString, 20);
+//   extern FILE *yyin, *yyout; 
+//   int open = 0;
+//   char* path = malloc(200 * sizeof(char));
+//   if(argc > 1) {
+//     if(!(yyin = fopen(argv[1], "r"))) {
+//         perror(argv[1]);
+//         return (1);
+//     }
+//   }
+//   // yylex();
+//   if (open)    fclose(yyin);
+//   delete(path);
+//   Cyan();
+//   printf("\n------EOF-------\n");
+//   Array_Delete(&currString);
+//   if (ERRORS_IN_SRC > 0) {
+//     BoldRed();
+//     fprintf(stdout, "Code does not belong to language.\n");
+//     fprintf(stdout, "%llu errors were found.\n", ERRORS_IN_SRC);
+//   }
+//   else {
+//     BoldGreen();
+//     fprintf(stdout, "Congrats! The code is in the language.\n");
+//   }
+//   Reset();
+//   return 0; 
+// }

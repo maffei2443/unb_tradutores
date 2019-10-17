@@ -6,7 +6,7 @@
 // C : curly bracket ~~ {}
 %}
 
-%token CHAR INT FLOAT MAT VOID
+%token CHAR_TYPE INT_TYPE FLOAT_TYPE MAT_TYPE VOID
 %token LETTER_ DIGIT
 %token ID NUM FN AHEAD
 %token LP RP
@@ -19,7 +19,8 @@
 %token NOT ADDR
 %token IF ELSE WHILE RETURN 
 %token COPY PRINT READ
-%token ASCII
+%token ASCII SEMI_COLON DOT COMMA ATTR
+%token XOR_BITWISE AND_BITWISE OR_BITWISE
 %%
 
 program : global-stmt-list
@@ -29,17 +30,18 @@ global-stmt-list : global-stmt-list global-stmt
 
 global-stmt : decl-fun 
 | def-fun 
-| decl-var; 
-| attr-var;
+| decl-var SEMI_COLON 
+| attr-var SEMI_COLON
+| NUM {printf("NUMMMMM %d\n", yyval);}
 
-def-fun : FN ID '(' param-list-void ')' base-type block
+def-fun : ID LP param-list-void RP base-type block
 
-decl-fun : AHEAD FN ID '(' param-list-void ')' base-type;
+decl-fun : AHEAD ID LP param-list-void RP SEMI_COLON
 
-decl-var : MAT base-type ID '[' NUM ']' '[' NUM ']' 
+decl-var : MAT_TYPE base-type ID LS NUM RS LS NUM RS 
 | base-type id-arr
 
-id-arr : ID '[' num-id ']' 
+id-arr : ID LS num-id RS 
 | ID
 
 attr-var : mat-attr 
@@ -47,48 +49,49 @@ attr-var : mat-attr
 | simple-attr
 
 
-simple-attr : ID '=' expr;
+simple-attr : ID ATTR expr SEMI_COLON
 
-index-attr : ID '[' num-id ']' '=' expr;
+index-attr : ID LS num-id RS ATTR expr SEMI_COLON
 
-mat-attr : ID '=' '['num-list-list']' 
+mat-attr : ID ATTR LS num-list-list RS 
 
-| ID '['num-id']' '=' '{'num-list'}' 
+| ID LS num-id RS ATTR LC num-list RC 
 
-| ID '['num-id']' '['num-id']' '=' expr
+| ID LS num-id RS LS num-id RS ATTR expr
 
-num-list-list :  num-list-list '{' num-list '}'
+num-list-list :  num-list-list LC num-list RC
 | num-list
 
 num-list : num-list NUM 
 | NUM 
 | ID
 
-stmt : RETURN expr;
+stmt : RETURN expr SEMI_COLON
 	
-	| COPY'(' ID ID')'
+	| COPY LP ID ID ')'
 	
-	| READ'(' ID '['num-id']' '['num-id']'')';
+	| READ LP ID LS num-id RS LS num-id RS RP SEMI_COLON
 	
-	| READ'(' ID '['num-id']' ')';
+	| READ LP ID LS num-id RS RP SEMI_COLON
 	
-	| READ'(' ID ')';
+	| READ LP ID RP SEMI_COLON
 	
-	| PRINT'(' ID '['num-id']' '['num-id']' ')';
+	| PRINT LP ID LS num-id RS LS num-id RS RP SEMI_COLON
 	
-	| PRINT'(' ID '['num-id']' ')';
+	| PRINT LP ID LS num-id RS RP SEMI_COLON
 	
-	| PRINT'(' ID ')';
+	| PRINT LP ID RP SEMI_COLON
 	
-	| call;
+	| call SEMI_COLON
 	
-	| decl-var;
+	| decl-var SEMI_COLON
 	
-	| attr-var;
+	| attr-var SEMI_COLON
 	
 	| flux-control
 	
 	| loop
+  | NUM SEMI_COLON
 
 param-list-void : VOID 
 | param-list
@@ -97,14 +100,14 @@ param-list : param-list param
 | param
 
 param : base-type ID 
-| MAT base-type ID
+| MAT_TYPE base-type ID
 
-loop : WHILE'(' expr ')' block
+loop : WHILE '(' expr ')' block
 
-flux-control : IF'(' expr ')' block ELSE flux-control 
-| IF '('expr')' block ELSE block
+flux-control : IF LP expr RP block ELSE flux-control 
+| IF LP expr RP block ELSE block
 
-block : LC stmt-list RC
+block : LC stmt-list RC {printf("Bloco!\n");}
 
 stmt-list : stmt-list stmt 
 | stmt
@@ -150,18 +153,18 @@ factor : LP expr RP
 | '\''ascii'\''
 
 
-aux : ID '[' expr ']' '[' expr ']' 
-| ID '[' expr ']' 
+aux : ID LS expr RS LS expr RS 
+| ID LS expr RS 
 | ID
 | NUM
 
 num-id : NUM 
 | ID
 
-call : ID '(' arg-list ')' 
-| ID '('VOID')'
+call : ID LP arg-list RP
+| ID LP VOID RP
 
-arg-list : arg-list ',' arg 
+arg-list : arg-list COMMA arg 
 | arg
 
 arg : mat-arg 
@@ -171,13 +174,16 @@ mat-arg : ID num-id num-id
 
 ascii : '\'' ASCII '\''
 
-base-type : CHAR 
-| INT
-| FLOAT
+base-type : CHAR_TYPE 
+| INT_TYPE
+| FLOAT_TYPE
 
 
 %%
-void
-yyerror (char const *s){
+// extern void yyerror (char const *s);
+void yyerror (char const *s) {
   fprintf (stderr, "%s\n", s);
+}
+int main() {
+  yyparse();
 }
