@@ -329,12 +329,12 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
 }
 
 {FLOAT}    {
-  yylval = atof(yytext);
+  yylval.fval = atof(yytext);
   showFloatVal();
   return FLOAT;
 }
 {INT}      {
-  yylval = atoi(yytext);
+  yylval.ival = atoi(yytext);
   showIntVal();
   return INT;
 }

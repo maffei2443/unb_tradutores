@@ -22,6 +22,12 @@
 %token COPY PRINT READ
 %token ASCII SEMI_COLON DOT COMMA ATTR
 %token XOR_BITWISE AND_BITWISE OR_BITWISE
+%union {
+  int ival;
+  float fval;
+  char cval;
+  char* sval;
+}
 %%
 
 program : global-stmt-list
@@ -35,7 +41,8 @@ global-stmt : decl-fun
 | decl-var SEMI_COLON 
 | attr-var SEMI_COLON
 | block
-| NUM {printf("NUMMMMM %d\n", yyval);}
+| INT {printf("NUMMMMM %d\n", yyval.ival);}
+| FLOAT {printf("FLOOAT %f\n", yyval.fval);}
 
 def-fun : ID LP param-list-void RP base-type block {
   printf("Definicao de funcao!\n");
@@ -114,9 +121,7 @@ loop : WHILE '(' expr ')' block
 flux-control : IF LP expr RP block ELSE flux-control 
 | IF LP expr RP block ELSE block
 
-block : LC stmt-list RC {
-  printf("BLOCO!!!\n");
-}
+block : LC stmt-list RC { printf("BLOCO!!!\n");}
 | LC RC {printf("Bloco vazio!\n");}
 
 stmt-list : stmt-list stmt 
