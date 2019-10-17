@@ -28,12 +28,13 @@ program : global-stmt-list
 
 global-stmt-list : global-stmt-list global-stmt 
 | global-stmt
-| block
+
 
 global-stmt : decl-fun 
 | def-fun 
 | decl-var SEMI_COLON 
 | attr-var SEMI_COLON
+| block
 | NUM {printf("NUMMMMM %d\n", yyval);}
 
 def-fun : ID LP param-list-void RP base-type block {
@@ -74,7 +75,7 @@ num-list : num-list NUM
 
 stmt : RETURN expr SEMI_COLON
 	
-	| COPY LP ID ID ')'
+	| COPY LP ID ID RP
 	
 	| READ LP ID LS num-id RS LS num-id RS RP SEMI_COLON
 	

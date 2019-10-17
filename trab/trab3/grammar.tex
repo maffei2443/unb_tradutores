@@ -1,102 +1,111 @@
 \begin{grammar}
-	<program> ::= <decl-list>
+	<program> ::= <global-stmt-list>
 
-	<decl-list> ::= <decl-list> <decl> | <decl> | <comment> | <expr-stmt>
-	
-	<decl> ::= <var-decl> | <var-decl-init> | <fun-decl>
-	
-	<comment> ::= // <ASCII>$^*$ \textbf{EOL}
+	<global-stmt-list> ::= <global-stmt-list>, <global-stmt> \alt <global-stmt>
 
-	<type-spec> ::= <base-type-spec> | <mat-spec>
-	
-	<mat-spec> ::= \textbf{mat} \textless <base-type-spec> \textgreater 
+	<global-stmt> ::= <decl-fun> \alt <def-fun> \alt <decl-var>; \alt <attr-var>;
 
-	<base-type-spec> ::= \textbf{int} | \textbf{float} | \textbf{char}
+	<def-fun> ::= \BF{fn} <ID> (<param-list-void>) <base-type> <block>
 
-	<var-decl> ::= <base-type-spec> <var> ; | <mat-spec> ID [<simple-expr>][<simple-expr>] ;
-	
-	<var-decl-init> ::= <base-type-spec> <var> = <expr>; | <mat-spec> ID [<simple-expr>][<simple-expr>] = {<seq-list>};
-	
-	<fun-decl> ::= <type-spec> <ID> ( <params> ) <compound-stmt> | <type-spec> <ID> ( <params> );
-	
-	<params> ::= <param-list> | $\epsilon$
-	
-	<param-list> ::= <param-list> , <param> | <param> 
-	
-	<param> ::= <type-spec> <ID> | <base-type-spec> <ID> $[$\ $]$ | mat\textless<type-spec-base>> <ID> 
-	
-	<compound-stmt> ::= { <local-decls> <stmt-list> } 
-	
-	<local-decls> ::= <local-decls> <var-decl> | $\epsilon$ 
-	
-	<stmt-list> ::= <stmt-list> <stmt> | $\epsilon$
-	
-	<stmt> ::= <expr-stmt> | <compound-stmt> | <selection-stmt> \alt <while-stmt> | <return-stmt> 
-	
-	<expr-stmt> ::= <expr> ; | ; 
-	
-	<selection-stmt> ::= \textbf{if} ( <expr> ) <stmt> | \textbf{if} ( <expr> ) <stmt> \textbf{else} <stmt> 
-	
-	<while-stmt> ::= \textbf{while} ( <expr> ) <stmt> 
-	
-	<return-stmt> ::= \textbf{return} ; | \textbf{return} <expr> ;
-	
-	<expr> ::= <var> = <expr> | <simple-expr> | {<int-seq>} | {<float-seq>} | {<int-seq-list>} | {<float-seq-list>}
-	
-	<seq-list> ::= <int-seq-list> | <float-seq-list>
+	<decl-fun> ::= \BF{AHEAD} \BF{fn} <ID> (<param-list-void>) <base-type>;
 
-	<int-seq> ::= <simple-expr> | <int-seq>, <simple-expr>
-	
-	<int-seq-list> ::= {<int-seq>} | <int-seq-list>, {<int-seq>} | $\epsilon$
+	<decl-var> ::= \BF{mat} <base-type> <ID> [<NUM>] [<NUM>] \alt <base-type> <ID-ARR>
 
-	<float-seq> ::= <simple-expr> | <float-seq>, <simple-expr>
-		
-	<float-seq-list> ::= {<float-seq>} | <float-seq-list>, {<float-seq>} | $\epsilon$
-	
-	<var> ::= <ID> | <ID> [ <simple-expr> ]
-	
-	<simple-expr> ::= <add-expr> <relop> <add-expr> | <add-expr>
-	
-	<relop> ::= \textless= | \textless\ | > | >= | == | !=
-	
-	<add-expr> ::= <add-expr> <addop> <term> | <term>
-	
-	<addop> ::= + | - 
-	
-	<term> ::= <term> <mulop> <bin> | <bin>
-	
-	<mulop> ::= * | / | @ | @@
-	
-	<bin> ::= <bin> <bin-logi> <unary> | <unary>
-	
-	<bin-logi> ::= \&\& \alt || \alt \^ \\
-	
-	<unary> ::= <unary-op> <factor> | <factor> 
-	
-	<unary-op> ::= ! | \& | -
-	
-	<factor> ::= ( <expr> ) | <var> | <call> | <NUM>
-	
-	<call> ::= <ID> ( <args> ) 
-	
-	<args> ::= <arg-list> || $\epsilon$
-	
-	<arg-list> ::= <arg-list> , <simple-expr> | <simple-expr>
-	
-	<\textbf{\textit{letter\_}}> ::= a | ... | z | A | ... | Z | \_
-	
-	<\textbf{digit}> ::= 0 | ... | 9
-	
-	<\textbf{ID}> ::= <letter\_> (<letter\_> | <digit>)$^*$
-	
-	<\textbf{NUM}> ::= <INT> | <FLOAT>
-	
-	<\textbf{INT}> ::= <digit>$^+$
+	<ID-ARR> ::= <ID> [<NUM-ID>] \alt <ID>
 
-	<\textbf{CHAR}> ::= '<ASCII>'
-	
-	<\textbf{STRING}> ::= "<ASCII_>"
+	<attr-var> ::= <mat-attr> \alt <index-attr> \alt <simple-attr>
 
-	<\textbf{FLOAT}> ::= <digit>$^+$. | <digit>$^+$
+	<var> ::= <ID> [<NUM-ID>] [<NUM-ID>] \alt <ID> [<NUM-ID>] \alt <ID>
+
+	<simple-attr> ::= <ID> = <simple-expr>;
+
+	<index-attr> ::= <ID> [<NUM-ID>] = <simple-expr>;
+
+	<mat-attr> ::= <ID> = [<num-list-list>] 
+	\alt <ID> [<NUM-ID>] = {<num-list>} 
+	\alt <ID> [<NUM-ID>] [<NUM-ID>] = <simple-expr>
+
+	<num-list-list> ::=  <num-list-list>, <num-list> \alt <num-list>
+
+	<num-list> ::= <num-list> <NUM> \alt <NUM> \alt <ID>
+
+	<stmt> ::= return <simple-expr>;
+		\alt \BF{COPY}( <ID> <ID>)
+		\alt \BF{READ}( <ID> [<NUM-ID>] [<NUM-ID>]);
+		\alt \BF{READ}( <ID> [<NUM-ID>] );
+		\alt \BF{READ}( <ID> );
+		\alt \BF{PRINT}( <ID> [<NUM-ID>] [<NUM-ID>] );
+		\alt \BF{PRINT}( <ID> [<NUM-ID>] );
+		\alt \BF{PRINT}( <ID> );
+		\alt <call>;
+		\alt <decl-var>;
+		\alt <attr-var>;
+		\alt <flux-control>
+		\alt <loop>
+
+	<param-list-void> ::= void \alt <param-list>
+	
+	<param-list> ::= <param-list>, <param> \alt <param>
+	
+	<param> ::= <base-type> <ID> \alt mat <<base-type>> <ID>
+	
+	<loop> ::= while( <simple-expr> ) <block>
+	
+	<flux-control> ::= if( <simple-expr> ) <block> else <flux-control> \alt if(<simple-expr>) <block> else <block>
+	
+	<block> ::= { <stmt-list> }
+	
+	<stmt-list> ::= <stmt-list>, <stmt> \alt <stmt>
+
+	<simple-expr> ::= <add-expr> <relop> <add-expr> \alt <add-expr>
+
+	<relop> ::= \textless= \alt \textless\ \alt > \alt >= \alt == \alt !=
+
+	<add-expr> ::= <add-expr> <addop> <term> \alt <term>
+
+	<addop> ::= [+-] 
+
+	<term> ::= <term> <mulop> <bin> \alt <bin>
+
+	<mulop> ::= @@ \alt [*/@]
+
+	<bin> ::= <bin> <bin-logi> <unary> \alt <unary>
+
+	<bin-logi> ::= \&\& \alt ||
+
+	<unary> ::= <unary-op> <factor> \alt <factor> 
+
+	<unary-op> ::= [!\&]
+
+	<factor> ::= ( <simple-expr> ) \alt <NUM-ID> \alt <ID> [<NUM-ID>] \alt <ID>[<NUM-ID>][<NUM-ID>] \alt <call>
+
+	<NUM-ID> ::= <NUM> \alt <ID>
+
+	<call> ::= <ID>(<arg-list>) \alt <ID>()
+
+	<arg-list> ::= <arg-list>, arg \alt arg
+
+	<arg> ::= <mat-arg> \alt <ID>[<NUM-ID>][NUM-ID] \alt <ID>[<NUM-ID>] \alt <NUM-ID> \alt 
+
+	<mat-arg> ::= <ID> <NUM-ID> <NUM-ID>
+
+	<ID-ascii> ::= <ID> \alt '<ascii>'
+
+	<base-type> ::= \BF{char} \alt \BF{int}\alt\BF{float}
+
+	<\BF{\IT{letter\_}}> ::= [a-zA-Z_]
+	
+	<\BF{digit}> ::= [0-9]
+	
+	<\BF{ID}> ::= <letter\_> (<letter\_> \alt <digit>)$^*$
+	
+	<\BF{NUM}> ::= <INT> \alt <FLOAT>
+	
+	<\BF{INT}> ::= <digit>$^+$
+
+	<\BF{CHAR}> ::= '<ASCII>'
+	
+	<\BF{FLOAT}> ::= <digit>$^+$. \alt <digit>$^+$
+
 	
 \end{grammar}
