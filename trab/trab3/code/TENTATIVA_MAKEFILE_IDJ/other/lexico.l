@@ -45,7 +45,7 @@ void void
 base_types int|float|char
 types mat|{base_types}
 flux_control while|if|else|return
-reserved_words {types}|{flux_control}|{void}|"ahead"
+reserved_words {types}|{flux_control}|{void}|"ahead"|"COPY"|"PRINT"|"READ"
 
 sep [ \t\n\(\)<>[\]\{},.;=]
 par [()]
@@ -231,7 +231,7 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
       if (yy1 == 'n') // int
         showBaseType();
       else                  // if
-        showFluxControl();
+        showFlowControl();
       currCol += yyleng;
       return yy1 == 'n' ? INT_TYPE : IF;
     // outras palavras reservadas comecam todas com letras diferentes
@@ -242,13 +242,13 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
       showBaseType(); currCol += yyleng;
       return FLOAT_TYPE;
     case 'e':
-      showFluxControl(); currCol += yyleng;
+      showFlowControl(); currCol += yyleng;
       return ELSE;
     case 'r':
-      showFluxControl(); currCol += yyleng;
+      showFlowControl(); currCol += yyleng;
       return RETURN;
     case 'w':
-      showFluxControl(); currCol += yyleng;
+      showFlowControl(); currCol += yyleng;
       return WHILE;
     case 'm':
       showMat(); currCol += yyleng;
@@ -261,6 +261,16 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
     case 'a':
       showAhead(); currCol += yyleng;
       return AHEAD;
+    case 'C':
+      showCopy(); currCol += yyleng;
+      return COPY;
+    case 'P':
+      showPrint(); currCol += yyleng;
+      return PRINT;
+    case 'R':
+      showRead(); currCol += yyleng;
+      return READ;
+    
     defaulf:
       currCol += yyleng;
       printf("OPS! FALTOU PRINT para %s\n", yytext);
@@ -352,6 +362,7 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
   ++ERRORS_IN_SRC;
   showErrorCharMessage();
   currCol++;
+  return ERRU;
 }
 %%
 
@@ -359,45 +370,39 @@ int yywrap() {
   return 1;
 }
 
-void delete(void* p) {
-  free(p);
-  p = NULL;
+void delete(void** p) {
+  free(*p);
+  *p = NULL;
 }
 
-// void Show_Gambs(char * token, char * val) {
-//     Blue();
-//     fprintf(stdout, "________________________________________");
-//     fprintf(stdout, "______________________________________________\n");
-//     Reset();
-//     fprintf(stdout,"%s%40s%40d\n", token, val);
-// }
+int _main(int argc, int** argv) {
+  Array_Init(&currString, 20);
+  Array_Delete(&currString);
 
-// int _main(int argc, int** argv) {
-//   Array_Init(&currString, 20);
-//   extern FILE *yyin, *yyout; 
-//   int open = 0;
-//   char* path = malloc(200 * sizeof(char));
-//   if(argc > 1) {
-//     if(!(yyin = fopen(argv[1], "r"))) {
-//         perror(argv[1]);
-//         return (1);
-//     }
-//   }
-//   // yylex();
-//   if (open)    fclose(yyin);
-//   delete(path);
-//   Cyan();
-//   printf("\n------EOF-------\n");
-//   Array_Delete(&currString);
-//   if (ERRORS_IN_SRC > 0) {
-//     BoldRed();
-//     fprintf(stdout, "Code does not belong to language.\n");
-//     fprintf(stdout, "%llu errors were found.\n", ERRORS_IN_SRC);
-//   }
-//   else {
-//     BoldGreen();
-//     fprintf(stdout, "Congrats! The code is in the language.\n");
-//   }
-//   Reset();
-//   return 0; 
-// }
+  extern FILE *yyin, *yyout; 
+  int open = 0;
+  char* path = malloc(200 * sizeof(char));
+  if(argc > 1) {
+    if(!(yyin = fopen(argv[1], "r"))) {
+        perror(argv[1]);
+        return (1);
+    }
+  }
+  yylex();
+  if (open)    fclose(yyin);
+  delete((void*)&path);
+  Cyan();
+  printf("\n------EOF-------\n");
+  if (ERRORS_IN_SRC > 0) {
+    BoldRed();
+    fprintf(stdout, "Code does not belong to language.\n");
+    fprintf(stdout, "%llu errors were found.\n", ERRORS_IN_SRC);
+  }
+  else {
+    BoldGreen();
+    fprintf(stdout, "Congrats! The code is in the language.\n");
+  }
+
+  Reset();
+  yylex_destroy();
+}

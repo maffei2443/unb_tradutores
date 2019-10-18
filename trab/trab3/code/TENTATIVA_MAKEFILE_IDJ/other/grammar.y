@@ -5,6 +5,12 @@
 // S : simply bracket ~~ []
 // C : curly bracket ~~ {}
 %}
+// %define "parse.error"
+// %require "3.0.4"
+%define parse.error verbose
+%define parse.lac none
+
+%token ERRU
 
 %token CHAR_TYPE INT_TYPE FLOAT_TYPE MAT_TYPE VOID
 %token CHAR INT FLOAT 
@@ -22,33 +28,47 @@
 %token COPY PRINT READ
 %token ASCII SEMI_COLON DOT COMMA ATTR
 %token XOR_BITWISE AND_BITWISE OR_BITWISE
+
 %union {
   int ival;
-  float fval;
+  double fval;
   char cval;
   char* sval;
 }
+
 %%
 
 program : global-stmt-list
 
-global-stmt-list : global-stmt-list global-stmt 
-| global-stmt
+global-stmt-list : global-stmt-list{printf("global statement list\n");} global-stmt {
+  printf("global-stmt-list global-stmt\n");
+}
+| global-stmt {
+  printf("global-stmt\n");
+}
 
 
 global-stmt : decl-fun 
+| def-fun error
 | def-fun 
-| decl-var SEMI_COLON 
+| decl-var SEMI_COLON {
+    printf("Decl-var\n");
+}
+| decl-var error {
+    printf("Erro\: declaracao sem ';'\n");
+}
 | attr-var SEMI_COLON
 | block
-| INT {printf("NUMMMMM %d\n", yyval.ival);}
-| FLOAT {printf("FLOOAT %f\n", yyval.fval);}
+| INT SEMI_COLON {printf("Inteiro : %d\n", yyval.ival);}
+| FLOAT SEMI_COLON {printf("FLOOAT %f\n", yyval.fval);}
+| ',' {printf("comma comma comma\n");}
 
-def-fun : ID LP param-list-void RP base-type block {
+
+def-fun : base-type ID LP param-list-void RP block {
   printf("Definicao de funcao!\n");
 }
 
-decl-fun : AHEAD ID LP param-list-void RP base-type SEMI_COLON {
+decl-fun : AHEAD base-type ID LP param-list-void RP  SEMI_COLON {
   printf("DECLARACAO DE FUNCAOO\n");
 }
 
@@ -80,9 +100,13 @@ num-list : num-list NUM
 | NUM 
 | ID
 
-stmt : RETURN expr SEMI_COLON
+stmt : RETURN INT {
+  printf("RETURN INT\n");
+}
 	
-	| COPY LP ID ID RP
+	| COPY LP ID ID RP {
+    printf("COPY LP ID ID RP\n");
+  }
 	
 	| READ LP ID LS num-id RS LS num-id RS RP SEMI_COLON
 	
@@ -90,22 +114,17 @@ stmt : RETURN expr SEMI_COLON
 	
 	| READ LP ID RP SEMI_COLON
 	
-	| PRINT LP ID LS num-id RS LS num-id RS RP SEMI_COLON
-	
-	| PRINT LP ID LS num-id RS RP SEMI_COLON
-	
-	| PRINT LP ID RP SEMI_COLON
-	
+	| PRINT expr SEMI_COLON
+		
 	| call SEMI_COLON
 	
 	| decl-var SEMI_COLON
 	
 	| attr-var SEMI_COLON
 	
-	| flux-control
+	| flow-control
 	
 	| loop
-  | NUM SEMI_COLON
 
 param-list-void : VOID 
 | param-list
@@ -118,11 +137,23 @@ param : base-type ID
 
 loop : WHILE '(' expr ')' block
 
-flux-control : IF LP expr RP block ELSE flux-control 
+flow-control : IF LP expr RP block ELSE flow-control {
+      printf("asdfsdfs");
+}
 | IF LP expr RP block ELSE block
+| IF LP error RP block ELSE block {
+      printf("FALTOU expressaum");
+}
+| IF LP expr error block ELSE block {
+  printf("FALTOU FECHAR IF");
+}
 
-block : LC stmt-list RC { printf("BLOCO!!!\n");}
-| LC RC {printf("Bloco vazio!\n");}
+block : LC stmt-list RC {
+      printf("BLOCO!!!\n");
+}
+| LC RC {
+      printf("Bloco vazio!\n");
+}
 
 stmt-list : stmt-list stmt 
 | stmt
@@ -196,6 +227,7 @@ base-type : CHAR_TYPE
 
 
 %%
+
 // extern void yyerror (char const *s);
 void yyerror (char const *s) {
   fprintf (stderr, "%s\n", s);
