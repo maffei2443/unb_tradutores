@@ -66,6 +66,7 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
     currCol += yyleng;
     showCharVal();
     return ASCII;
+    ;
   }
   
 }
@@ -193,33 +194,39 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
     showMatParam();
     currCol += yyleng;
     return MAT_TYPE;
+    ;
 }
 
 {par} {
   showPar();
   currCol += yyleng;
   return yytext[0] == '(' ? LP : RP;
+  ;
 }
 
 {curly} {
   showCurly();
   currCol += yyleng;
   return yytext[0] == '{' ? LC : RC;
+  ;
 }
 {bracket} {
   showBracket();
   currCol += yyleng;
   return yytext[0] == '[' ? LS : RS;
+  ;
 }
 ;     {
   showStmtEnd();
   currCol += yyleng;
   return SEMI_COLON;  
+  ;
 }
 [,.] {
   showDotOrComma();
   currCol += yyleng;
   return yytext[0] == '.' ? DOT : COMMA;
+  ;
 }
 
 {reserved_words}/[^a-zA-Z0-9_] {
@@ -234,46 +241,58 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
         showFlowControl();
       currCol += yyleng;
       return yy1 == 'n' ? INT_TYPE : IF;
+      break;
     // outras palavras reservadas comecam todas com letras diferentes
     case 'c':
       showBaseType(); currCol += yyleng;
       return CHAR_TYPE;
+      break;
     case 'f':
       showBaseType(); currCol += yyleng;
       return FLOAT_TYPE;
+      break;
     case 'e':
       showFlowControl(); currCol += yyleng;
       return ELSE;
+      break;
     case 'r':
       showFlowControl(); currCol += yyleng;
       return RETURN;
+      break;
     case 'w':
       showFlowControl(); currCol += yyleng;
       return WHILE;
+      break;
     case 'm':
       showMat(); currCol += yyleng;
       return MAT_TYPE;
+      break;
     case 'v':
       printf("voide!\n");
       return VOID;
+      break;
     // TODO
     // COPY PRINT READ
     case 'a':
       showAhead(); currCol += yyleng;
       return AHEAD;
+      break;
     case 'C':
       showCopy(); currCol += yyleng;
       return COPY;
+      break;
     case 'P':
       showPrint(); currCol += yyleng;
       return PRINT;
+      break;
     case 'R':
       showRead(); currCol += yyleng;
       return READ;
+      break;
     
     defaulf:
       currCol += yyleng;
-      printf("OPS! FALTOU PRINT para %s\n", yytext);
+      break;
   }
 }
 
@@ -281,6 +300,7 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
     showID();
     currCol += yyleng;
     return ID;
+    ;
 }
 {relOp} {
   showRelOp();
@@ -290,16 +310,22 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
     switch(yy0) {
       case '>':        
         return GT;
+        ;
       case '<':
         return LT;
+        ;
     }
   }
   else
     switch(yy0) {
       case '>': return GE;
+      ;
       case '<': return LE;
+      ;
       case '=': return EQ;
+      ;
       case '!': return NEQ;
+      ;
     }
 }
 {binMathOp} {
@@ -307,14 +333,20 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
   currCol += yyleng;
   if(yyleng == 2) {
     return MAT_POW;
+    ;
   }
   else {
     switch(yytext[0]) {
       case '-': return SUB;
+      ;
       case '+': return ADD;
+      ;
       case '/': return DIV;
+      ;
       case '*': return MUL;
+      ;
       case '@': return MAT_MUL;
+      ;
     }
   }
 }
@@ -325,14 +357,19 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
   if(yyleng == 2) {
     switch(yytext[0]) {
       case '&': return AND;
+      ;
       case '|': return OR;
+      ;
     }
   }
   else {
     switch(yytext[0]) {
       case '^': return XOR_BITWISE;
+      ;
       case '&': return AND_BITWISE;
+      ;
       case '|': return OR_BITWISE;
+      ;
     }
   }
 
@@ -342,11 +379,13 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
   yylval.fval = atof(yytext);
   showFloatVal();
   return FLOAT;
+  ;
 }
 {INT}      {
   yylval.ival = atoi(yytext);
   showIntVal();
   return INT;
+  ;
 }
 
 \n  ++numlines, currCol = 1;
@@ -357,17 +396,20 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
   currCol++;
   showAttrOp();
   return ATTR;
+  ;
 }
 . {
   ++ERRORS_IN_SRC;
   showErrorCharMessage();
   currCol++;
   return ERRU;
+  ;
 }
 %%
 
 int yywrap() {
   return 1;
+  ;
 }
 
 void delete(void** p) {
@@ -386,6 +428,7 @@ int _main(int argc, int** argv) {
     if(!(yyin = fopen(argv[1], "r"))) {
         perror(argv[1]);
         return (1);
+        ;
     }
   }
   yylex();

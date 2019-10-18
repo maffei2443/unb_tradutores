@@ -15,7 +15,7 @@
 %token CHAR_TYPE INT_TYPE FLOAT_TYPE MAT_TYPE VOID
 %token CHAR INT FLOAT 
 %token LETTER_ DIGIT
-%token ID NUM FN AHEAD
+%token ID FN AHEAD
 %token LP RP
 %token LS RS
 %token LC RC
@@ -72,7 +72,7 @@ decl-fun : AHEAD base-type ID LP param-list-void RP  SEMI_COLON {
   printf("DECLARACAO DE FUNCAOO\n");
 }
 
-decl-var : MAT_TYPE base-type ID LS NUM RS LS NUM RS 
+decl-var : MAT_TYPE base-type ID LS num RS LS num RS 
 | base-type id-arr
 
 id-arr : ID LS num-id RS 
@@ -96,35 +96,53 @@ mat-attr : ID ATTR LS num-list-list RS
 num-list-list :  num-list-list LC num-list RC
 | num-list
 
-num-list : num-list NUM 
-| NUM 
+num-list : num-list num 
+| num 
 | ID
 
-stmt : RETURN INT {
-  printf("RETURN INT\n");
+stmt : RETURN expr SEMI_COLON {
+  printf("RETURN expr SEMI_COLON\n");
 }
 	
-	| COPY LP ID ID RP {
+	| COPY LP ID ID RP SEMI_COLON {
     printf("COPY LP ID ID RP\n");
   }
 	
-	| READ LP ID LS num-id RS LS num-id RS RP SEMI_COLON
+	| READ LP ID LS num-id RS LS num-id RS RP SEMI_COLON {
+    printf("READ LP ID LS num-id RS LS num-id RS RP SEMI_COLON\n");
+  }
 	
-	| READ LP ID LS num-id RS RP SEMI_COLON
+	| READ LP ID LS num-id RS RP SEMI_COLON {
+    printf("READ LP ID LS num-id RS RP SEMI_COLON\n");
+  }
 	
-	| READ LP ID RP SEMI_COLON
+	| READ LP ID RP SEMI_COLON {
+    printf("READ LP ID RP SEMI_COLON\n");
+  }
 	
-	| PRINT expr SEMI_COLON
+	| PRINT expr SEMI_COLON {
+    printf("PRINT expr SEMI_COLON\n");
+  }
 		
-	| call SEMI_COLON
+	| call SEMI_COLON  {
+    printf("call SEMI_COLON \n");
+  }
 	
-	| decl-var SEMI_COLON
+	| decl-var SEMI_COLON {
+    printf("decl-var SEMI_COLON\n");
+  }
 	
-	| attr-var SEMI_COLON
+	| attr-var SEMI_COLON {
+    printf("attr-var SEMI_COLON\n");
+  }
 	
-	| flow-control
+	| flow-control {
+    printf("flow-control\n");
+  }
 	
-	| loop
+	| loop {
+    printf("loop\n");
+  }
 
 param-list-void : VOID 
 | param-list
@@ -138,14 +156,16 @@ param : base-type ID
 loop : WHILE '(' expr ')' block
 
 flow-control : IF LP expr RP block ELSE flow-control {
-      printf("asdfsdfs");
+      printf("IF LP expr RP block ELSE flow-control\n");
 }
-| IF LP expr RP block ELSE block
+| IF LP expr RP block ELSE block {
+  printf("IF LP expr RP block ELSE block\n");
+}
 | IF LP error RP block ELSE block {
-      printf("FALTOU expressaum");
+      printf("IF LP error RP block ELSE block\n");
 }
 | IF LP expr error block ELSE block {
-  printf("FALTOU FECHAR IF");
+  printf("FALTOU FECHAR IF\n");
 }
 
 block : LC stmt-list RC {
@@ -201,8 +221,7 @@ factor : LP expr RP
 
 aux : ID LS expr RS LS expr RS 
 | ID LS expr RS 
-| ID
-| NUM
+| num-id
 
 num-id : INT 
 | FLOAT
@@ -225,6 +244,8 @@ base-type : CHAR_TYPE
 | INT_TYPE
 | FLOAT_TYPE
 
+num : FLOAT
+| INT
 
 %%
 
