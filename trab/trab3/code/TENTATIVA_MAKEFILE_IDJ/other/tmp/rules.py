@@ -1,6 +1,7 @@
 # Esse script deve gerar o código boilerplate do tipo:;
 # regra = make<nº Regra>_regra(token1, token2, ...)
 import re
+
 tokens= ['ERRU',
  'CHAR_TYPE',
  'INT_TYPE',
@@ -46,6 +47,7 @@ tokens= ['ERRU',
  'COMMA',
  'ATTR'
 ]
+
 heads = ["program",
   "global-stmt-list",
   "global-stmt-list",
@@ -258,9 +260,23 @@ rules = [
   "num : INT",
 ]
 
-def GetLastRules(fileName = 'grammar.y'):
+def GetTokens(fileName = 'grammar.y'):
   """
-  Gera lista das regras de produção da gramática.
+  Retorna lista atualizada dos Tokens, baseado no
+  arquivo de nome recebido
+  """
+  lis = []
+  for line in open(fileName, 'r'):
+    if line.startswith('%token'):
+      lis.extend(re.findall(r'%token ([^\n]+)', line)[0].split())
+  global tokens
+  tokens = lis.copy()
+  return lis
+
+def GetRules(fileName = 'grammar.y'):
+  """
+  Gera lista das regras de produção da gramática,
+  baseado no arquivo de nome recebido.
   """
   lis = [] 
   for l in open(fileName): 
@@ -268,6 +284,13 @@ def GetLastRules(fileName = 'grammar.y'):
       head = re.findall(r'(.+ : )', l)[0] 
       lis.append(re.findall(r'([^{\n]+)', l)[0].strip()) 
     elif l.startswith('|'): 
-      lis.append(head + re.findall(r'([^{\n]+)', l)[0][2:].strip()) 
+      lis.append(head + re.findall(r'([^{\n]+)', l)[0][2:].strip())
+  global rules
+  rules = lis.copy() 
   return lis
 
+def GetHeads(filename = 'grammar.y'):
+  tok = GetRules(filename)
+  global heads
+  heads = [i.split(' : ')[0] for i in tok]
+  return heads
