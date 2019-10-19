@@ -14,8 +14,7 @@
 
 %token CHAR_TYPE INT_TYPE FLOAT_TYPE MAT_TYPE VOID
 %token CHAR INT FLOAT 
-%token LETTER_ DIGIT
-%token ID FN AHEAD
+%token ID AHEAD
 %token LP RP
 %token LS RS
 %token LC RC
@@ -26,9 +25,9 @@
 %token NOT ADDR
 %token IF ELSE WHILE RETURN 
 %token COPY PRINT READ
-%token ASCII SEMI_COLON DOT COMMA ATTR
-%token XOR_BITWISE AND_BITWISE OR_BITWISE
+%token ASCII SEMI_COLON COMMA ATTR
 
+%right MAT_POW
 %union {
   int ival;
   double fval;
@@ -198,6 +197,7 @@ term : term mulop bin
 mulop : MAT_MUL
 | MUL
 | DIV
+| MAT_POW
 
 bin : bin bin-logi unary 
 | unary
@@ -236,7 +236,9 @@ arg : mat-arg
 
 mat-arg : ID num-id num-id
 
-ascii : '\'' ASCII '\''
+ascii : '\'' ASCII '\'' {
+  ascii = make_Ascii_op0(ASCII);
+}
 
 base-type : CHAR_TYPE 
 | INT_TYPE

@@ -37,7 +37,7 @@ NUM {FLOAT}|{INT}
 ID {letter_}({letter_}|{digit})*
 relOp >=|<=|==|!=|>|<
 binMathOp @@|[-+*/@]
-binLogiOp &&|\|\||^|&|\|
+binLogiOp &&|\|\|
 unaryOp !|&
 comment \/\/.*
 
@@ -360,17 +360,6 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
       ;
     }
   }
-  else {
-    switch(yytext[0]) {
-      case '^': return XOR_BITWISE;
-      ;
-      case '&': return AND_BITWISE;
-      ;
-      case '|': return OR_BITWISE;
-      ;
-    }
-  }
-
 }
 
 {FLOAT}    {

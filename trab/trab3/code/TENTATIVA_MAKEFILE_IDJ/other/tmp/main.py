@@ -3,6 +3,10 @@ import re
 def hifen2Type(text):
   aux = text.split('-')
   return ''.join(map(str.capitalize, aux))
+def token2Type(text):
+  aux = text.split('_')
+  return ''.join(map(str.capitalize, aux))
+
 
 def hifen2VarName(text, firstLower=True , prefix = '', suffix = ''):
   aux = hifen2Type(text)
@@ -10,6 +14,7 @@ def hifen2VarName(text, firstLower=True , prefix = '', suffix = ''):
     return prefix + aux[0].lower() + aux[1:] + suffix
   else:
     return prefix + aux + suffix
+
 
 def toUnion(listOfBodies, baseIdent=2, spaces=-1):
   _basic = baseIdent * ' '
@@ -28,14 +33,26 @@ def make_Nodes(tipo, text):
   """
   text is expected to have the pattern:
   struct { ... } op<NUM>;
+  This function returns a stardardized  C-like function sig
+  nature. Example:
+    + tipo = "Num"
+    + text = "struct {Float* float;} op0;"
+    make_Nodes(tipo, text) -> "Num* make_Num_op0(Float* float);"
   """
   attrs, opNum = re.findall(r'struct *{(.*)} (op\d+)', text)[0]
   funName = tipo + f"* make_{tipo}_{opNum}("
   funName = funName + ','.join(attrs.strip(';').strip().split(';')) + ');'
   return funName
 
-splited = [ r.split(' : ') for r in rules ]
+def tokens2Structs(tokens = tokens):
+  with open('TokenStructs.h', 'w') as fp: 
+    for t in tokens: 
+      fp.write("typedef struct{} " + t.capitalize() + ";\n") 
+                                                                                    
 
+
+def generateMap():
+splited = [ r.split(' : ') for r in rules ]
 mapa = {}
 for x in splited:
   x0 = x[0]
@@ -50,9 +67,13 @@ for x in splited:
     map( lambda p : "{}* {};".format( hifen2Type(p), hifen2VarName(p)), tail )
   )
   mapa[x0].append( 'struct {' + tail + '} op' + str((len(mapa[x0]))) + ';' )
+  
+  return mapa
+mapa = generateMap()
 
-with open('unions.c', 'w') as fp:
-  for k, item in mapa.items():
-    fp.write( 'typedef struct {\n'+toUnion(mapa[k]) +'\n' + '} ' + f'{hifen2Type(k)};' + '\n' )
-
-
+# Salva as structs necessarias, AH MENOS das que se referem aos
+# tokens.
+with open('types.h', 'w') as fp: 
+  for k, item in mapa.items(): 
+    fp.write( 'typedef struct {\n'+toUnion(mapa[k]) +'\n' + '} ' + f'{hifen2Type(k)};'
+  + '\n' )
