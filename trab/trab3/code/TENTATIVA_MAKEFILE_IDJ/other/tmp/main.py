@@ -3,10 +3,10 @@ import re
 def hifen2Type(text):
   aux = text.split('-')
   return ''.join(map(str.capitalize, aux))
+
 def token2Type(text):
   aux = text.split('_')
-  return ''.join(map(str.capitalize, aux))
-
+  return "t"+''.join(map(str.capitalize, aux))
 
 def hifen2VarName(text, firstLower=True , prefix = '', suffix = ''):
   aux = hifen2Type(text)
@@ -43,31 +43,46 @@ def make_Nodes(tipo, text):
   funName = tipo + f"* make_{tipo}_{opNum}("
   funName = funName + ','.join(attrs.strip(';').strip().split(';')) + ');'
   return funName
+def make_Nodes_call(tipo, text):
+  """
+  Gerador automatizado para chamada das funções geradas pela
+  função acima, seguindo a ORDEM dos parâmetros (bison; not-labeled)
+  """
+  attrs, opNum = re.findall(r'struct *{(.*)} (op\d+)', text)[0]
+  funName = f"make_{tipo}_{opNum}("
+  for s in range(1, len(attrs.split(','))+1):
+    funName = funName + f"${s}, "
+  funName = funName[:-2] + ')'
+  return funName
+
 
 def tokens2Structs(tokens = tokens):
+  """
+  Cria structs, uma para cada token. Todas são dummies.
+  Requer manualmente alterar quais não o são.
+
+  """
   with open('TokenStructs.h', 'w') as fp: 
     for t in tokens: 
       fp.write("typedef struct{} " + t.capitalize() + ";\n") 
                                                                                     
 
-
 def generateMap():
-splited = [ r.split(' : ') for r in rules ]
-mapa = {}
-for x in splited:
-  x0 = x[0]
-  mapa[x0] = mapa.get(x0, [])
+  splited = [ r.split(' : ') for r in rules ]
+  mapa = {}
+  for x in splited:
+    x0 = x[0]
+    mapa[x0] = mapa.get(x0, [])
 
-  tail = x[1]
-  for t in tokens:
-    tail = tail.replace(t, '')
-  
-  tail = x[1].split()
-  tail = ' '.join(
-    map( lambda p : "{}* {};".format( hifen2Type(p), hifen2VarName(p)), tail )
-  )
-  mapa[x0].append( 'struct {' + tail + '} op' + str((len(mapa[x0]))) + ';' )
-  
+    tail = x[1]
+    for t in tokens:
+      tail = tail.replace(t, '')
+    
+    tail = x[1].split()
+    tail = ' '.join(
+      map( lambda p : "{}* {};".format( hifen2Type(p), hifen2VarName(p)), tail )
+    )
+    mapa[x0].append( 'struct {' + tail + '} op' + str((len(mapa[x0]))) + ';' )  
   return mapa
 mapa = generateMap()
 
