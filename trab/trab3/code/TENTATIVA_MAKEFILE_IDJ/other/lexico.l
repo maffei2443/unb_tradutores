@@ -55,7 +55,6 @@ curly [{}]
 achar '(\\|\\?[a-zA-Z0-9_\\])'
 %%
 {achar} {
-
   if(yyleng == 3 && yytext[1] == '\\'){
     fprintf(stderr, "Error: missing <'> at l. %d, r. %d\n", numlines, currCol+2);
     ERRORS_IN_SRC++;
@@ -68,7 +67,6 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
     return ASCII;
     ;
   }
-  
 }
 "/\*"       {
         comm_block.lines = 0; comm_block.isChar = 0; comm_block.notChar=0;

@@ -34,13 +34,14 @@
   double fval;
   char cval;
   char* sval;
+
 }
 
 %%
 
 program : global-stmt-list
 
-global-stmt-list : global-stmt-list{printf("global statement list\n");} global-stmt {
+global-stmt-list : global-stmt-list global-stmt {
   printf("global-stmt-list global-stmt\n");
 }
 | global-stmt {
@@ -59,9 +60,6 @@ global-stmt : decl-fun
 }
 | attr-var SEMI_COLON
 | block
-| INT SEMI_COLON {printf("Inteiro : %d\n", yyval.ival);}
-| FLOAT SEMI_COLON {printf("FLOOAT %f\n", yyval.fval);}
-| ',' {printf("comma comma comma\n");}
 
 
 def-fun : base-type ID LP param-list-void RP block {
@@ -101,48 +99,48 @@ num-list : num-list num
 | ID
 
 stmt : RETURN expr SEMI_COLON {
-  printf("RETURN expr SEMI_COLON\n");
+  	printf("RETURN expr SEMI_COLON\n");
+}
+
+| COPY LP ID ID RP SEMI_COLON {
+	printf("COPY LP ID ID RP\n");
+}
+
+| READ LP ID LS num-id RS LS num-id RS RP SEMI_COLON {
+	printf("READ LP ID LS num-id RS LS num-id RS RP SEMI_COLON\n");
+}
+
+| READ LP ID LS num-id RS RP SEMI_COLON {
+	printf("READ LP ID LS num-id RS RP SEMI_COLON\n");
+}
+
+| READ LP ID RP SEMI_COLON {
+	printf("READ LP ID RP SEMI_COLON\n");
+}
+
+| PRINT expr SEMI_COLON {
+	printf("PRINT expr SEMI_COLON\n");
 }
 	
-	| COPY LP ID ID RP SEMI_COLON {
-    printf("COPY LP ID ID RP\n");
-  }
-	
-	| READ LP ID LS num-id RS LS num-id RS RP SEMI_COLON {
-    printf("READ LP ID LS num-id RS LS num-id RS RP SEMI_COLON\n");
-  }
-	
-	| READ LP ID LS num-id RS RP SEMI_COLON {
-    printf("READ LP ID LS num-id RS RP SEMI_COLON\n");
-  }
-	
-	| READ LP ID RP SEMI_COLON {
-    printf("READ LP ID RP SEMI_COLON\n");
-  }
-	
-	| PRINT expr SEMI_COLON {
-    printf("PRINT expr SEMI_COLON\n");
-  }
-		
-	| call SEMI_COLON  {
-    printf("call SEMI_COLON \n");
-  }
-	
-	| decl-var SEMI_COLON {
-    printf("decl-var SEMI_COLON\n");
-  }
-	
-	| attr-var SEMI_COLON {
-    printf("attr-var SEMI_COLON\n");
-  }
-	
-	| flow-control {
-    printf("flow-control\n");
-  }
-	
-	| loop {
-    printf("loop\n");
-  }
+| call SEMI_COLON  {
+	printf("call SEMI_COLON \n");
+}
+
+| decl-var SEMI_COLON {
+	printf("decl-var SEMI_COLON\n");
+}
+
+| attr-var SEMI_COLON {
+	printf("attr-var SEMI_COLON\n");
+}
+
+| flow-control {
+	printf("flow-control\n");
+}
+
+| loop {
+	printf("loop\n");
+}
 
 param-list-void : VOID 
 | param-list
@@ -153,7 +151,7 @@ param-list : param-list param
 param : base-type ID 
 | MAT_TYPE base-type ID
 
-loop : WHILE '(' expr ')' block
+loop : WHILE LP expr RP block
 
 flow-control : IF LP expr RP block ELSE flow-control {
       printf("IF LP expr RP block ELSE flow-control\n");
