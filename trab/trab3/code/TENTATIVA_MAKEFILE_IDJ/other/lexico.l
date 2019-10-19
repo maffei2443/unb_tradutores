@@ -64,7 +64,7 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
   else {
     currCol += yyleng;
     showCharVal();
-    return ASCII;
+    return V_ASCII;
     ;
   }
 }
@@ -297,7 +297,7 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
 {ID} {          
     showID();
     currCol += yyleng;
-    return ID;
+    return V_ID;
     ;
 }
 {relOp} {
@@ -365,13 +365,13 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
 {FLOAT}    {
   yylval.fval = atof(yytext);
   showFloatVal();
-  return FLOAT;
+  return V_FLOAT;
   ;
 }
 {INT}      {
   yylval.ival = atoi(yytext);
   showIntVal();
-  return INT;
+  return V_INT;
   ;
 }
 

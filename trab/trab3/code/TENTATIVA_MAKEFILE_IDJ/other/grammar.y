@@ -11,10 +11,9 @@
 %define parse.lac none
 
 %token ERRU
-
 %token CHAR_TYPE INT_TYPE FLOAT_TYPE MAT_TYPE VOID
-%token CHAR INT FLOAT 
-%token ID AHEAD
+%token V_CHAR V_INT V_FLOAT 
+%token V_ID AHEAD
 %token LP RP
 %token LS RS
 %token LC RC
@@ -25,7 +24,7 @@
 %token NOT ADDR
 %token IF ELSE WHILE RETURN 
 %token COPY PRINT READ
-%token ASCII SEMI_COLON COMMA ATTR
+%token V_ASCII SEMI_COLON COMMA ATTR
 
 %right MAT_POW
 %union {
