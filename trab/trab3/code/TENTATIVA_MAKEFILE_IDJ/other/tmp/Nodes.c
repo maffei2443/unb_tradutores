@@ -1,4 +1,50 @@
-#include "TokenStruct.h"
+typedef struct {} Dummy;
+typedef Dummy _Erru;
+typedef Dummy _Char_type;
+typedef Dummy _Int_type;
+typedef Dummy _Float_type;
+typedef Dummy _Mat_type;
+typedef Dummy _Void;
+typedef struct {/*PREENCHE MANUALMENTE*/} _V_char;
+typedef struct {/*PREENCHE MANUALMENTE*/} _V_int;
+typedef struct {/*PREENCHE MANUALMENTE*/} _V_float;
+typedef struct {/*PREENCHE MANUALMENTE*/} _V_id;
+typedef Dummy _Ahead;
+typedef Dummy _Lp;
+typedef Dummy _Rp;
+typedef Dummy _Ls;
+typedef Dummy _Rs;
+typedef Dummy _Lc;
+typedef Dummy _Rc;
+typedef Dummy _Eq;
+typedef Dummy _Lt;
+typedef Dummy _Gt;
+typedef Dummy _Le;
+typedef Dummy _Ge;
+typedef Dummy _Neq;
+typedef Dummy _Add;
+typedef Dummy _Sub;
+typedef Dummy _Mul;
+typedef Dummy _Div;
+typedef Dummy _Mat_mul;
+typedef Dummy _Mat_pow;
+typedef Dummy _And;
+typedef Dummy _Or;
+typedef Dummy _Not;
+typedef Dummy _Addr;
+typedef Dummy _If;
+typedef Dummy _Else;
+typedef Dummy _While;
+typedef Dummy _Return;
+typedef Dummy _Copy;
+typedef Dummy _Print;
+typedef Dummy _Read;
+typedef struct {/*PREENCHE MANUALMENTE*/} _V_ascii;
+typedef Dummy _Semi_colon;
+typedef Dummy _Dot;
+typedef Dummy _Comma;
+typedef Dummy _Attr;
+
 #define STR struct
 typedef struct {
   union {
