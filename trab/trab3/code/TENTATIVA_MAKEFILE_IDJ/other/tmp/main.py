@@ -1,5 +1,5 @@
 from rules import rules, heads, tokens
-
+import re
 def hifen2Type(text):
   aux = text.split('-')
   return ''.join(map(str.capitalize, aux))
@@ -24,9 +24,16 @@ def toUnion(listOfBodies, baseIdent=2, spaces=-1):
     + '}u;'
   )
 
-def make_Nodes(mapa):
+def make_Nodes(tipo, text):
+  """
+  text is expected to have the pattern:
+  struct { ... } op<NUM>;
+  """
+  attrs, opNum = re.findall(r'struct *{(.*)} (op\d+)', text)[0]
+  funName = tipo + f"* make_{tipo}_{opNum}("
+  funName = funName + ','.join(attrs.strip(';').strip().split(';')) + ');'
+  return funName
 
-  pass
 splited = [ r.split(' : ') for r in rules ]
 
 mapa = {}
