@@ -473,31 +473,5 @@ void delete(void* p) {
 // }
 
 int main(int argc, int** argv) {
-  Array_Init(&currString, 20);
-  extern FILE *yyin, *yyout; 
-  int open = 0;
-  char* path = malloc(200 * sizeof(char));
-  if(argc > 1) {
-    if(!(yyin = fopen(argv[1], "r"))) {
-        perror(argv[1]);
-        return (1);
-    }
-  }
-  yylex();
-  if (open)    fclose(yyin);
-  delete(path);
-  Cyan();
-  printf("\n------EOF-------\n");
-  Array_Delete(&currString);
-  if (ERRORS_IN_SRC > 0) {
-    BoldRed();
-    fprintf(stdout, "Code does not belong to language.\n");
-    fprintf(stdout, "%lu errors were found.\n", ERRORS_IN_SRC);
-  }
-  else {
-    BoldGreen();
-    fprintf(stdout, "Congrats! The code is in the language.\n");
-  }
-  Reset();
-  return 0; 
+  return 0;
 }
