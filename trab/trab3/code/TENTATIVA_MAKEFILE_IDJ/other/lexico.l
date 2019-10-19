@@ -296,6 +296,7 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
 
 {ID} {          
     showID();
+    printf("ID :-----------> %s\n", yytext);
     currCol += yyleng;
     return V_ID;
     ;

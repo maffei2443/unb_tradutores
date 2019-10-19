@@ -24,7 +24,7 @@
 %token NOT ADDR
 %token IF ELSE WHILE RETURN 
 %token COPY PRINT READ
-%token V_ASCII SEMI_COLON COMMA ATTR
+%token V_ASCII SEMI_COLON DOT COMMA ATTR
 
 %right MAT_POW
 %union {
@@ -60,60 +60,60 @@ global-stmt : decl-fun
 | block
 
 
-def-fun : base-type ID LP param-list-void RP block {
+def-fun : base-type V_ID LP param-list-void RP block {
   printf("Definicao de funcao!\n");
 }
 
-decl-fun : AHEAD base-type ID LP param-list-void RP  SEMI_COLON {
+decl-fun : AHEAD base-type V_ID LP param-list-void RP  SEMI_COLON {
   printf("DECLARACAO DE FUNCAOO\n");
 }
 
-decl-var : MAT_TYPE base-type ID LS num RS LS num RS 
+decl-var : MAT_TYPE base-type V_ID LS num RS LS num RS 
 | base-type id-arr
 
-id-arr : ID LS num-id RS 
-| ID
+id-arr : V_ID LS num-id RS 
+| V_ID
 
 attr-var : mat-attr 
 | index-attr 
 | simple-attr
 
 
-simple-attr : ID ATTR expr SEMI_COLON
+simple-attr : V_ID ATTR expr SEMI_COLON
 
-index-attr : ID LS num-id RS ATTR expr SEMI_COLON
+index-attr : V_ID LS num-id RS ATTR expr SEMI_COLON
 
-mat-attr : ID ATTR LS num-list-list RS 
+mat-attr : V_ID ATTR LS num-list-list RS 
 
-| ID LS num-id RS ATTR LC num-list RC 
+| V_ID LS num-id RS ATTR LC num-list RC 
 
-| ID LS num-id RS LS num-id RS ATTR expr
+| V_ID LS num-id RS LS num-id RS ATTR expr
 
 num-list-list :  num-list-list LC num-list RC
 | num-list
 
 num-list : num-list num 
 | num 
-| ID
+| V_ID
 
 stmt : RETURN expr SEMI_COLON {
   	printf("RETURN expr SEMI_COLON\n");
 }
 
-| COPY LP ID ID RP SEMI_COLON {
-	printf("COPY LP ID ID RP\n");
+| COPY LP V_ID V_ID  RP SEMI_COLON {
+	printf("COPY LP V_ID V_ID  RP\n");
 }
 
-| READ LP ID LS num-id RS LS num-id RS RP SEMI_COLON {
-	printf("READ LP ID LS num-id RS LS num-id RS RP SEMI_COLON\n");
+| READ LP V_ID LS num-id RS LS num-id RS RP SEMI_COLON {
+	printf("READ LP V_ID LS num-id RS LS num-id RS RP SEMI_COLON\n");
 }
 
-| READ LP ID LS num-id RS RP SEMI_COLON {
-	printf("READ LP ID LS num-id RS RP SEMI_COLON\n");
+| READ LP V_ID LS num-id RS RP SEMI_COLON {
+	printf("READ LP V_ID LS num-id RS RP SEMI_COLON\n");
 }
 
-| READ LP ID RP SEMI_COLON {
-	printf("READ LP ID RP SEMI_COLON\n");
+| READ LP V_ID RP SEMI_COLON {
+	printf("READ LP V_ID RP SEMI_COLON\n");
 }
 
 | PRINT expr SEMI_COLON {
@@ -146,8 +146,8 @@ param-list-void : VOID
 param-list : param-list param 
 | param
 
-param : base-type ID 
-| MAT_TYPE base-type ID
+param : base-type V_ID 
+| MAT_TYPE base-type V_ID 
 
 loop : WHILE LP expr RP block
 
@@ -216,16 +216,15 @@ factor : LP expr RP
 | '\''ascii'\''
 
 
-aux : ID LS expr RS LS expr RS 
-| ID LS expr RS 
+aux : V_ID LS expr RS LS expr RS 
+| V_ID LS expr RS 
 | num-id
 
-num-id : INT 
-| FLOAT
-| ID
+num-id : num 
+| V_ID 
 
-call : ID LP arg-list RP
-| ID LP VOID RP
+call : V_ID LP arg-list RP
+| V_ID LP VOID RP
 
 arg-list : arg-list COMMA arg 
 | arg
@@ -233,18 +232,18 @@ arg-list : arg-list COMMA arg
 arg : mat-arg 
 | aux
 
-mat-arg : ID num-id num-id
+mat-arg : V_ID num-id num-id
 
-ascii : '\'' ASCII '\'' {
-  ascii = make_Ascii_op0(ASCII);
+ascii : '\'' V_ASCII '\'' {
+  // ascii = make_Ascii_op0(ASCII);
 }
 
 base-type : CHAR_TYPE 
 | INT_TYPE
 | FLOAT_TYPE
 
-num : FLOAT
-| INT
+num : V_FLOAT
+| V_INT
 
 %%
 
