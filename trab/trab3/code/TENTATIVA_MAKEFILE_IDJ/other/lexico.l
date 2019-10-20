@@ -62,6 +62,7 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
     // TODO : 
   }
   else {
+    yylval.cval = yytext[0];
     currCol += yyleng;
     showCharVal();
     return V_ASCII;
@@ -296,7 +297,8 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
 
 {ID} {          
     showID();
-    printf("ID :-----------> %s\n", yytext);
+    yylval.sval = malloc(yyleng+1);
+    memcpy(yylval.sval, yytext, yyleng+1);
     currCol += yyleng;
     return V_ID;
     ;

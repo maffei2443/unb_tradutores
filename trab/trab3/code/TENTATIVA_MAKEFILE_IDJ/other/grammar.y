@@ -1,3 +1,7 @@
+%code requires {
+typedef struct {} Dummy;
+#include "unions.c"
+}
 %{
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,7 +16,7 @@
 
 %token ERRU
 %token CHAR_TYPE INT_TYPE FLOAT_TYPE MAT_TYPE VOID
-%token V_CHAR V_INT V_FLOAT 
+%token V_INT V_FLOAT 
 %token V_ID AHEAD
 %token LP RP
 %token LS RS
@@ -29,12 +33,21 @@
 %right MAT_POW
 %union {
   int ival;
-  double fval;
+  float fval;
   char cval;
   char* sval;
-
+  Dummy* dummy;
+  void* vvv;
 }
-
+%type<vvv> stmt num-id
+%type<sval> V_ID
+%type<ival> V_INT
+%type<fval> V_FLOAT
+%type<cval> V_ASCII
+%type<dummy> LP RP LS RS LC RC CHAR_TYPE INT_TYPE FLOAT_TYPE MAT_TYPE VOID
+%type<dummy> AHEAD EQ LT GT LE GE NEQ ADD SUB MUL DIV MAT_MUL MAT_POW AND
+%type<dummy> OR NOT ADDR IF ELSE WHILE RETURN COPY PRINT READ SEMI_COLON
+%type<dummy> DOT COMMA ATTR
 %%
 
 program : global-stmt-list
@@ -61,6 +74,8 @@ global-stmt : decl-fun
 
 
 def-fun : base-type V_ID LP param-list-void RP block {
+  $3 = malloc(sizeof(Dummy));
+  $5 = malloc(sizeof(Dummy));
   printf("Definicao de funcao!\n");
 }
 
@@ -101,10 +116,13 @@ stmt : RETURN expr SEMI_COLON {
 }
 
 | COPY LP V_ID V_ID  RP SEMI_COLON {
+  printf("%s\n", $3);
+  printf("%s\n", $4);
 	printf("COPY LP V_ID V_ID  RP\n");
 }
 
 | READ LP V_ID LS num-id RS LS num-id RS RP SEMI_COLON {
+  $$ = $3;
 	printf("READ LP V_ID LS num-id RS LS num-id RS RP SEMI_COLON\n");
 }
 
@@ -232,7 +250,9 @@ arg-list : arg-list COMMA arg
 arg : mat-arg 
 | aux
 
-mat-arg : V_ID num-id num-id
+mat-arg : V_ID num-id num-id {
+
+}
 
 ascii : '\'' V_ASCII '\'' {
   // ascii = make_Ascii_op0(ASCII);
@@ -244,6 +264,8 @@ base-type : CHAR_TYPE
 
 num : V_FLOAT
 | V_INT
+
+
 
 %%
 
