@@ -1,14 +1,129 @@
 typedef struct {} Dummy;
 #define struct struct
 typedef char Error;
+
+
+
 typedef struct {
   union {
-    struct {} op0;  //i: int
-    struct {} op1;  //i: f: float
-    struct {} op2;  //i: c: char
+    Dummy op0;  //i: int
+    Dummy op1;  //i: f: float
+    Dummy op2;  //i: c: char
   }u;
   int tag;
-}MatType;
+} MatType;
+
+typedef struct {
+  union {
+    Dummy op0;
+    Dummy op1;
+  }u;
+  int tag;
+} Addop;
+
+typedef struct {
+  union {
+    Dummy op0;
+    Dummy op1;
+    Dummy op2;
+  }u;
+  int tag;
+} Mulop;
+
+typedef struct {
+  union {
+    Dummy op0;
+    Dummy op1;
+    Dummy op2;
+    Dummy op3;
+    Dummy op4;
+    Dummy op5;
+  }u;
+  int tag;
+} Relop;
+
+typedef struct {
+  union {
+    Dummy op0;
+    Dummy op1;
+  }u;
+  int tag;
+} UnaryOp;
+
+typedef struct {
+  union {
+    Dummy op0;
+    Dummy op1;
+  }u;
+  int tag;
+} BinLogi;
+
+typedef struct {
+  int size;
+  char* sval;
+} Id;
+
+typedef struct {
+  union {
+    struct {float fval;} op0;
+    struct {int ival;} op1;
+  }u;
+  int tag;
+} Num;
+
+typedef struct {
+  union {
+    struct {Num* num;} op0;
+    struct {Id* id;} op1;
+  }u;
+  int tag;
+} NumId;
+
+typedef struct {
+  union {
+    struct {char ival;} op0;  // um caractere para diferenciar int/float/char
+  }u;
+  int tag;
+} BaseType;
+
+typedef struct {
+  union {
+    struct {char cval;} op0;
+  }u;
+  int tag;
+} Ascii;
+
+typedef struct {
+  union {
+    struct {Id* id; int int0; int int1;} op0;
+  }u;
+  int tag;
+} MatArg;
+
+typedef struct {
+  union {
+    struct {MatArg* matArg;} op0;
+    struct {struct Aux* aux;} op1;
+  }u;
+  int tag;
+} Arg;
+
+typedef struct {
+  union {
+    struct {struct ArgList* argList; Arg* arg;} op0;
+    struct {Arg* arg;} op1;
+  }u;
+  int tag;
+} ArgList;
+
+typedef struct {
+  union {
+    struct {Id* id; ArgList* argList;} op0;
+    struct {Id* id;} op1;
+  }u;
+  int tag;
+} Call;
+
 
 typedef struct {
   union {
@@ -26,10 +141,10 @@ typedef struct {
 typedef struct {
   union {
     struct {struct DeclFun* declFun;} op0;
-    struct {struct DefFun* defFun; struct Error* error;} op1;
+    struct {struct DefFun* defFun; Error* error;} op1;
     struct {struct DefFun* defFun;} op2;
     struct {struct DeclVar* declVar; } op3;
-    struct {struct DeclVar* declVar; struct Error* error;} op4;
+    struct {struct DeclVar* declVar; Error* error;} op4;
     struct {struct AttrVar* attrVar;} op5;
     struct {struct Block* block;} op6;
   }u;
@@ -37,27 +152,27 @@ typedef struct {
 } GlobalStmt;
 typedef struct {
   union {
-    struct {struct BaseType* baseType; struct Id* id;  struct ParamListVoid* paramListVoid; struct Block* block;} op0;
+    struct {BaseType* baseType; Id* id;  struct ParamListVoid* paramListVoid; struct Block* block;} op0;
   }u;
   int tag;
 } DefFun;
 typedef struct {
   union {
-    struct {struct BaseType* baseType; struct Id* id;  struct ParamListVoid* paramListVoid; ;} op0;
+    struct {BaseType* baseType; Id* id;  struct ParamListVoid* paramListVoid; ;} op0;
   }u;
   int tag;
 } DeclFun;
 typedef struct {
   union {
-    struct {struct MatType* mat_type; struct BaseType* baseType; struct Id* id;  struct Num* num0;   struct Num* num1; } op0;
-    struct {struct BaseType* baseType; struct IdArr* idArr;} op1;
+    struct {MatType* mat_type; BaseType* baseType; Id* id;  Num* num0;  Num* num1; } op0;
+    struct {BaseType* baseType; struct IdArr* idArr;} op1;
   }u;
   int tag;
 } DeclVar;
 typedef struct {
   union {
-    struct {struct Id* id;  struct NumId* numId; } op0;
-    struct {struct Id* id;} op1;
+    struct {Id* id; NumId* numId; } op0;
+    struct {Id* id;} op1;
   }u;
   int tag;
 } IdArr;
@@ -71,21 +186,21 @@ typedef struct {
 } AttrVar;
 typedef struct {
   union {
-    struct {struct Id* id;  struct Expr* expr; ;} op0;
+    struct {Id* id;  struct Expr* expr; ;} op0;
   }u;
   int tag;
 } SimpleAttr;
 typedef struct {
   union {
-    struct {struct Id* id;  struct NumId* numId;   struct Expr* expr; ;} op0;
+    struct {Id* id;  NumId* numId;   struct Expr* expr; ;} op0;
   }u;
   int tag;
 } IndexAttr;
 typedef struct {
   union {
-    struct {struct Id* id;   struct NumListList* numListList; } op0;
-    struct {struct Id* id;  struct NumId* numId;   ; struct NumList* numList; } op1;
-    struct {struct Id* id;  struct NumId* numId0;   struct NumId* numId1;   struct Expr* expr;} op2;
+    struct {Id* id;   struct NumListList* numListList; } op0;
+    struct {Id* id;  NumId* numId;   ; struct NumList* numList; } op1;
+    struct {Id* id;  NumId* numId0; NumId* numId1;   struct Expr* expr;} op2;
   }u;
   int tag;
 } MatAttr;
@@ -98,21 +213,21 @@ typedef struct {
 } NumListList;
 typedef struct {
   union {
-    struct {struct NumList* numList; struct Num* num;} op0;
-    struct {struct Num* num;} op1;
-    struct {struct Id* id;} op2;
+    struct {struct NumList* numList; Num* num;} op0;
+    struct {Num* num;} op1;
+    struct {Id* id;} op2;
   }u;
   int tag;
 } NumList;
 typedef struct {
   union {
     struct {struct Expr* expr; ;} op0;
-    struct { struct Id* id0; struct Id* id1; ;} op1;
-    struct {  struct Id* id;  struct NumId* numId0;   struct NumId* numId1;  ;} op2;
-    struct {  struct Id* id;  struct NumId* numId;  ;} op3;
-    struct {  struct Id* id; ;} op4;
+    struct { Id* id0; Id* id1; ;} op1;
+    struct {  Id* id;  NumId* numId0;   NumId* numId1;  ;} op2;
+    struct {  Id* id;  NumId* numId;  ;} op3;
+    struct {  Id* id; ;} op4;
     struct {struct Expr* expr; ;} op5;
-    struct {struct Call* call; ;} op6;
+    struct {Call* call; ;} op6;
     struct {struct DeclVar* declVar; ;} op7;
     struct {struct AttrVar* attrVar; ;} op8;
     struct {struct FlowControl* flowControl;} op9;
@@ -122,7 +237,7 @@ typedef struct {
 } Stmt;
 typedef struct {
   union {
-    struct {} op0;
+    Dummy op0;
     struct {struct ParamList* paramList;} op1;
   }u;
   int tag;
@@ -136,8 +251,8 @@ typedef struct {
 } ParamList;
 typedef struct {
   union {
-    struct {struct BaseType* baseType; struct Id* id;} op0;
-    struct {struct MatType* mat_type; struct BaseType* baseType; struct Id* id;} op1;
+    struct {BaseType* baseType; Id* id;} op0;
+    struct {MatType* mat_type; BaseType* baseType; Id* id;} op1;
   }u;
   int tag;
 } Param;
@@ -151,172 +266,84 @@ typedef struct {
   union {
     struct {struct Expr* expr; struct Block* block;  struct FlowControl* flowControl;} op0;
     struct {struct Expr* expr; struct Block* block0;  struct Block* block1;} op1;
-    struct {struct Error* error; struct Block* block0;  struct Block* block1;} op2;
-    struct {struct Expr* expr; struct Error* error; struct Block* block0;  struct Block* block1;} op3;
+    struct {Error* error; struct Block* block0;  struct Block* block1;} op2;
+    struct {struct Expr* expr; Error* error; struct Block* block0;  struct Block* block1;} op3;
   }u;
   int tag;
 } FlowControl;
-typedef struct {
+
+typedef struct{
   union {
-    struct { struct StmtList* stmtList; } op0;
-    struct {} op1;
-  }u;
-  int tag;
-} Block;
-typedef struct {
-  union {
-    struct {struct StmtList* stmtList; struct Stmt* stmt;} op0;
-    struct {struct Stmt* stmt;} op1;
+    struct {struct StmtList* stmtList; Stmt* stmt;} op0;
+    struct {Stmt* stmt;} op1;
   }u;
   int tag;
 } StmtList;
+
 typedef struct {
   union {
-    struct {struct AddExpr* addExpr0; struct Relop* relop; struct AddExpr* addExpr1;} op0;
-    struct {struct AddExpr* addExpr;} op1;
+    struct {StmtList* stmtList; } op0;
+    Dummy op1;
   }u;
   int tag;
-} Expr;
+} Block;
+
 typedef struct {
   union {
-    struct {} op0;
-    struct {} op1;
-    struct {} op2;
-    struct {} op3;
-    struct {} op4;
-    struct {} op5;
-  }u;
-  int tag;
-} Relop;
-typedef struct {
-  union {
-    struct {struct AddExpr* addExpr; struct Addop* addop; struct Term* term;} op0;
+    struct {struct AddExpr* addExpr; Addop* addop; struct Term* term;} op0;
     struct {struct Term* term;} op1;
   }u;
   int tag;
 } AddExpr;
+
 typedef struct {
   union {
-    struct {} op0;
-    struct {} op1;
+    struct {AddExpr* addExpr0; Relop* relop; AddExpr* addExpr1;} op0;
+    struct {struct AddExpr* addExpr;} op1;
   }u;
   int tag;
-} Addop;
-typedef struct {
+} Expr;
+
+
+
+typedef struct{
   union {
-    struct {struct Term* term; struct Mulop* mulop; struct Bin* bin;} op0;
+    struct {struct Term* term; Mulop* mulop; struct Bin* bin;} op0;
     struct {struct Bin* bin;} op1;
   }u;
   int tag;
 } Term;
+
 typedef struct {
   union {
-    struct {} op0;
-    struct {} op1;
-    struct {} op2;
-  }u;
-  int tag;
-} Mulop;
-typedef struct {
-  union {
-    struct {struct Bin* bin; struct BinLogi* binLogi; struct Unary* unary;} op0;
+    struct {struct Bin* bin; BinLogi* binLogi; struct Unary* unary;} op0;
     struct {struct Unary* unary;} op1;
   }u;
   int tag;
 } Bin;
+
 typedef struct {
   union {
-    struct {} op0;
-    struct {} op1;
-  }u;
-  int tag;
-} BinLogi;
-typedef struct {
-  union {
-    struct {struct UnaryOp* unaryOp; struct Factor* factor;} op0;
+    struct {UnaryOp* unaryOp; struct Factor* factor;} op0;
     struct {struct Factor* factor;} op1;
   }u;
   int tag;
 } Unary;
+
 typedef struct {
   union {
-    struct {} op0;
-    struct {} op1;
-  }u;
-  int tag;
-} UnaryOp;
-typedef struct {
-  union {
-    struct {struct Expr* expr;} op0;
+    struct {Expr* expr;} op0;
     struct {struct Aux* aux;} op1;
-    struct {struct Call* call;} op2;
-    struct {struct Ascii* ascii;} op3;
+    struct {Call* call;} op2;
+    struct {Ascii* ascii;} op3;
   }u;
   int tag;
 } Factor;
 typedef struct {
   union {
-    struct {struct Id* id; struct Expr* expr0; struct Expr* expr1;} op0;
-    struct {struct Id* id; struct Expr* expr;} op1;
-    struct {struct NumId* numId;} op2;
+    struct {Id* id; Expr* expr0; Expr* expr1;} op0;
+    struct {Id* id; Expr* expr;} op1;
+    struct {NumId* numId;} op2;
   }u;
   int tag;
 } Aux;
-typedef struct {
-  union {
-    struct {struct Num* num;} op0;
-    struct {struct Id* id;} op1;
-  }u;
-  int tag;
-} NumId;
-typedef struct {
-  union {
-    struct {struct Id* id;struct ArgList* argList;} op0;
-    struct {struct Id* id;} op1;
-  }u;
-  int tag;
-} Call;
-typedef struct {
-  union {
-    struct {struct ArgList* argList; struct Arg* arg;} op0;
-    struct {struct Arg* arg;} op1;
-  }u;
-  int tag;
-} ArgList;
-typedef struct {
-  union {
-    struct {struct MatArg* matArg;} op0;
-    struct {struct Aux* aux;} op1;
-  }u;
-  int tag;
-} Arg;
-typedef struct {
-  union {
-    struct {struct Id* id; int* int0; int int1;} op0;
-  }u;
-  int tag;
-} MatArg;
-typedef struct {
-  union {
-    struct {char cval;} op0;
-  }u;
-  int tag;
-} Ascii;
-typedef struct {
-  union {
-    struct {char ival;} op0;  // um caractere para diferenciar int/float/char
-  }u;
-  int tag;
-} BaseType;
-typedef struct {
-  union {
-    struct {float fval;} op0;
-    struct {int ival;} op1;
-  }u;
-  int tag;
-} Num;
-
-typedef struct {
-  int size;
-  char* sval;
-} Id;
