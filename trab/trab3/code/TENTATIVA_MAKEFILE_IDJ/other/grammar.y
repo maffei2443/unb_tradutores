@@ -1,327 +1,5 @@
 %code requires {
-typedef struct {} Dummy;
-#define str struct
-typedef char Error;
-typedef str {
-  union {
-    struct {} op0;  //i: int
-    struct {} op1;  //i: f: float
-    struct {} op2;  //i: c: char
-  }u;
-  int tag;
-}MatType;
-
-typedef str {
-  union {
-    str {str GlobalStmtList* globalStmtList;} op0;
-  }u;
-  int tag;
-} Program;
-typedef str {
-  union {
-    str {str GlobalStmtList* globalStmtList; str GlobalStmt* globalStmt;} op0;
-    str {str GlobalStmt* globalStmt;} op1;
-  }u;
-  int tag;
-} GlobalStmtList;
-typedef str {
-  union {
-    str {str DeclFun* declFun;} op0;
-    str {str DefFun* defFun; str Error* error;} op1;
-    str {str DefFun* defFun;} op2;
-    str {str DeclVar* declVar; } op3;
-    str {str DeclVar* declVar; str Error* error;} op4;
-    str {str AttrVar* attrVar;} op5;
-    str {str Block* block;} op6;
-  }u;
-  int tag;
-} GlobalStmt;
-typedef str {
-  union {
-    str {str BaseType* baseType; str Id* id;  str ParamListVoid* paramListVoid; str Block* block;} op0;
-  }u;
-  int tag;
-} DefFun;
-typedef str {
-  union {
-    str {str BaseType* baseType; str Id* id;  str ParamListVoid* paramListVoid; ;} op0;
-  }u;
-  int tag;
-} DeclFun;
-typedef str {
-  union {
-    str {str MatType* mat_type; str BaseType* baseType; str Id* id;  str Num* num0;   str Num* num1; } op0;
-    str {str BaseType* baseType; str IdArr* idArr;} op1;
-  }u;
-  int tag;
-} DeclVar;
-typedef str {
-  union {
-    str {str Id* id;  str NumId* numId; } op0;
-    str {str Id* id;} op1;
-  }u;
-  int tag;
-} IdArr;
-typedef str {
-  union {
-    str {str MatAttr* matAttr;} op0;
-    str {str IndexAttr* indexAttr;} op1;
-    str {str SimpleAttr* simpleAttr;} op2;
-  }u;
-  int tag;
-} AttrVar;
-typedef str {
-  union {
-    str {str Id* id;  str Expr* expr; ;} op0;
-  }u;
-  int tag;
-} SimpleAttr;
-typedef str {
-  union {
-    str {str Id* id;  str NumId* numId;   str Expr* expr; ;} op0;
-  }u;
-  int tag;
-} IndexAttr;
-typedef str {
-  union {
-    str {str Id* id;   str NumListList* numListList; } op0;
-    str {str Id* id;  str NumId* numId;   ; str NumList* numList; } op1;
-    str {str Id* id;  str NumId* numId0;   str NumId* numId1;   str Expr* expr;} op2;
-  }u;
-  int tag;
-} MatAttr;
-typedef str {
-  union {
-    str {str NumListList* numListList; ; str NumList* numList; } op0;
-    str {str NumList* numList;} op1;
-  }u;
-  int tag;
-} NumListList;
-typedef str {
-  union {
-    str {str NumList* numList; str Num* num;} op0;
-    str {str Num* num;} op1;
-    str {str Id* id;} op2;
-  }u;
-  int tag;
-} NumList;
-typedef str {
-  union {
-    str {str Expr* expr; ;} op0;
-    str { str Id* id0; str Id* id1; ;} op1;
-    str {  str Id* id;  str NumId* numId0;   str NumId* numId1;  ;} op2;
-    str {  str Id* id;  str NumId* numId;  ;} op3;
-    str {  str Id* id; ;} op4;
-    str {str Expr* expr; ;} op5;
-    str {str Call* call; ;} op6;
-    str {str DeclVar* declVar; ;} op7;
-    str {str AttrVar* attrVar; ;} op8;
-    str {str FlowControl* flowControl;} op9;
-    str {str Loop* loop;} op10;
-  }u;
-  int tag;
-} Stmt;
-typedef str {
-  union {
-    str {} op0;
-    str {str ParamList* paramList;} op1;
-  }u;
-  int tag;
-} ParamListVoid;
-typedef str {
-  union {
-    str {str ParamList* paramList; str Param* param;} op0;
-    str {str Param* param;} op1;
-  }u;
-  int tag;
-} ParamList;
-typedef str {
-  union {
-    str {str BaseType* baseType; str Id* id;} op0;
-    str {str MatType* mat_type; str BaseType* baseType; str Id* id;} op1;
-  }u;
-  int tag;
-} Param;
-typedef str {
-  union {
-    str {str Expr* expr; str Block* block;} op0;
-  }u;
-  int tag;
-} Loop;
-typedef str {
-  union {
-    str {str Expr* expr; str Block* block;  str FlowControl* flowControl;} op0;
-    str {str Expr* expr; str Block* block0;  str Block* block1;} op1;
-    str {str Error* error; str Block* block0;  str Block* block1;} op2;
-    str {str Expr* expr; str Error* error; str Block* block0;  str Block* block1;} op3;
-  }u;
-  int tag;
-} FlowControl;
-typedef str {
-  union {
-    str { str StmtList* stmtList; } op0;
-    str {} op1;
-  }u;
-  int tag;
-} Block;
-typedef str {
-  union {
-    str {str StmtList* stmtList; str Stmt* stmt;} op0;
-    str {str Stmt* stmt;} op1;
-  }u;
-  int tag;
-} StmtList;
-typedef str {
-  union {
-    str {str AddExpr* addExpr0; str Relop* relop; str AddExpr* addExpr1;} op0;
-    str {str AddExpr* addExpr;} op1;
-  }u;
-  int tag;
-} Expr;
-typedef str {
-  union {
-    str {} op0;
-    str {} op1;
-    str {} op2;
-    str {} op3;
-    str {} op4;
-    str {} op5;
-  }u;
-  int tag;
-} Relop;
-typedef str {
-  union {
-    str {str AddExpr* addExpr; str Addop* addop; str Term* term;} op0;
-    str {str Term* term;} op1;
-  }u;
-  int tag;
-} AddExpr;
-typedef str {
-  union {
-    str {} op0;
-    str {} op1;
-  }u;
-  int tag;
-} Addop;
-typedef str {
-  union {
-    str {str Term* term; str Mulop* mulop; str Bin* bin;} op0;
-    str {str Bin* bin;} op1;
-  }u;
-  int tag;
-} Term;
-typedef str {
-  union {
-    str {} op0;
-    str {} op1;
-    str {} op2;
-  }u;
-  int tag;
-} Mulop;
-typedef str {
-  union {
-    str {str Bin* bin; str BinLogi* binLogi; str Unary* unary;} op0;
-    str {str Unary* unary;} op1;
-  }u;
-  int tag;
-} Bin;
-typedef str {
-  union {
-    str {} op0;
-    str {} op1;
-  }u;
-  int tag;
-} BinLogi;
-typedef str {
-  union {
-    str {str UnaryOp* unaryOp; str Factor* factor;} op0;
-    str {str Factor* factor;} op1;
-  }u;
-  int tag;
-} Unary;
-typedef str {
-  union {
-    str {} op0;
-    str {} op1;
-  }u;
-  int tag;
-} UnaryOp;
-typedef str {
-  union {
-    str {str Expr* expr;} op0;
-    str {str Aux* aux;} op1;
-    str {str Call* call;} op2;
-    str {str Ascii* ascii;} op3;
-  }u;
-  int tag;
-} Factor;
-typedef str {
-  union {
-    str {str Id* id; str Expr* expr0; str Expr* expr1;} op0;
-    str {str Id* id; str Expr* expr;} op1;
-    str {str NumId* numId;} op2;
-  }u;
-  int tag;
-} Aux;
-typedef str {
-  union {
-    str {int ival;} op0;
-    str {float fval;} op1;
-    str {str Id* id;} op2;
-  }u;
-  int tag;
-} NumId;
-typedef str {
-  union {
-    str {str Id* id;str ArgList* argList;} op0;
-    str {str Id* id;} op1;
-  }u;
-  int tag;
-} Call;
-typedef str {
-  union {
-    str {str ArgList* argList; str Arg* arg;} op0;
-    str {str Arg* arg;} op1;
-  }u;
-  int tag;
-} ArgList;
-typedef str {
-  union {
-    str {str MatArg* matArg;} op0;
-    str {str Aux* aux;} op1;
-  }u;
-  int tag;
-} Arg;
-typedef str {
-  union {
-    str {str Id* id; str NumId* numId0; str NumId* numId1;} op0;
-  }u;
-  int tag;
-} MatArg;
-typedef str {
-  union {
-    str {char cval;} op0;
-  }u;
-  int tag;
-} Ascii;
-typedef str {
-  union {
-    str {char ival;} op0;  // um caractere para diferenciar int/float/char
-  }u;
-  int tag;
-} BaseType;
-typedef str {
-  union {
-    str {float fval;} op0;
-    str {int ival;} op1;
-  }u;
-  int tag;
-} Num;
-
-typedef str {
-  int size;
-  char* sval;
-} Id;
+  #include  "Functions.h"
 }
 %{
 #include <stdio.h>
@@ -338,7 +16,7 @@ typedef str {
 %token ERRU
 %token CHAR_TYPE INT_TYPE FLOAT_TYPE MAT_TYPE VOID
 %token V_INT V_FLOAT 
-%token V_ID AHEAD
+%token ID AHEAD
 %token LP RP
 %token LS RS
 %token LC RC
@@ -399,9 +77,10 @@ typedef str {
   MatArg* _matArg;
   Ascii* _ascii;
   BaseType* _baseType;
-  Num* _num;  
+  Num* _num;
+  Id* _id;
 }
-%type<sval> V_ID
+%type<_id> ID
 %type<ival> V_INT
 %type<fval> V_FLOAT
 %type<cval> V_ASCII
@@ -453,221 +132,109 @@ typedef str {
 %type<_num>num
 %%
 
-program : global-stmt-list
-
-global-stmt-list : global-stmt-list global-stmt {
-  printf("global-stmt-list global-stmt\n");
-}
-| global-stmt {
-  printf("global-stmt\n");
-}
-
-
-global-stmt : decl-fun 
-| def-fun error
-| def-fun 
-| decl-var SEMI_COLON {
-    printf("Decl-var\n");
-}
-| decl-var error {
-    printf("Erro\: declaracao sem ';'\n");
-}
-| attr-var SEMI_COLON
-| block
-
-
-def-fun : base-type V_ID LP param-list-void RP block {
-  $3 = malloc(sizeof(Dummy));
-  $5 = malloc(sizeof(Dummy));
-  printf("Definicao de funcao!\n");
-}
-
-decl-fun : AHEAD base-type V_ID LP param-list-void RP  SEMI_COLON {
-  printf("DECLARACAO DE FUNCAOO\n");
-}
-
-decl-var : MAT_TYPE base-type V_ID LS num RS LS num RS 
-| base-type id-arr
-
-id-arr : V_ID LS num-id RS 
-| V_ID
-
-attr-var : mat-attr 
-| index-attr 
-| simple-attr
-
-
-simple-attr : V_ID ATTR expr SEMI_COLON
-
-index-attr : V_ID LS num-id RS ATTR expr SEMI_COLON
-
-mat-attr : V_ID ATTR LS num-list-list RS 
-
-| V_ID LS num-id RS ATTR LC num-list RC 
-
-| V_ID LS num-id RS LS num-id RS ATTR expr
-
-num-list-list :  num-list-list LC num-list RC
-| num-list
-
-num-list : num-list num 
-| num 
-| V_ID
-
-stmt : RETURN expr SEMI_COLON {
-  	printf("RETURN expr SEMI_COLON\n");
-}
-
-| COPY LP V_ID V_ID  RP SEMI_COLON {
-  printf("%s\n", $3);
-  printf("%s\n", $4);
-	printf("COPY LP V_ID V_ID  RP\n");
-}
-
-| READ LP V_ID LS num-id RS LS num-id RS RP SEMI_COLON {
-  $$ = $3;
-	printf("READ LP V_ID LS num-id RS LS num-id RS RP SEMI_COLON\n");
-}
-
-| READ LP V_ID LS num-id RS RP SEMI_COLON {
-	printf("READ LP V_ID LS num-id RS RP SEMI_COLON\n");
-}
-
-| READ LP V_ID RP SEMI_COLON {
-	printf("READ LP V_ID RP SEMI_COLON\n");
-}
-
-| PRINT expr SEMI_COLON {
-	printf("PRINT expr SEMI_COLON\n");
-}
-	
-| call SEMI_COLON  {
-	printf("call SEMI_COLON \n");
-}
-
-| decl-var SEMI_COLON {
-	printf("decl-var SEMI_COLON\n");
-}
-
-| attr-var SEMI_COLON {
-	printf("attr-var SEMI_COLON\n");
-}
-
-| flow-control {
-	printf("flow-control\n");
-}
-
-| loop {
-	printf("loop\n");
-}
-
-param-list-void : VOID 
-| param-list
-
-param-list : param-list param 
-| param
-
-param : base-type V_ID 
-| MAT_TYPE base-type V_ID 
-
-loop : WHILE LP expr RP block
-
-flow-control : IF LP expr RP block ELSE flow-control {
-      printf("IF LP expr RP block ELSE flow-control\n");
-}
-| IF LP expr RP block ELSE block {
-  printf("IF LP expr RP block ELSE block\n");
-}
-| IF LP error RP block ELSE block {
-      printf("IF LP error RP block ELSE block\n");
-}
-| IF LP expr error block ELSE block {
-  printf("FALTOU FECHAR IF\n");
-}
-
-block : LC stmt-list RC {
-      printf("BLOCO!!!\n");
-}
-| LC RC {
-      printf("Bloco vazio!\n");
-}
-
-stmt-list : stmt-list stmt 
-| stmt
-
-expr : add-expr relop add-expr 
-| add-expr
-
-relop : LE 
-| GE 
-| NEQ
-| EQ 
-| GT
-| LT 
-
-add-expr : add-expr addop term 
-| term
-
-addop : ADD
-| SUB
-
-term : term mulop bin 
-| bin
-
-mulop : MAT_MUL
-| MUL
-| DIV
-| MAT_POW
-
-bin : bin bin-logi unary 
-| unary
-
-bin-logi : AND
-| OR
-
-unary : unary-op factor 
-| factor 
-
-unary-op : NOT
-| ADDR
-
-factor : LP expr RP 
-| aux
-| call
-| '\''ascii'\''
-
-
-aux : V_ID LS expr RS LS expr RS 
-| V_ID LS expr RS 
-| num-id
-
-num-id : num 
-| V_ID 
-
-call : V_ID LP arg-list RP
-| V_ID LP VOID RP
-
-arg-list : arg-list COMMA arg 
-| arg
-
-arg : mat-arg 
-| aux
-
-mat-arg : V_ID num-id num-id {
-
-}
-
-ascii : '\'' V_ASCII '\'' {
-  // ascii = make_Ascii_op0(ASCII);
-}
-
-base-type : CHAR_TYPE 
-| INT_TYPE
-| FLOAT_TYPE
-
-num : V_FLOAT
-| V_INT
-
+program : global-stmt-list {$$ = make_Program_op0($1);}
+global-stmt-list : global-stmt-list global-stmt {$$ = make_GlobalStmtList_op0($1, $2);}
+global-stmt-list : global-stmt {$$ = make_GlobalStmtList_op1($1); }
+global-stmt : decl-fun {$$ = make_GlobalStmt_op0($1); }
+global-stmt : def-fun error {$$ = make_GlobalStmt_op1($1, NULL); }
+global-stmt : def-fun {$$ = make_GlobalStmt_op2($1); }
+global-stmt : decl-var SEMI_COLON {$$ = make_GlobalStmt_op3($1); }
+global-stmt : decl-var error {$$ = make_GlobalStmt_op4($1, NULL); }
+global-stmt : attr-var SEMI_COLON {$$ = make_GlobalStmt_op5($1); }
+global-stmt : block {$$ = make_GlobalStmt_op6($1); }
+def-fun : base-type ID LP param-list-void RP block {$$ = make_DefFun_op0($1, $2, $4, $6); }
+decl-fun : AHEAD base-type ID LP param-list-void RP  SEMI_COLON {$$ = make_DeclFun_op0($2, $3, $5); }
+decl-var : MAT_TYPE base-type ID LS num RS LS num RS {$$ = make_DeclVar_op0($2, $3, $5, $8 ); }
+decl-var : base-type id-arr {$$ = make_DeclVar_op1($1, $2); }
+id-arr : ID LS num-id RS {$$ = make_IdArr_op0($1, $3); }
+id-arr : ID {$$ = make_IdArr_op1($1); }
+attr-var : mat-attr {$$ = make_AttrVar_op0($1); }
+attr-var : index-attr {$$ = make_AttrVar_op1($1); }
+attr-var : simple-attr {$$ = make_AttrVar_op2($1); }
+simple-attr : ID ATTR expr SEMI_COLON {$$ = make_SimpleAttr_op0($1, $3); }
+index-attr : ID LS num-id RS ATTR expr SEMI_COLON {$$ = make_IndexAttr_op0($1, $3, $6); }
+mat-attr : ID ATTR LS num-list-list RS {$$ = make_MatAttr_op0($1, $4); }
+mat-attr : ID LS num-id RS ATTR LC num-list RC {$$ = make_MatAttr_op1($1, $3, $7); }
+mat-attr : ID LS num-id RS LS num-id RS ATTR expr {$$ = make_MatAttr_op2($1, $3, $6, $9); }
+num-list-list :  num-list-list LC num-list RC {$$ = make_NumListList_op0($1, $3); }
+num-list-list : num-list {$$ = make_NumListList_op1($1); }
+num-list : num-list num {$$ = make_NumList_op0($1, $2); }
+num-list : num {$$ = make_NumList_op1($1); }
+num-list : ID {$$ = make_NumList_op2($1); }
+stmt : RETURN expr SEMI_COLON {$$ = make_Stmt_op0($2); }
+stmt : COPY LP ID ID  RP SEMI_COLON {$$ = make_Stmt_op1($3, $4); }
+stmt : READ LP ID LS num-id RS LS num-id RS RP SEMI_COLON {$$ = make_Stmt_op2($3, $5, $8); }
+stmt : READ LP ID LS num-id RS RP SEMI_COLON {$$ = make_Stmt_op3($3, $5); }
+stmt : READ LP ID RP SEMI_COLON {$$ = make_Stmt_op4($3); }
+stmt : PRINT expr SEMI_COLON {$$ = make_Stmt_op5($2); }
+stmt : call SEMI_COLON {$$ = make_Stmt_op6($1); }
+stmt : decl-var SEMI_COLON {$$ = make_Stmt_op7($1); }
+stmt : attr-var SEMI_COLON {$$ = make_Stmt_op8($1); }
+stmt : flow-control {$$ = make_Stmt_op9($1); }
+stmt : loop {$$ = make_Stmt_op10($1);}
+param-list-void : VOID {$$ = make_ParamListVoid_op0(); }
+param-list-void : param-list {$$ = make_ParamListVoid_op1($1); }
+param-list : param-list param {$$ = make_ParamList_op0($1, $2); }
+param-list : param {$$ = make_ParamList_op1($1); }
+param : base-type ID {$$ = make_Param_op0($1, $2); }
+param : MAT_TYPE base-type ID {$$ = make_Param_op1($2, $3); }
+loop : WHILE LP expr RP block {$$ = make_Loop_op0( $3, $5); }
+flow-control : IF LP expr RP block ELSE flow-control {$$ = make_FlowControl_op0( $3, $5, $7); }
+flow-control : IF LP expr RP block ELSE block {$$ = make_FlowControl_op1($3, $5, $7); }
+flow-control : IF LP error RP block ELSE block {$$ = make_FlowControl_op2( NULL, $5, $7); }
+flow-control : IF LP expr error block ELSE block {$$ = make_FlowControl_op3($3, NULL, $5, $7); }
+block : LC stmt-list RC {$$ = make_Block_op0($2); }
+block : LC RC {$$ = make_Block_op1(); }
+stmt-list : stmt-list stmt {$$ = make_StmtList_op0($1, $2); }
+stmt-list : stmt {$$ = make_StmtList_op1($1); }
+expr : add-expr relop add-expr {$$ = make_Expr_op0($1, $2, $3); }
+expr : add-expr {$$ = make_Expr_op1($1); }
+relop : LE {$$ = make_Relop_op0(); }
+relop : GE {$$ = make_Relop_op1(); }
+relop : NEQ {$$ = make_Relop_op2(); }
+relop : EQ {$$ = make_Relop_op3(); }
+relop : GT {$$ = make_Relop_op4(); }
+relop : LT {$$ = make_Relop_op5(); }
+add-expr : add-expr addop term {$$ = make_AddExpr_op0($1, $2, $3); }
+add-expr : term {$$ = make_AddExpr_op1($1); }
+addop : ADD {$$ = make_Addop_op0(); }
+addop : SUB {$$ = make_Addop_op1(); }
+term : term mulop bin {$$ = make_Term_op0($1, $2, $3); }
+term : bin {$$ = make_Term_op1($1); }
+mulop : MAT_MUL {$$ = make_Mulop_op0(); }
+mulop : MUL {$$ = make_Mulop_op1(); }
+mulop : DIV {$$ = make_Mulop_op2(); }
+mulop : MAT_POW {$$ = make_Mulop_op3(); }
+bin : bin bin-logi unary {$$ = make_Bin_op0($1, $2, $3); }
+bin : unary {$$ = make_Bin_op1($1); }
+bin-logi : AND {$$ = make_BinLogi_op0(); }
+bin-logi : OR {$$ = make_BinLogi_op1(); }
+unary : unary-op factor {$$ = make_Unary_op0($1, $2); }
+unary : factor {$$ = make_Unary_op1($1); }
+unary-op : NOT {$$ = make_UnaryOp_op0(); }
+unary-op : ADDR {$$ = make_UnaryOp_op1(); }
+factor : LP expr RP {$$ = make_Factor_op0($2); }
+factor : aux {$$ = make_Factor_op1($1); }
+factor : call {$$ = make_Factor_op2($1); }
+factor : '\''ascii'\'' {$$ = make_Factor_op3($2); }
+aux : ID LS expr RS LS expr RS {$$ = make_Aux_op0($1, $3, $6); }
+aux : ID LS expr RS {$$ = make_Aux_op1($1, $3); }
+aux : num-id {$$ = make_Aux_op2($1); }
+num-id : num {$$ = make_NumId_op0($1); }
+num-id : ID {$$ = make_NumId_op1($1); }
+call : ID LP arg-list RP {$$ = make_Call_op0($1, $3); }
+call : ID LP VOID RP {$$ = make_Call_op1($1); }
+arg-list : arg-list COMMA arg {$$ = make_ArgList_op0($1, $3); }
+arg-list : arg {$$ = make_ArgList_op1($1); }
+arg : mat-arg {$$ = make_Arg_op0($1); }
+arg : aux {$$ = make_Arg_op1($1); }
+mat-arg : ID V_INT V_INT {$$ = make_MatArg_op0($1, $2, $3); }
+ascii :  V_ASCII {$$ = make_Ascii_op0($1); }
+base-type : CHAR_TYPE {$$ = make_BaseType_op0(); }
+base-type : INT_TYPE {$$ = make_BaseType_op1(); }
+base-type : FLOAT_TYPE {$$ = make_BaseType_op2(); }
+num : V_FLOAT {$$ = make_Num_op0($1); }
+num : V_INT {$$ = make_Num_op1($1); }
 
 
 %%

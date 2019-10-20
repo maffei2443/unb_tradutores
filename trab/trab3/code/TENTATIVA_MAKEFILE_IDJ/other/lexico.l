@@ -300,7 +300,7 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
     yylval.sval = malloc(yyleng+1);
     memcpy(yylval.sval, yytext, yyleng+1);
     currCol += yyleng;
-    return V_ID;
+    return ID;
     ;
 }
 {relOp} {
