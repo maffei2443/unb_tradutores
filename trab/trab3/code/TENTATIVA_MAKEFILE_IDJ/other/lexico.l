@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include "Array.h"
 #include "Colorfy.h"
-#include "SymTable.h"
+// #include "SymTable.h"
 #include "Common.h"
 #include "Prints.h"
 int numlines = 1, currCol = 1;

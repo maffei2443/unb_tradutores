@@ -1,6 +1,8 @@
 %code requires {
-  #include  "Functions.h"
+  #include "Function.h"
 }
+
+
 %{
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,6 +10,7 @@
 // S : simply bracket ~~ []
 // C : curly bracket ~~ {}
 %}
+
 // %define "parse.error"
 // %require "3.0.4"
 %define parse.error verbose
