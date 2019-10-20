@@ -5,6 +5,11 @@
 #include <stdlib.h>
 #define STR struct
 
+typedef struct {
+  void * prev;
+} List;
+List* InitList();
+// void FreeList(List** last);
 Program* make_Program_op0(GlobalStmtList* globalStmtList) ;
 GlobalStmtList* make_GlobalStmtList_op0(GlobalStmtList* globalStmtList, GlobalStmt* globalStmt);
 GlobalStmtList* make_GlobalStmtList_op1(GlobalStmt* globalStmt);

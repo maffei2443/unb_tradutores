@@ -3,8 +3,24 @@
 
 // 
 
+List * gLast;
+void FreeList(){
+  List* ptr = gLast->prev;
+  while(ptr != NULL) {
+    ptr = gLast->prev;
+    free(gLast);
+    gLast = NULL;
+    gLast = ptr;
+  }
+}
+void AddList(void** newLast) {
+  void** tmp = &gLast->prev;
+  gLast = *newLast;
+  gLast->prev = *tmp;
+}
 Program* make_Program_op0(GlobalStmtList* globalStmtList) {
   Program* no = malloc(sizeof(Program)); no->tag = 0;
+  printf("make_Program_op0(GlobalStmtList* globalStmtList)\n");
   no->u.op0.globalStmtList = (GlobalStmtList*) globalStmtList;
   return no;
 }
