@@ -74,7 +74,7 @@ typedef struct {
 typedef struct {
   union {
     struct {Num* num;} op0;
-    struct {Id* id;} op1;
+    struct {char* id;} op1;
   }u;
   int tag;
 } NumId;
@@ -95,7 +95,7 @@ typedef struct {
 
 typedef struct {
   union {
-    struct {Id* id; int int0; int int1;} op0;
+    struct {char* id; int int0; int int1;} op0;
   }u;
   int tag;
 } MatArg;
@@ -103,14 +103,14 @@ typedef struct {
 typedef struct {
   union {
     struct {MatArg* matArg;} op0;
-    struct {struct Aux* aux;} op1;
+    struct {void* aux;} op1;
   }u;
   int tag;
 } Arg;
 
 typedef struct {
   union {
-    struct {struct ArgList* argList; Arg* arg;} op0;
+    struct {void* argList; Arg* arg;} op0;
     struct {Arg* arg;} op1;
   }u;
   int tag;
@@ -118,8 +118,8 @@ typedef struct {
 
 typedef struct {
   union {
-    struct {Id* id; ArgList* argList;} op0;
-    struct {Id* id;} op1;
+    struct {char* id; ArgList* argList;} op0;
+    struct {char* id;} op1;
   }u;
   int tag;
 } Call;
@@ -127,154 +127,154 @@ typedef struct {
 
 typedef struct {
   union {
-    struct {struct GlobalStmtList* globalStmtList;} op0;
+    struct {void* globalStmtList;} op0;
   }u;
   int tag;
 } Program;
 typedef struct {
   union {
-    struct {struct GlobalStmtList* globalStmtList; struct GlobalStmt* globalStmt;} op0;
-    struct {struct GlobalStmt* globalStmt;} op1;
+    struct {void* globalStmtList; void* globalStmt;} op0;
+    struct {void* globalStmt;} op1;
   }u;
   int tag;
 } GlobalStmtList;
 typedef struct {
   union {
-    struct {struct DeclFun* declFun;} op0;
-    struct {struct DefFun* defFun; Error* error;} op1;
-    struct {struct DefFun* defFun;} op2;
-    struct {struct DeclVar* declVar; } op3;
-    struct {struct DeclVar* declVar; Error* error;} op4;
-    struct {struct AttrVar* attrVar;} op5;
-    struct {struct Block* block;} op6;
+    struct {void* declFun;} op0;
+    struct {void* defFun; Error* error;} op1;
+    struct {void* defFun;} op2;
+    struct {void* declVar; } op3;
+    struct {void* declVar; Error* error;} op4;
+    struct {void* attrVar;} op5;
+    struct {void* block;} op6;
   }u;
   int tag;
 } GlobalStmt;
 typedef struct {
   union {
-    struct {BaseType* baseType; Id* id;  struct ParamListVoid* paramListVoid; struct Block* block;} op0;
+    struct {BaseType* baseType; char* id;  void* paramListVoid; void* block;} op0;
   }u;
   int tag;
 } DefFun;
 typedef struct {
   union {
-    struct {BaseType* baseType; Id* id;  struct ParamListVoid* paramListVoid; ;} op0;
+    struct {BaseType* baseType; char* id;  void* paramListVoid; ;} op0;
   }u;
   int tag;
 } DeclFun;
 typedef struct {
   union {
-    struct {MatType* mat_type; BaseType* baseType; Id* id;  Num* num0;  Num* num1; } op0;
-    struct {BaseType* baseType; struct IdArr* idArr;} op1;
+    struct {MatType* mat_type; BaseType* baseType; char* id;  Num* num0;  Num* num1; } op0;
+    struct {BaseType* baseType; void* idArr;} op1;
   }u;
   int tag;
 } DeclVar;
 typedef struct {
   union {
-    struct {Id* id; NumId* numId; } op0;
-    struct {Id* id;} op1;
+    struct {char* id; NumId* numId; } op0;
+    struct {char* id;} op1;
   }u;
   int tag;
 } IdArr;
 typedef struct {
   union {
-    struct {struct MatAttr* matAttr;} op0;
-    struct {struct IndexAttr* indexAttr;} op1;
-    struct {struct SimpleAttr* simpleAttr;} op2;
+    struct {void* matAttr;} op0;
+    struct {void* indexAttr;} op1;
+    struct {void* simpleAttr;} op2;
   }u;
   int tag;
 } AttrVar;
 typedef struct {
   union {
-    struct {Id* id;  struct Expr* expr; ;} op0;
+    struct {char* id;  void* expr; ;} op0;
   }u;
   int tag;
 } SimpleAttr;
 typedef struct {
   union {
-    struct {Id* id;  NumId* numId;   struct Expr* expr; ;} op0;
+    struct {char* id;  NumId* numId;   void* expr; ;} op0;
   }u;
   int tag;
 } IndexAttr;
 typedef struct {
   union {
-    struct {Id* id;   struct NumListList* numListList; } op0;
-    struct {Id* id;  NumId* numId;   ; struct NumList* numList; } op1;
-    struct {Id* id;  NumId* numId0; NumId* numId1;   struct Expr* expr;} op2;
+    struct {char* id;   void* numListList; } op0;
+    struct {char* id;  NumId* numId;   ; void* numList; } op1;
+    struct {char* id;  NumId* numId0; NumId* numId1;   void* expr;} op2;
   }u;
   int tag;
 } MatAttr;
 typedef struct {
   union {
-    struct {struct NumListList* numListList; ; struct NumList* numList; } op0;
-    struct {struct NumList* numList;} op1;
+    struct {void* numListList; ; void* numList; } op0;
+    struct {void* numList;} op1;
   }u;
   int tag;
 } NumListList;
 typedef struct {
   union {
-    struct {struct NumList* numList; Num* num;} op0;
+    struct {void* numList; Num* num;} op0;
     struct {Num* num;} op1;
-    struct {Id* id;} op2;
+    struct {char* id;} op2;
   }u;
   int tag;
 } NumList;
 typedef struct {
   union {
-    struct {struct Expr* expr; ;} op0;
-    struct { Id* id0; Id* id1; ;} op1;
-    struct {  Id* id;  NumId* numId0;   NumId* numId1;  ;} op2;
-    struct {  Id* id;  NumId* numId;  ;} op3;
-    struct {  Id* id; ;} op4;
-    struct {struct Expr* expr; ;} op5;
+    struct {void* expr; ;} op0;
+    struct { char* id0; char* id1; ;} op1;
+    struct {  char* id;  NumId* numId0;   NumId* numId1;  ;} op2;
+    struct {  char* id;  NumId* numId;  ;} op3;
+    struct {  char* id; ;} op4;
+    struct {void* expr; ;} op5;
     struct {Call* call; ;} op6;
-    struct {struct DeclVar* declVar; ;} op7;
-    struct {struct AttrVar* attrVar; ;} op8;
-    struct {struct FlowControl* flowControl;} op9;
-    struct {struct Loop* loop;} op10;
+    struct {void* declVar; ;} op7;
+    struct {void* attrVar; ;} op8;
+    struct {void* flowControl;} op9;
+    struct {void* loop;} op10;
   }u;
   int tag;
 } Stmt;
 typedef struct {
   union {
     Dummy op0;
-    struct {struct ParamList* paramList;} op1;
+    struct {void* paramList;} op1;
   }u;
   int tag;
 } ParamListVoid;
 typedef struct {
   union {
-    struct {struct ParamList* paramList; struct Param* param;} op0;
-    struct {struct Param* param;} op1;
+    struct {void* paramList; void* param;} op0;
+    struct {void* param;} op1;
   }u;
   int tag;
 } ParamList;
 typedef struct {
   union {
-    struct {BaseType* baseType; Id* id;} op0;
-    struct {MatType* mat_type; BaseType* baseType; Id* id;} op1;
+    struct {BaseType* baseType; char* id;} op0;
+    struct {MatType* mat_type; BaseType* baseType; char* id;} op1;
   }u;
   int tag;
 } Param;
 typedef struct {
   union {
-    struct {struct Expr* expr; struct Block* block;} op0;
+    struct {void* expr; void* block;} op0;
   }u;
   int tag;
 } Loop;
 typedef struct {
   union {
-    struct {struct Expr* expr; struct Block* block;  struct FlowControl* flowControl;} op0;
-    struct {struct Expr* expr; struct Block* block0;  struct Block* block1;} op1;
-    struct {Error* error; struct Block* block0;  struct Block* block1;} op2;
-    struct {struct Expr* expr; Error* error; struct Block* block0;  struct Block* block1;} op3;
+    struct {void* expr; void* block;  void* flowControl;} op0;
+    struct {void* expr; void* block0;  void* block1;} op1;
+    struct {Error* error; void* block0;  void* block1;} op2;
+    struct {void* expr; Error* error; void* block0;  void* block1;} op3;
   }u;
   int tag;
 } FlowControl;
 
 typedef struct{
   union {
-    struct {struct StmtList* stmtList; Stmt* stmt;} op0;
+    struct {void* stmtList; Stmt* stmt;} op0;
     struct {Stmt* stmt;} op1;
   }u;
   int tag;
@@ -290,8 +290,8 @@ typedef struct {
 
 typedef struct {
   union {
-    struct {struct AddExpr* addExpr; Addop* addop; struct Term* term;} op0;
-    struct {struct Term* term;} op1;
+    struct {void* addExpr; Addop* addop; void* term;} op0;
+    struct {void* term;} op1;
   }u;
   int tag;
 } AddExpr;
@@ -299,7 +299,7 @@ typedef struct {
 typedef struct {
   union {
     struct {AddExpr* addExpr0; Relop* relop; AddExpr* addExpr1;} op0;
-    struct {struct AddExpr* addExpr;} op1;
+    struct {void* addExpr;} op1;
   }u;
   int tag;
 } Expr;
@@ -308,24 +308,24 @@ typedef struct {
 
 typedef struct{
   union {
-    struct {struct Term* term; Mulop* mulop; struct Bin* bin;} op0;
-    struct {struct Bin* bin;} op1;
+    struct {void* term; Mulop* mulop; void* bin;} op0;
+    struct {void* bin;} op1;
   }u;
   int tag;
 } Term;
 
 typedef struct {
   union {
-    struct {struct Bin* bin; BinLogi* binLogi; struct Unary* unary;} op0;
-    struct {struct Unary* unary;} op1;
+    struct {void* bin; BinLogi* binLogi; void* unary;} op0;
+    struct {void* unary;} op1;
   }u;
   int tag;
 } Bin;
 
 typedef struct {
   union {
-    struct {UnaryOp* unaryOp; struct Factor* factor;} op0;
-    struct {struct Factor* factor;} op1;
+    struct {UnaryOp* unaryOp; void* factor;} op0;
+    struct {void* factor;} op1;
   }u;
   int tag;
 } Unary;
@@ -333,7 +333,7 @@ typedef struct {
 typedef struct {
   union {
     struct {Expr* expr;} op0;
-    struct {struct Aux* aux;} op1;
+    struct {void* aux;} op1;
     struct {Call* call;} op2;
     struct {Ascii* ascii;} op3;
   }u;
@@ -341,8 +341,8 @@ typedef struct {
 } Factor;
 typedef struct {
   union {
-    struct {Id* id; Expr* expr0; Expr* expr1;} op0;
-    struct {Id* id; Expr* expr;} op1;
+    struct {char* id; Expr* expr0; Expr* expr1;} op0;
+    struct {char* id; Expr* expr;} op1;
     struct {NumId* numId;} op2;
   }u;
   int tag;

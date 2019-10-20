@@ -297,7 +297,7 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
 
 {ID} {          
     showID();
-    yylval.sval = malloc(yyleng+1);
+    yylval._id = malloc(yyleng + 1);
     memcpy(yylval.sval, yytext, yyleng+1);
     currCol += yyleng;
     return ID;

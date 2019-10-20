@@ -1,6 +1,4 @@
-FLAGS = #-W-no-incompatible-pointer-types \
-	#  -Wno-implicit-function-declaration 
-	 
+FLAGS = 
 
 all: lexico.l grammar.y print.o Function.h
 	bison -vd grammar.y
