@@ -50,7 +50,7 @@ void showNodeGlobalStmt(GlobalStmt* no, int lvl){
     }
     case 1:{      
       DefFun* s1 = no->u.op1.defFun;  showNodeDefFun(s1, lvl + 1);
-      showError(no->u.op1.error);
+      nSpaces((lvl+1) * 2); showError(no->u.op1.error);
       break;
     }
     case 2:{
@@ -63,7 +63,7 @@ void showNodeGlobalStmt(GlobalStmt* no, int lvl){
     }
     case 4:{
       DeclVar* s4 = no->u.op4.declVar;  showNodeDeclVar(s4, lvl + 1);
-      showError(no->u.op4.error);    
+      nSpaces((lvl+1) * 2); showError(no->u.op4.error);    
       break;
     }
     case 5:{
@@ -121,7 +121,17 @@ void showNodeDeclFun(DeclFun* no, int lvl){
 void showNodeDeclVar(DeclVar* no, int lvl){
   switch (no->tag)
   {
-    case 0:{
+    case 0:{      
+      MatType* mat_type = no->u.op0.mat_type; showNodeMat_type(mat_type, lvl + 1);
+      BaseType* baseType = no->u.op0.baseType; showNodeBasetype(baseType, lvl + 1);
+      Id* id = no->u.op0.id; showNodeId(id, lvl + 1);
+      Num* num0 = no->u.op0.num0; showNodeNum0(num0, lvl + 1);
+      Num* num1 = no->u.op0.num1; showNodeNum1(num1, lvl + 1);
+      break;
+    }
+    case 1:{      
+      BaseType* baseType = no->u.op1.baseType; showNodeBasetype(baseType, lvl + 1);
+      IdArr* idArr = no->u.op1.idArr; showNodeIdarr(idArr, lvl + 1);
       break;
     }
     default:{
@@ -186,9 +196,9 @@ void showNodeIndexAttr(IndexAttr* no, int lvl){
   switch (no->tag)
   {
     case 0:{
-      Id* id = op0->u.op0.id; showId(id);
-      NumId* numId = op0->u.op0.numId; showNodeNumId(numId, lvl + 1);
-      Expr* expr = op0->u.op0.expr; showNodeExpr(expr, lvl + 1);
+      Id* id = no->u.op0.id; showId(id);
+      NumId* numId = no->u.op0.numId; showNodeNumId(numId, lvl + 1);
+      Expr* expr = no->u.op0.expr; showNodeExpr(expr, lvl + 1);
       break;
     }
     default:{
@@ -323,6 +333,7 @@ void showNodeParamListVoid(ParamListVoid* no, int lvl){
   switch (no->tag)
   {
     case 0:{  // dummy case
+      nSpaces((lvl + 1)*2); printf("<void>\n");
       break;
     }
     case 1:{ 
@@ -425,10 +436,11 @@ void showNodeBlock(Block* no, int lvl){
   switch (no->tag)
   {
     case 0:{
-      StmtList* stmtList = no->u.op0.stmtList; showNodeStmtList(stmtList, lvl + 1);
+      StmtList* stmtList = no->u.op0.stmtList; showNodeStmtList(stmtList, lvl + 1); break;
     }
     case 1:{
-      // dummy
+      // Bloco vazio {}
+      break;
     }
     default:{
       break;
@@ -476,10 +488,8 @@ void showNodeExpr(Expr* no, int lvl){
 void showNodeRelop(Relop* no, int lvl){
   switch (no->tag)
   {
-    case 0:{
-      break;
-    }
     default:{
+      nSpaces( ( lvl + 1 ) * 2); showRelOp(no->tag);
       break;
     }
   }
@@ -488,19 +498,14 @@ void showNodeRelop(Relop* no, int lvl){
 void showNodeAddExpr(AddExpr* no, int lvl){
   switch (no->tag)
   {
-    case 0:{  // dummy
+    case 0:{ 
+      AddExpr* addExpr = no->u.op0.addExpr; showNodeAddexpr(addExpr, lvl + 1);
+      Addop* addop = no->u.op0.addop; showNodeAddop(addop, lvl + 1);
+      Term* term = no->u.op0.term; showNodeTerm(term, lvl + 1);
       break;
     }
-    case 1:{  // dummy
-      break;
-    }
-    case 2:{  // dummy
-      break;
-    }
-    case 3:{  // dummy
-      break;
-    }
-    case 4:{  // dummy
+    case 1:{ 
+      Term* term = no->u.op1.term; showNodeTerm(term, lvl + 1);
       break;
     }
     default:{ // dummy
@@ -512,13 +517,8 @@ void showNodeAddExpr(AddExpr* no, int lvl){
 void showNodeAddop(Addop* no, int lvl){
   switch (no->tag)
   {
-    case 0:{  // dummy
-      break;
-    }
-    case 1:{  // dummy
-      break;
-    }
     default:{
+      nSpaces((lvl + 1) * 2); showAddOp(no->tag);
       break;
     }
   }
@@ -546,7 +546,7 @@ void showNodeMulop(Mulop* no, int lvl){
   switch (no->tag)
   {
     default:{ // dummy
-      showMulOp(to->tag);
+      nSpaces((lvl + 1) * 2); showMulOp(no->tag);
       break;
     }
   }
@@ -638,8 +638,8 @@ void showNodeAux(Aux* no, int lvl){
   {
     case 0:{
       Id* id = no->u.op0.id; showNodeId(id, lvl + 1);
-      Expr* expr0 = no->u.op0.expr0; showNodeExpr0(expr0, lvl + 1);
-      Expr* expr1 = no->u.op0.expr1; showNodeExpr1(expr1, lvl + 1);
+      Expr* expr0 = no->u.op0.expr0; showNodeExpr(expr0, lvl + 1);
+      Expr* expr1 = no->u.op0.expr1; showNodeExpr(expr1, lvl + 1);
       break;
     }
     case 1:{
@@ -788,17 +788,17 @@ void showNodeNum(Num* no, int lvl){
 }
 
 // Daqui para baixo, coisas que sao terminais como ID
-void showId(Id* no, int lvl){
+void showId(Id* no){
   printf("%s", no);
   printf("\n");
 }
 
-void showError(char* e, int lvl) {
+void showError(char* e) {
   printf("Error: %s", e);
 }
 // Depende semi-COMPLETAMENTE da gramatica...
 
-void showMulOp(int op, int lvl){
+void showMulOp(int op){
   switch (op)
   {
   case MAT_MUL:  printf("< mat-mul, @@ >");    break;
@@ -808,9 +808,18 @@ void showMulOp(int op, int lvl){
   }
   printf("\n");
 }
+void showAddOp(int op){
+  switch (op)
+  {
+  case ADD:  printf("< addop, + >");    break;
+  case SUB:  printf("< addop, - >"); break;
+  default: break;
+  }
+  printf("\n");
+}
 
 
-void showRelOp(int op, int lvl){
+void showRelOp(int op){
   switch (op)
   {
   case LE:  printf("< relop, <= >");    break;
@@ -824,25 +833,34 @@ void showRelOp(int op, int lvl){
   printf("\n");
 }
 
-void showInt(int num, int lvl){
+void showInt(int num){
   printf("< int, %d >\n", num);
 }
 
-void showFloat(float num, int lvl){
+void showFloat(float num){
   printf("< float, %f >\n", num);
 }
 
-void showChar(char c, int lvl){
+void showChar(char c){
   printf("< char, %c >\n", c);
 }
 
-void showBaseType(char c, int lvl){
+void showBaseType(char c){
   switch (c)
   {
-  case 'i':  printf("< base-type, int >") break;
-  case 'f':  printf("< base-type, float >") break;
-  case 'c':  printf("< base-type, char>") break;
+  case 'i':  printf("< base-type, int >"); break;
+  case 'f':  printf("< base-type, float >"); break;
+  case 'c':  printf("< base-type, char>"); break;
   default:   printf("< base-type, UNKNOWN>"); break;
   }
   printf("\n");
+}
+
+void showBinLogi(int op) {
+  switch (op)
+  {
+  case AND: printf("< bin-logi, && >");   break;
+  case OR:  printf("< bin-logi, || >");   break;
+  default:  break;
+  }
 }

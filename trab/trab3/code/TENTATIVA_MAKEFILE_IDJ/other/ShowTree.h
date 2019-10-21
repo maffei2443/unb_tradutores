@@ -5,7 +5,8 @@
 
 enum MULOP {  MAT_MUL = 0, MUL, DIV};
 enum RELOP {LE = 0, GE, NEQ, EQ, GT, LT };
-
+enum BIN_LOGI {AND = 0, OR};
+enum ADDOP {ADD = 0, SUB};
 void nSpaces(int qtd);
 
 void showNodeProgram(Program* no, int lvl);
@@ -52,11 +53,13 @@ void showNodeBaseType(BaseType* no, int lvl);
 void showNodeNum(Num* no, int lvl);
 
 // Daqui para baixo, coisas que sao terminais como ID
-void showId(char* sval, int lvl);
-void showError(char* e, int lvl);
-void showMulOp(int op, int lvl);
-void showRelOp(int op, int lvl);
-void showInt(int num, int lvl);
-void showFloat(float num, int lvl);
-void showChar(char c, int lvl);
-void showBaseType(char c, int lvl);  // demultiplexar entre 'int', 'float' e 'char'. Pelo primeiro caractere
+void showId(char* sval);
+void showError(char* e);
+void showMulOp(int op);
+void showAddOp(int op);
+void showRelOp(int op);
+void showInt(int num);
+void showFloat(float num);
+void showChar(char c);
+void showBaseType(char c);  // demultiplexar entre 'int', 'float' e 'char'. Pelo primeiro caractere
+void showBinLogi(int op);
