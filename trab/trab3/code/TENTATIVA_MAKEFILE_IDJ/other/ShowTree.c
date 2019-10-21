@@ -92,8 +92,8 @@ void showNodeDefFun(DefFun* no, int lvl){
   {
     case 0:{
       BaseType * baseType = no->u.op0.baseType; showNodeBaseType(baseType, lvl + 1);
-      char * id = no->u.op0.id; showNodeBaseType(id, lvl + 1);
-      ParamListVoid * paramListVoid = no->u.op0.paramListVoid; showNodeBaseType(paramListVoid, lvl + 1);
+      Id* id = no->u.op0.id; showNodeId(id, (lvl + 1) * 2 );
+      ParamListVoid * paramListVoid = no->u.op0.paramListVoid; showNodeParamListVoid(paramListVoid, lvl + 1);
       Block* block = no->u.op0.block; showNodeBlock(block, lvl + 1);
       break;
     }
@@ -124,7 +124,7 @@ void showNodeDeclVar(DeclVar* no, int lvl){
     case 0:{      
       MatType* mat_type = no->u.op0.mat_type; showNodeMatType(mat_type, lvl + 1);
       BaseType* baseType = no->u.op0.baseType; nSpaces((lvl+1)*2); showBaseType(baseType->u.op0.ival);
-      Id* id = no->u.op0.id; showNodeId(id, lvl + 1);
+      Id* id = no->u.op0.id; showNodeId(id, (lvl + 1)*2);
       Num* num0 = no->u.op0.num0; showNodeNum(num0, lvl + 1);
       Num* num1 = no->u.op0.num1; showNodeNum(num1, lvl + 1);
       break;
@@ -144,12 +144,12 @@ void showNodeIdArr(IdArr* no, int lvl){
   switch (no->tag)
   {
     case 0:{
-      Id* id = no->u.op0.id; showNodeId(id, lvl + 1);
+      Id* id = no->u.op0.id; showNodeId(id, (lvl + 1)*2);
       NumId* numId = no->u.op0.numId; showNodeNumId(numId, lvl + 1);
       break;
     }
     case 1:{
-      Id* id = no->u.op1.id; showNodeId(id, lvl + 1);
+      Id* id = no->u.op1.id; showNodeId(id, (lvl + 1)*2);
     }
     default:{
       break;
@@ -211,18 +211,18 @@ void showNodeMatAttr(MatAttr* no, int lvl){
   switch (no->tag)
   {
     case 0:{
-      Id* id = no->u.op0.id; showNodeId(id, lvl + 1);
+      Id* id = no->u.op0.id; showNodeId(id, (lvl + 1)*2);
       NumListList* numListList = no->u.op0.numListList; showNodeNumListList(numListList, lvl + 1);
       break;
     }
     case 1:{
-      Id* id = no->u.op1.id; showNodeId(id, lvl + 1);
+      Id* id = no->u.op1.id; showNodeId(id, (lvl + 1)*2);
       NumId* numId = no->u.op1.numId; showNodeNumId(numId, lvl + 1);
       NumList* numList = no->u.op1.numList; showNodeNumList(numList, lvl + 1);
       break;
     }
     case 2:{
-      Id* id = no->u.op2.id; showNodeId(id, lvl + 1);
+      Id* id = no->u.op2.id; showNodeId(id, (lvl + 1)*2);
       NumId* numId0 = no->u.op2.numId0; showNodeNumId(numId0, lvl + 1);
       NumId* numId1 = no->u.op2.numId1; showNodeNumId(numId1, lvl + 1);
       Expr* expr = no->u.op2.expr; showNodeExpr(expr, lvl + 1);
@@ -264,7 +264,7 @@ void showNodeNumList(NumList* no, int lvl){
       break;
     }
     case 2:{
-      Id* id = no->u.op2.id; showNodeId(id, lvl + 1);
+      Id* id = no->u.op2.id; showNodeId(id, (lvl + 1)*2);
       break;
     }
     default:{
@@ -281,23 +281,23 @@ void showNodeStmt(Stmt* no, int lvl){
       break;
     }
     case 1:{
-      Id* id0 = no->u.op1.id0; showNodeId(id0, lvl + 1);
-      Id* id1 = no->u.op1.id1; showNodeId(id1, lvl + 1);
+      Id* id0 = no->u.op1.id0; showNodeId(id0, (lvl + 1) * 2);
+      Id* id1 = no->u.op1.id1; showNodeId(id1, (lvl + 1) * 2);
       break;
     }
     case 2:{
-      Id* id = no->u.op2.id; showNodeId(id, lvl + 1);
+      Id* id = no->u.op2.id; showNodeId(id, (lvl + 1)*2);
       NumId* numId0 = no->u.op2.numId0; showNodeNumId(numId0, lvl + 1);
       NumId* numId1 = no->u.op2.numId1; showNodeNumId(numId1, lvl + 1);
       break;
     }
     case 3:{
-      Id* id = no->u.op3.id; showNodeId(id, lvl + 1);
+      Id* id = no->u.op3.id; showNodeId(id, (lvl + 1)*2);
       NumId* numId = no->u.op3.numId; showNodeNumId(numId, lvl + 1);
       break;
     }
     case 4:{
-      Id* id = no->u.op4.id; showNodeId(id, lvl + 1);
+      Id* id = no->u.op4.id; showNodeId(id, (lvl + 1)*2);
       break;
     }
     case 5:{
@@ -369,13 +369,13 @@ void showNodeParam(Param* no, int lvl){
   {
     case 0:{
       BaseType* baseType = no->u.op0.baseType; showNodeBaseType(baseType, lvl + 1);
-      Id* id = no->u.op0.id; showNodeId(id, lvl + 1);
+      Id* id = no->u.op0.id; showNodeId(id, (lvl + 1)*2);
       break;
     }
     case 1:{
       MatType* mat_type = no->u.op1.mat_type; showNodeMatType(mat_type, lvl + 1);
       BaseType* baseType = no->u.op1.baseType; showNodeBaseType(baseType, lvl + 1);
-      Id* id = no->u.op1.id; showNodeId(id, lvl + 1);
+      Id* id = no->u.op1.id; showNodeId(id, (lvl + 1)*2);
       break;
     }
     default:{
@@ -602,7 +602,7 @@ void showNodeUnaryOp(UnaryOp* no, int lvl){
   switch (no->tag)
   {
     default:{
-      showNodeUnaryOp(no->tag, lvl + 1);
+      nSpaces( (lvl+1) * 2 ); showUnaryOp(no->tag);
       break;
     }
   }
@@ -637,13 +637,13 @@ void showNodeAux(Aux* no, int lvl){
   switch (no->tag)
   {
     case 0:{
-      Id* id = no->u.op0.id; showNodeId(id, lvl + 1);
+      Id* id = no->u.op0.id; showNodeId(id, (lvl + 1)*2);
       Expr* expr0 = no->u.op0.expr0; showNodeExpr(expr0, lvl + 1);
       Expr* expr1 = no->u.op0.expr1; showNodeExpr(expr1, lvl + 1);
       break;
     }
     case 1:{
-      Id* id = no->u.op1.id; showNodeId(id, lvl + 1);
+      Id* id = no->u.op1.id; showNodeId(id, (lvl + 1)*2);
       Expr* expr = no->u.op1.expr; showNodeExpr(expr, lvl + 1);
       break;
     }
@@ -665,7 +665,7 @@ void showNodeNumId(NumId* no, int lvl){
       break;
     }
     case 1:{
-      Id* id = no->u.op1.id; showNodeId(id, lvl + 1);
+      Id* id = no->u.op1.id; showNodeId(id, (lvl + 1)*2);
       break;
     }
     default:{
@@ -679,12 +679,12 @@ void showNodeCall(Call* no, int lvl){
   switch (no->tag)
   {
     case 0:{
-      Id* id = no->u.op0.id; showNodeId(id, lvl + 1);
+      Id* id = no->u.op0.id; showNodeId(id, (lvl + 1)*2);
       ArgList* argList = no->u.op0.argList; showNodeArgList(argList, lvl + 1);
       break;
     }
     case 1:{
-      Id* id = no->u.op1.id; showNodeId(id, lvl + 1);
+      Id* id = no->u.op1.id; showNodeId(id, (lvl + 1)*2);
       break;
     }
     default:{
@@ -732,7 +732,7 @@ void showNodeMatArg(MatArg* no, int lvl){
   switch (no->tag)
   {
     case 0:{
-      Id* id = no->u.op0.id; showNodeId(id, lvl + 1);
+      Id* id = no->u.op0.id; showNodeId(id, (lvl + 1)*2);
       int int0 = no->u.op0.int0; showInt(int0);
       int int1 = no->u.op0.int1; showInt(int1);
       break;
@@ -861,6 +861,14 @@ void showBinLogi(int op) {
   {
   case AND: printf("< bin-logi, && >");   break;
   case OR:  printf("< bin-logi, || >");   break;
+  default:  break;
+  }
+}
+void showUnaryOp(int op) {
+  switch (op)
+  {
+  case NOT: printf("< bin-logi, && >");   break;
+  case ADDR:  printf("< bin-logi, || >");   break;
   default:  break;
   }
 }

@@ -7,6 +7,7 @@ enum MULOP {  MAT_MUL = 0, MUL, DIV};
 enum RELOP {LE = 0, GE, NEQ, EQ, GT, LT };
 enum BIN_LOGI {AND = 0, OR};
 enum ADDOP {ADD = 0, SUB};
+enum UNARYOP {NOT = 0, ADDR};
 void nSpaces(int qtd);
 
 void showNodeProgram(Program* no, int lvl);
@@ -65,3 +66,4 @@ void showFloat(float num);
 void showChar(char c);
 void showBaseType(char c);  // demultiplexar entre 'int', 'float' e 'char'. Pelo primeiro caractere
 void showBinLogi(int op);
+void showUnaryOp(int op);
