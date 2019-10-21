@@ -252,7 +252,8 @@ stmt : call SEMI_COLON {
     $$ = make_Stmt_op6($1); 
   }
 stmt : decl-var SEMI_COLON {
-    $$ = make_Stmt_op7($1); 
+    $$ = make_Stmt_op7($1);
+    printf("\tCHECK : decl-var SEMI_COLON\n");
   }
 stmt : attr-var SEMI_COLON {
     $$ = make_Stmt_op8($1); 
