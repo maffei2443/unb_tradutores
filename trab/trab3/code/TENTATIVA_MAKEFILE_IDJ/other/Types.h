@@ -1,51 +1,53 @@
+#ifndef _TYPES_H_
+#define _TYPES_H_
 typedef struct {} Dummy;
 #define struct struct
 typedef char Error;
 typedef char Id;
 
-typedef struct MatType;
-typedef struct Addop;
-typedef struct Mulop;
-typedef struct Relop;
-typedef struct UnaryOp;
-typedef struct BinLogi;
-typedef struct Id;
-typedef struct Num;
-typedef struct NumId;
-typedef struct BaseType;
-typedef struct Ascii;
-typedef struct MatArg;
-typedef struct Arg;
-typedef struct ArgList;
-typedef struct Call;
-typedef struct Program;
-typedef struct GlobalStmtL;
-typedef struct GlobalStmt;
-typedef struct DefFun;
-typedef struct DeclFun;
-typedef struct DeclVar;
-typedef struct IdArr;
-typedef struct AttrVar;
-typedef struct SimpleAttr;
-typedef struct IndexAttr;
-typedef struct MatAttr;
-typedef struct NumListList;
-typedef struct NumList;
-typedef struct Stmt;
-typedef struct ParamListVo;
-typedef struct ParamList;
-typedef struct Param;
-typedef struct Loop;
-typedef struct FlowControl;
-typedef struct StmtList;
-typedef struct Block;
-typedef struct AddExpr;
-typedef struct Expr;
-typedef struct Term;
-typedef struct Bin;
-typedef struct Unary;
-typedef struct Factor;
-typedef struct Aux;
+// typedef struct MatType;
+// typedef struct Addop;
+// typedef struct Mulop;
+// typedef struct Relop;
+// typedef struct UnaryOp;
+// typedef struct BinLogi;
+// typedef struct Id;
+// typedef struct Num;
+// typedef struct NumId;
+// typedef struct BaseType;
+// typedef struct Ascii;
+// typedef struct MatArg;
+// typedef struct Arg;
+// typedef struct ArgList;
+// typedef struct Call;
+// typedef struct Program;
+// typedef struct GlobalStmtL;
+// typedef struct GlobalStmt;
+// typedef struct DefFun;
+// typedef struct DeclFun;
+// typedef struct DeclVar;
+// typedef struct IdArr;
+// typedef struct AttrVar;
+// typedef struct SimpleAttr;
+// typedef struct IndexAttr;
+// typedef struct MatAttr;
+// typedef struct NumListList;
+// typedef struct NumList;
+// typedef struct Stmt;
+// typedef struct ParamListVo;
+// typedef struct ParamList;
+// typedef struct Param;
+// typedef struct Loop;
+// typedef struct FlowControl;
+// typedef struct StmtList;
+// typedef struct Block;
+// typedef struct AddExpr;
+// typedef struct Expr;
+// typedef struct Term;
+// typedef struct Bin;
+// typedef struct Unary;
+// typedef struct Factor;
+// typedef struct Aux;
 
 typedef struct {
   union {
@@ -386,3 +388,5 @@ typedef struct {
   }u;
   int tag;
 } Aux;
+
+#endif

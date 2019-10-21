@@ -1,15 +1,19 @@
 FLAGS = 
 
 all: lexico.l grammar.y print.o Function.h
-	bison -vd grammar.y
+	bison -vd --graph grammar.y
 	flex lexico.l
-	cc -o $(FLAGS) $@ grammar.tab.c lex.yy.c Array.c Function.c Colorfy.c Common.h Prints.o
+	cc -o $(FLAGS) $@ grammar.tab.c lex.yy.c Array.c Function.c ShowTree.c Colorfy.c Common.h Prints.o
 
 print.o:	Prints.h
 	gcc -c Prints.c
 
 Function.o:	Function.h
 	gcc -c Function.c
+
+ShowTree.o: ShowTree.h
+	gcc -c ShowTree
+
 run:
 	./all
 clean:
