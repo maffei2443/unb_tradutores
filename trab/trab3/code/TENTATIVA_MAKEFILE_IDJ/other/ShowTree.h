@@ -53,6 +53,8 @@ void showNodeBaseType(BaseType* no, int lvl);
 void showNodeNum(Num* no, int lvl);
 
 // Daqui para baixo, coisas que sao terminais como ID
+void showNodeId(Id* id, int lvl);
+void showNodeBaseType();
 void showId(char* sval);
 void showError(char* e);
 void showMulOp(int op);

@@ -122,16 +122,16 @@ void showNodeDeclVar(DeclVar* no, int lvl){
   switch (no->tag)
   {
     case 0:{      
-      MatType* mat_type = no->u.op0.mat_type; showNodeMat_type(mat_type, lvl + 1);
-      BaseType* baseType = no->u.op0.baseType; showNodeBasetype(baseType, lvl + 1);
+      MatType* mat_type = no->u.op0.mat_type; showNodeMatType(mat_type, lvl + 1);
+      BaseType* baseType = no->u.op0.baseType; nSpaces((lvl+1)*2); showBaseType(baseType->u.op0.ival);
       Id* id = no->u.op0.id; showNodeId(id, lvl + 1);
-      Num* num0 = no->u.op0.num0; showNodeNum0(num0, lvl + 1);
-      Num* num1 = no->u.op0.num1; showNodeNum1(num1, lvl + 1);
+      Num* num0 = no->u.op0.num0; showNodeNum(num0, lvl + 1);
+      Num* num1 = no->u.op0.num1; showNodeNum(num1, lvl + 1);
       break;
     }
     case 1:{      
-      BaseType* baseType = no->u.op1.baseType; showNodeBasetype(baseType, lvl + 1);
-      IdArr* idArr = no->u.op1.idArr; showNodeIdarr(idArr, lvl + 1);
+      BaseType* baseType = no->u.op1.baseType; nSpaces((lvl+1)*2); showBaseType(baseType->u.op0.ival);
+      IdArr* idArr = no->u.op1.idArr; showNodeIdArr(idArr, lvl + 1);
       break;
     }
     default:{
@@ -409,21 +409,21 @@ void showNodeFlowControl(FlowControl* no, int lvl){
     }
     case 1:{
       Expr* expr = no->u.op1.expr; showNodeExpr(expr, lvl + 1);
-      Block* block0 = no->u.op1.block0; showNodeBlock0(block0, lvl + 1);
-      Block* block1 = no->u.op1.block1; showNodeBlock1(block1, lvl + 1);
+      Block* block0 = no->u.op1.block0; showNodeBlock(block0, lvl + 1);
+      Block* block1 = no->u.op1.block1; showNodeBlock(block1, lvl + 1);
       break;
     }
     case 2:{
-      Error* error = no->u.op2.error; showNodeError(error, lvl + 1);
-      Block* block0 = no->u.op2.block0; showNodeBlock0(block0, lvl + 1);
-      Block* block1 = no->u.op2.block1; showNodeBlock1(block1, lvl + 1);
+      Error* error = no->u.op2.error; nSpaces((lvl + 1) * 2); showError(error);
+      Block* block0 = no->u.op2.block0; showNodeBlock(block0, lvl + 1);
+      Block* block1 = no->u.op2.block1; showNodeBlock(block1, lvl + 1);
       break;
     }
     case 3:{
       Expr* expr = no->u.op3.expr; showNodeExpr(expr, lvl + 1);
-      Error* error = no->u.op3.error; showNodeError(error, lvl + 1);
-      Block* block0 = no->u.op3.block0; showNodeBlock0(block0, lvl + 1);
-      Block* block1 = no->u.op3.block1; showNodeBlock1(block1, lvl + 1);
+      Error* error = no->u.op3.error; nSpaces((lvl + 1) * 2); showError(error);
+      Block* block0 = no->u.op3.block0; showNodeBlock(block0, lvl + 1);
+      Block* block1 = no->u.op3.block1; showNodeBlock(block1, lvl + 1);
       break;
     }
     default:{
@@ -470,9 +470,9 @@ void showNodeExpr(Expr* no, int lvl){
   switch (no->tag)
   {
     case 0:{
-      AddExpr* addExpr0 = no->u.op0.addExpr0; showNodeAddExpr0(addExpr0, lvl + 1);
+      AddExpr* addExpr0 = no->u.op0.addExpr0; showNodeAddExpr(addExpr0, lvl + 1);
       Relop* relop = no->u.op0.relop; showNodeRelop(relop, lvl + 1);
-      AddExpr* addExpr1 = no->u.op0.addExpr1; showNodeAddExpr1(addExpr1, lvl + 1);
+      AddExpr* addExpr1 = no->u.op0.addExpr1; showNodeAddExpr(addExpr1, lvl + 1);
       break;
     }
     case 1:{
@@ -499,7 +499,7 @@ void showNodeAddExpr(AddExpr* no, int lvl){
   switch (no->tag)
   {
     case 0:{ 
-      AddExpr* addExpr = no->u.op0.addExpr; showNodeAddexpr(addExpr, lvl + 1);
+      AddExpr* addExpr = no->u.op0.addExpr; showNodeAddExpr(addExpr, lvl + 1);
       Addop* addop = no->u.op0.addop; showNodeAddop(addop, lvl + 1);
       Term* term = no->u.op0.term; showNodeTerm(term, lvl + 1);
       break;
@@ -864,3 +864,10 @@ void showBinLogi(int op) {
   default:  break;
   }
 }
+
+void showNodeId(Id* id, int lvl) {
+  nSpaces(lvl);
+  printf("<id, %s>\n", id);
+}
+
+// main(){}
