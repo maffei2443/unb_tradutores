@@ -8,7 +8,6 @@
 #include "Common.h"
 #include "Prints.h"
 #include "uthash.h"
-#include "utlist.h"
 int numlines = 1, currCol = 1;
 long long unsigned ERRORS_IN_SRC = 0;
 int escopo = 0;

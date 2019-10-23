@@ -1,5 +1,16 @@
-from rules import rules, heads, tokens
 import re
+import string
+import os
+from rules import GetRules, GetHeads, GetTokens
+mapa = {}
+rules = GetRules()
+heads = GetHeads()
+tokens = GetTokens()
+storage = 'C_code'
+try:
+  os.mkdir(storage)
+except Exception:
+  pass
 def hifen2Type(text):
   aux = text.split('-')
   return ''.join(map(str.capitalize, aux))
@@ -11,12 +22,15 @@ def token2Type(text):
 def hifen2VarName(text, firstLower=True , prefix = '', suffix = ''):
   aux = hifen2Type(text)
   if firstLower:
-    return prefix + aux[0].lower() + aux[1:] + suffix
+    return prefix + '_'+aux[0].lower() + aux[1:] + suffix
   else:
-    return prefix + aux + suffix
+    return prefix + '_'+aux + suffix
 
 
 def toUnion(listOfBodies, baseIdent=2, spaces=-1):
+  """
+  Cria contendo uma struct para cada possivel corpo de regra.
+  """
   _basic = baseIdent * ' '
   _spaces = spaces * ' ' if spaces > 0 else 2 * baseIdent * ' '
   return (
@@ -29,45 +43,76 @@ def toUnion(listOfBodies, baseIdent=2, spaces=-1):
     + '}u;'
   )
 
-def make_Nodes(tipo, text):
+def createMakeSignature(tipo, text, alias='STR'):
   """
   text is expected to have the pattern:
   struct { ... } op<NUM>;
   This function returns a stardardized  C-like function sig
   nature. Example:
     + tipo = "Num"
-    + text = "struct {Float* float;} op0;"
-    make_Nodes(tipo, text) -> "Num* make_Num_op0(Float* float);"
+    + text = "STR {STR BaseType* _baseType; V_id* _v_id; Lp* _lp;} op0;"
+    make_Nodes(tipo, text) -> "Num* make_Num_op0(STR BaseType* _baseType, V_id* _v_id,
+          Lp* _lp);"
+  OBS: utilizacao apohs processamento de generateMap
   """
-  attrs, opNum = re.findall(r'struct *{(.*)} (op\d+)', text)[0]
-  funName = tipo + f"* make_{tipo}_{opNum}("
-  funName = funName + ','.join(attrs.strip(';').strip().split(';')) + ');'
-  return funName
-def make_Nodes_call(tipo, text):
+  text = text.replace('\n', '')
+  attrs, opNum = re.findall(f'{alias}' +r' *{(.*)} *(op\d+)', text)[0]
+  funName = hifen2Type(tipo) + f"* make_{hifen2Type(tipo)}_{opNum}("
+  funName = funName + ','.join(attrs.strip(';').strip().split(';')).strip(',') + ');'
+  return re.sub( r' +', ' ', funName)
+
+
+
+def createMakeCall(tipo, text, alias='STR'):
   """
   Gerador automatizado para chamada das funções geradas pela
-  função acima, seguindo a ORDEM dos parâmetros (bison; not-labeled)
+  função acima, seguindo a ORDEM dos parâmetros (bison; not-labeled).
+  Exemplo:
+    + tipo = ''
+    + text = ''  
   """
-  attrs, opNum = re.findall(r'struct *{(.*)} (op\d+)', text)[0]
-  funName = f"make_{tipo}_{opNum}("
-  for s in range(1, len(attrs.split(','))+1):
+  text = text.replace('\n', '')
+  attrs, opNum = re.findall(f'{alias}'+ r' *{(.*)} (op\d+)', text)[0]
+  funName = f"make_{hifen2Type(tipo)}_{opNum}("
+  for s in range(1, len(attrs.split(';'))):
     funName = funName + f"${s}, "
-  funName = funName[:-2] + ')'
+  funName = funName[:-2] + ');'
   return funName
 
+def GenerateMakeCall(file = storage+'calls.h', mapa=mapa):
+  lis = []
+  with open(file, 'w') as fp:  
+    for ret, lisParam in mapa.items():
+      for l in lisParam:
+        fp.write( createMakeCall(ret, l) + '\n' )
+        lis.append(createMakeCall(ret, l))
+  return lis
 
-def tokens2Structs(tokens = tokens):
+
+
+def tokens2Structs(file = storage+'TokenStruct.h', tokens = tokens):
   """
   Cria structs, uma para cada token. Todas são dummies.
   Requer manualmente alterar quais não o são.
 
   """
-  with open('TokenStructs.h', 'w') as fp: 
+  lis = []
+  with open(file, 'w') as fp: 
+    fp.write("typedef struct {} Dummy" + ';\n')
     for t in tokens: 
-      fp.write("typedef struct{} " + t.capitalize() + ";\n") 
+      aux = '_' + t.capitalize()
+      lis.append(aux)
+      if not '_V_' in aux:
+        fp.write("typedef Dummy " + aux + ";\n") 
+      else:
+        fp.write("typedef struct {/*PREENCHE MANUALMENTE*/} " + aux + ';\n')
+  return lis
                                                                                     
 
-def generateMap():
+def generateMap(structAlias = 'STR', tokens = tokens):
+  """
+  structAlias aparece pois aparecer "struct" toda hora é um saco
+  """
   splited = [ r.split(' : ') for r in rules ]
   mapa = {}
   for x in splited:
@@ -79,16 +124,55 @@ def generateMap():
       tail = tail.replace(t, '')
     
     tail = x[1].split()
-    tail = ' '.join(
-      map( lambda p : "{}* {};".format( hifen2Type(p), hifen2VarName(p)), tail )
+    sign = ' '.join(
+      map( lambda p : (f"{structAlias} " if p not in tokens else '_') 
+        + f"{hifen2Type(p)}* {'_' if p in tokens else ''}{hifen2VarName(p)};\n    ", tail )
     )
-    mapa[x0].append( 'struct {' + tail + '} op' + str((len(mapa[x0]))) + ';' )  
-  return mapa
-mapa = generateMap()
 
+    mapa[x0].append( f'{structAlias} '+ '{' + sign + '} op' + str((len(mapa[x0]))) + ';' )
+  return mapa
+# mapa = generateMap()
+# lmap = list(mapa.items())
+# print(lmap[13][1])
 # Salva as structs necessarias, AH MENOS das que se referem aos
 # tokens.
-with open('types.h', 'w') as fp: 
-  for k, item in mapa.items(): 
-    fp.write( 'typedef struct {\n'+toUnion(mapa[k]) +'\n' + '} ' + f'{hifen2Type(k)};'
-  + '\n' )
+def GenerateNodes(file = storage+"Nodes.h", mapa = mapa):
+  with open(file, 'w') as fp: 
+    fp.write('#include "TokenStruct.h"' + '\n')
+    fp.write('typedef struct {} Dummy;' + '\n')
+    fp.write('#define STR struct' + '\n')
+    for k, item in mapa.items(): 
+      fp.write( 'typedef struct {\n'+toUnion(item) +'\n' + '} ' + f'{hifen2Type(k)};'
+    + '\n' )
+
+def separateTypeParam(text):
+  """
+    Retorna lista com os nomes dos parametros da funcao.
+    Esta é suposta estar na forma:
+      Fun(Type1* arg1, Type2* arg2, Type3* arg3).
+    Retorno:
+      [ 
+        ('Type1*', 'Type2*', 'Type3*'),
+        ('arg1', 'arg2', 'arg3')
+      ]
+    Feito para depois ser executada a CORREÇÃO para caso
+    de conflito de nomes.
+  """
+  tuplas = re.findall(r'((?:STR )?[\w_]+\*) +(_[^,]+?);', text)
+  return list(zip(*tuplas))
+
+def solveSameParamName(text):
+  types_names = list(map(list, separateTypeParam(text)))
+  ll = types_names[1]
+  for name in set(types_names[1]):
+    if ll.count(name) > 1: 
+      ct = 0 
+      for ix in range(len(types_names[1])): 
+        if types_names[1][ix] == name: 
+          ll[ix] += str(ct) 
+          ct += 1
+  ll = types_names
+  new_types_names = ''
+  for i in range(len(ll[0])):
+    new_types_names = new_types_names + ll[0][i] + ' ' +ll[1][i] + '; '
+  return new_types_names
