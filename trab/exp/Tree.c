@@ -19,17 +19,18 @@ No* No_New(int v) {
   No* no = (No*)malloc(sizeof(No));
   no->child = NULL; no->n = NULL;
   no->childLast = NULL; no->p = NULL;
-  no->v = v;
+  no->v = v; no->sval = NULL;
   return no;
 }
 
 // Seta ponteiros internos de variavel do tipo No
 // para NULL. Depois, dah free nessa variavel.
 // NAO TESTADO
-void No_Destroy(No** no) {
-  (*no) -> n = NULL; (*no) -> p = NULL;
-  (*no) -> child = NULL; (*no) -> childLast = NULL;  
-  free(*no);  *no = NULL;
+void No_Destroy(No* no) {
+  no -> n = NULL; no -> p = NULL;
+  no -> child = NULL; no -> childLast = NULL;  
+  if(no->sval == NULL) free(no->sval), no->sval = NULL;
+  free(no);  no = NULL;
 }
 
 void show_Lis(No* head) {

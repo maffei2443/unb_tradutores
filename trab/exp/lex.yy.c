@@ -785,35 +785,33 @@ case 1:
 YY_RULE_SETUP
 #line 13 "lexico.l"
 {
-  printf("[lex] %s\n", yytext);
   No* no = (No*)No_New(atoi(yytext));
   _.ival = atoi(yytext);
   free(no); no = NULL;
-  printf("num: %d\n ", _.ival);
   
   return NUM;
 }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 22 "lexico.l"
+#line 20 "lexico.l"
 {
   return yytext[0];
 }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 25 "lexico.l"
+#line 23 "lexico.l"
 {
 
 }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 28 "lexico.l"
+#line 26 "lexico.l"
 ECHO;
 	YY_BREAK
-#line 817 "lex.yy.c"
+#line 815 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1830,7 +1828,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 28 "lexico.l"
+#line 26 "lexico.l"
 
 
 // int _main() {

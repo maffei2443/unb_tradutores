@@ -10,6 +10,7 @@ typedef struct No {
   struct No * childLast;
   struct No * n;
   struct No * p;
+  char* sval;
   int v;
 } No;
 
@@ -18,7 +19,7 @@ No* No_New(int v);
 void show_Spaces(int qtd);
 // Seta ponteiros internos de variavel do tipo No
 // para NULL. Depois, dah free nessa variavel.
-void No_Destroy(No** no) ;
+void No_Destroy(No* no) ;
 
 void show_Lis(No* head) ;
 

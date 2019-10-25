@@ -38,7 +38,10 @@ program: exp {
 exp : exp '+' exp {
   printf("Exp1 : %d\n", $1->v);
   printf("Exp3 : %d\n", $3->v);
-  printf("BAM!\n");
+  $$ = No_New($1->v + $3->v);
+  add_Node_Child($$, $1);
+  add_Node_Child($$, $3);  
+  printf("%d + %d = %d\n",$1->v, $3->v, $$->v );
 }
 | exp '-' exp {
   $$ = No_New($1->v + $3->v);
@@ -59,7 +62,7 @@ int main() {
   root = No_New(0);
   printf("ggeasy\n");
   yyparse();  
-  show_Lis(root->child);
+  show_Sub_Tree(root, 1);
   show_Lis(root);
-  No_Destroy(&root);
+  No_Destroy(root);
 }
