@@ -1,0 +1,9 @@
+gcc -c Tree.c
+bison -vd --graph grammar.y
+flex lexico.l
+gcc -c grammar.tab.c Tree.c
+gcc -c lex.yy.c -lfl
+cc -o all grammar.tab.o lex.yy.o Tree.o
+rm grammar.tab.o lex.yy.o
+
+	
