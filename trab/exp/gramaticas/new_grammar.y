@@ -1,20 +1,41 @@
 %{
-
-
+#include <stdio.h>
+#include <stdlib.h>
+extern int yylineno;
+extern int currCol;
+extern int numlines;
+extern int yyleng;
+extern int yylex();
+void yyerror (char const *s);
 %}
+%define parse.error verbose
+%define parse.lac none
+%token-table
+%locations
 
 %left EQ NEQ GE LE
+%left AND
+%left OR
 %left '<' '>'
 %left '+' '-'
 %left '*' '/'
 %left '@'
-%right MAT_POT
-%left '!'
+%right MAT_POW
+%left '!' '&'
 
-%token AHEAD BASETYPE WHILE V_INT V_FLOAT
+%token AHEAD BASE_TYPE WHILE V_INT V_FLOAT V_ASCII
 %token MAT_TYPE IF ID ICAST FCAST ELSE
 
-%token RETURN PRINT READ
+%token RETURN PRINT IREAD FREAD COPY
+%token AND OR
+%token ERRU
+
+%union {
+  char* _id;
+  int ival;
+  float fval;
+  char cval;
+}
 %%
 
 program: globalStmtList
@@ -26,11 +47,11 @@ globalStmt : defFun
 | declFun ';'
 | param ';'
 
-declFun : BASETYPE ID '(' paramListVoid ')'
+declFun : BASE_TYPE ID '(' paramListVoid ')'
 
-param : BASETYPE ID 
-| BASETYPE ID '[' V_INT ']' 
-| MAT_TYPE BASETYPE ID '['V_INT ']' '[' V_INT ']'
+param : BASE_TYPE ID 
+| BASE_TYPE ID '[' V_INT ']' 
+| MAT_TYPE BASE_TYPE ID '['V_INT ']' '[' V_INT ']'
 
 declOrdeclInitVar : param ';'
 | param '=' rvalue ';'
@@ -49,15 +70,17 @@ locStmt : call ';'
 | flowControl
 | loop
 | RETURN expr ';'
-| READ '(' lvalue ')' ';'
+| IREAD '(' lvalue ')' ';'
+| FREAD '(' lvalue ')' ';'
 | PRINT '(' lvalue ')' ';'
+| COPY '(' lvalue lvalue ')' ';'
 | ';'
 flowControl : IF '(' expr ')' block ELSE flowControl 
 flowControl : IF '(' expr ')' block ELSE block 
 
 loop : WHILE '(' expr ')' block
 
-defFun : BASETYPE ID '(' paramListVoid ')' '{' declList locStmtList '}'
+defFun : BASE_TYPE ID '(' paramListVoid ')' '{' declList locStmtList '}'
 
 numListList :  numListList '{' numList '}'
 |
@@ -76,14 +99,17 @@ expr : expr '+' expr
 | expr '*' expr
 | expr '/' expr
 | expr '@' expr
-| expr MAT_POT expr
+| expr MAT_POW expr
 | expr EQ expr
 | expr NEQ expr
 | expr GE expr
 | expr LE expr
 | expr '>' expr
 | expr '<' expr
+| expr AND expr
+| expr OR expr
 | '!' expr
+| '&' expr
 | '(' expr ')'
 | ICAST '(' expr ')'
 | FCAST '(' expr ')'
@@ -116,7 +142,11 @@ flowControl : IF '(' error ')' block ELSE block
 flowControl : IF '(' expr error block ELSE block 
 
 %%
+void yyerror (char const *s) {
+  fprintf (stderr, "%s | l. %d, c. %d\n", s, numlines, currCol - yyleng);
+  fprintf (stderr, "%s | l. %d, c. %d\n", s, yylloc.first_line, yylloc.first_column);
+}
 
-int main(){
+int _main(){
 
 }
