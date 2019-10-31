@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "Tree.h"
-
+Field field = SVAL;
 void test_add_n(No * head, int n) {
   for(int v = 1; v <= n; v++) {
     add_Child(head, v);  
@@ -12,7 +12,7 @@ void test_add_show_n(No * head, int n) {
   for(int v = 1; v <= n; v++) {
     add_Child(head, v);  
   }
-  show_Lis((head)->child);
+  show_Lis((head)->child, field);
   free_All_Child(head);
 }
 
@@ -41,9 +41,9 @@ int main(int argc, char ** argv) {
     add_Child(head->child->child, 3);
     add_Child(head->child->child, 3);
 
-    show_Sub_Tree(head, 1);
+    show_Sub_Tree(head, 1, SVAL);
 
-    show_Lis(head);
+    show_Lis(head, SVAL);
     free_All_Child(head);
     free(head); head = NULL;
   }
