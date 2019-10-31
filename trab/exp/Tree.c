@@ -19,7 +19,7 @@ No* No_New(int v) {
   No* no = (No*)malloc(sizeof(No));
   no->child = NULL; no->n = NULL;
   no->childLast = NULL; no->p = NULL;
-  no->v = v; no->sval = NULL;
+  no->ival = v; no->sval = NULL;
   return no;
 }
 
@@ -33,13 +33,18 @@ void No_Destroy(No* no) {
   free(no);  no = NULL;
 }
 
-void show_Lis(No* head) {
+void show_Lis(No* head, Field field) {
   int i = 0;
   while(head) {
     // for(int a = 0; a < i; a++) printf(" ");
     i++;
-    printf("%d ",(head)->v);
-    head = (head)->n;
+    if(field == IVAL) {
+      printf("%d ",head->ival);
+    }
+    else if (field == SVAL) {
+      printf("<%s, %d> ",head->sval, head->ival);
+    }
+    head = head->n;
   }
   printf("\n");
 }
@@ -90,13 +95,13 @@ void add_Next(No* no, int v) {
     return;
     /* No* tmp = (*no)->n;
     if(!tmp) {  // Se nao tem proximo, insere logo.
-      (*no)->n = No_New(v); //  printf("'tmp->n == %d\n", (*no)->n->v);
+      (*no)->n = No_New(v); //  printf("'tmp->n == %d\n", (*no)->n->ival);
     }
     else {      // Senao, pode acessar tmp->n sem crashar
       while( tmp->n ) {
         tmp = tmp->n;
       }
-      tmp->n = No_New(v); // printf("'tmp->n == %d\n", tmp->v);
+      tmp->n = No_New(v); // printf("'tmp->n == %d\n", tmp->ival);
     } */
   }
 }
@@ -130,13 +135,14 @@ void free_All_Child(No * no) {
   free_Lis(no->child);
 }
 
-int show_Sub_Tree(No* no, int lvl) {
+int show_Sub_Tree(No* no, int lvl, Field field) {
   if(!no->child) return 0;
   No* tmp = no->child;
   while(tmp) {
-    show_Sub_Tree(tmp, lvl + 1);
+    show_Sub_Tree(tmp, lvl + 1, field);
     tmp = tmp->n;
   }
-  show_Spaces(lvl), show_Lis( no->child );
+  show_Spaces(lvl), show_Lis( no->child, field );
   return 1;
 }
+

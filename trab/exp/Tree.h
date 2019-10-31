@@ -5,13 +5,18 @@
 #include <stdlib.h>
 #define ptfi(str, val) printf(str " %d\n",  (val))
 
+typedef enum {
+  IVAL  = 0,
+  SVAL
+} Field;
+
 typedef struct No {
   struct No * child;
   struct No * childLast;
   struct No * n;
   struct No * p;
   char* sval;
-  int v;
+  int ival;
 } No;
 
 // Ok.
@@ -21,7 +26,7 @@ void show_Spaces(int qtd);
 // para NULL. Depois, dah free nessa variavel.
 void No_Destroy(No* no) ;
 
-void show_Lis(No* head) ;
+void show_Lis(No* head, Field field) ;
 
 
 // TESTADO, FUNCIONA
@@ -44,6 +49,6 @@ void free_Lis(No* no) ;
 void free_All_Child(No * no) ;
 
 // NAO TESTADO AINDA
-int show_Sub_Tree(No* no, int lvl);
+int show_Sub_Tree(No* no, int lvl, Field field);
 
 #endif
