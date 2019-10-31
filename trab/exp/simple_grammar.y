@@ -45,7 +45,7 @@ void yyerror (const char *s);
 %%
 program: exp {
   root = $$;
-  // printf("PROGRAMA CORRETO! %s\n", yytname[program]);
+  printf("PROGRAMA CORRETO! %s\n", $program->sval);
 }
 
 exp : exp '+' exp {
@@ -54,7 +54,7 @@ exp : exp '+' exp {
   $$ = No_New($1->ival + $3->ival);
   $$->sval = "exp-add";
   add_Node_Child($$, $1);
-  add_Node_Child($$, No_New(77));
+  add_Node_Child($$, No_New('+'));
   add_Node_Child($$, $3);  
   printf("%d + %d = %d\n",$1->ival, $3->ival, $$->ival );
 }
@@ -100,5 +100,6 @@ int main() {
   show_Sub_Tree(root, 1, SVAL);
   show_Lis(root, SVAL);
   No_Destroy(root);
+  yylloc;
   yylex_destroy();
 }

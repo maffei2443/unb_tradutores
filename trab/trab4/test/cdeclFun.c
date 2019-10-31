@@ -1,4 +1,4 @@
 // Declaracao ahead-of-time
-ahead int id (void);
+int id ();
 // Definicao da funcao
-int id (void) {}
+int id () {}
