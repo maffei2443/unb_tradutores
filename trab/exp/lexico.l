@@ -1,9 +1,9 @@
 %{
-#include "grammar.tab.h"
+#include "new_grammar.tab.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "Array.h"
-#include "Colorfy.h"
+// #include "Colorfy.h"
 
 #include "Common.h"
 #include "Prints.h"
@@ -44,6 +44,7 @@ SymEntry* add_entry(char* id) {
     SymEntry* newEntry;
     HASH_FIND_STR(reshi, id, newEntry);  /* id already in the hash? */
     if (newEntry == NULL) {
+      printf("ADDING %s do RESHI\n", id);
       newEntry = (SymEntry *)malloc(sizeof(SymEntry));
       strcpy(newEntry->id, id);
       newEntry->local.line = numlines;
@@ -51,6 +52,9 @@ SymEntry* add_entry(char* id) {
       newEntry->tag = CurrTokenTag;
       HASH_ADD_STR( reshi, id, newEntry );  /* id: name of key field */
       // printf(">>>>> Inseriu %s\n", newEntry->id);
+    }
+    else {
+      printf("COULD NOT ADD %s to HASH\n", id);
     }
     return newEntry;
 }
@@ -84,11 +88,10 @@ binLogiOp &&|\|\|
 unaryOp !|&
 comment \/\/.*
 
-void void
 base_types int|float|char
 types mat|{base_types}
 flux_control while|if|else|return
-reserved_words {types}|{flux_control}|{void}|"ahead"|"COPY"|"PRINT"|"READ"
+reserved_words {types}|{flux_control}|"COPY"|"PRINT"|"IREAD"|"FREAD"|"ICAST"|"FCAST"
 
 sep [ \t\n\(\)<>[\]\{},.;=]
 par [()]
@@ -100,7 +103,7 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
 {achar} {
   if(yyleng == 3 && yytext[1] == '\\'){
     fprintf(stderr, "Error: missing <'> at l. %d, r. %d\n", numlines, currCol+2);
-    ERRORS_IN_SRC++;
+    // ERRORS_IN_SRC++;
     currCol += yyleng;
     // TODO : 
   }
@@ -137,12 +140,12 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
   Array_Insert(&currString, yytext);
 }
 <BL_COMMENT><<EOF>> {
-  fprintf(stdout,"Fim de arquivo! Comentario iniciado em :\n");
-  fprintf(stdout,"linha %d, coluna %d carece de fechamento.\n",
+  fprintf(stderr,"Fim de arquivo! Comentario iniciado em :\n");
+  fprintf(stderr,"linha %d, coluna %d carece de fechamento.\n",
     comm_block.lineInit,
     comm_block.colInit);
-  fprintf(stdout, "Comentario: %s\n", currString.array);
-  ++ERRORS_IN_SRC;
+  fprintf(stderr, "Comentario: %s\n", currString.array);
+  // ++ERRORS_IN_SRC;
   BEGIN(INITIAL); // FUNDAMENTAL
 }
 
@@ -168,7 +171,6 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
     showLineComment();
     currCol = 1;
     Array_Delete(&currString);
-    ++ERRORS_IN_SRC;
     BEGIN (INITIAL);
   }
 <LN_COMMENT>. {
@@ -233,47 +235,35 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
   Array_Insert(&currString, yytext);
 }
 
-{matType} {
-    showMatParam();
+{matType} { showMatParam();
     currCol += yyleng;
     return MAT_TYPE;
     ;
 }
 
-{par} {
-  showPar();
-  currCol += yyleng;
-  return yytext[0] == '(' ? LP : RP;
+{par} { showPar(), currCol += yyleng;
+  return yytext[0];
   ;
 }
 
-{curly} {
-  showCurly();
+{curly} { showCurly();
   currCol += yyleng;
-  if(yytext[0] == '{') {
-    escopo++; return LC;
-  }
-  else {
-    escopo--; return RC;
-  }
+  return yytext[0];
   ;
 }
-{bracket} {
-  showBracket();
+{bracket} { showBracket();  
   currCol += yyleng;
-  return yytext[0] == '[' ? LS : RS;
+  return yytext[0];
   ;
 }
-;     {
-  showStmtEnd();
+;     { showStmtEnd();
   currCol += yyleng;
-  return SEMI_COLON;  
+  return ';';  
   ;
 }
-[,.] {
-  showDotOrComma();
+[,.] { showDotOrComma();
   currCol += yyleng;
-  return yytext[0] == '.' ? DOT : COMMA;
+  return yytext[0];
   ;
 }
 
@@ -290,16 +280,16 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
       else                  // if
         showFlowControl();
       currCol += yyleng;
-      return yy1 == 'n' ? INT_TYPE : IF;
+      return yy1 == 'n' ? BASE_TYPE : IF;
       break;
     // outras palavras reservadas comecam todas com letras diferentes
     case 'c':
       showBaseType(); currCol += yyleng;
-      return CHAR_TYPE;
+      return BASE_TYPE;
       break;
     case 'f':
       showBaseType(); currCol += yyleng;
-      return FLOAT_TYPE;
+      return BASE_TYPE;
       break;
     case 'e':
       showFlowControl(); currCol += yyleng;
@@ -317,16 +307,6 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
       showMat(); currCol += yyleng;
       return MAT_TYPE;
       break;
-    case 'v':
-      printf("voide!\n");
-      return VOID;
-      break;
-    // TODO
-    // COPY PRINT READ
-    case 'a':
-      showAhead(); currCol += yyleng;
-      return AHEAD;
-      break;
     case 'C':
       showCopy(); currCol += yyleng;
       return COPY;
@@ -335,14 +315,17 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
       showPrint(); currCol += yyleng;
       return PRINT;
       break;
-    case 'R':
-      showRead(); currCol += yyleng;
-      return READ;
-      break;
-    
-    defaulf:
+    case 'I':
+      printf("I...: %s\n", yytext);
       currCol += yyleng;
-      break;
+      if(yy1 == 'R') return IREAD;
+      else if (yy1 == 'C') return ICAST;
+    case 'F':
+      printf("F...: %s\n", yytext);
+      currCol += yyleng;
+      if(yy1 == 'R') return FREAD;
+      else if (yy1 == 'C') return FCAST;
+    
   }
 }
 
@@ -351,26 +334,18 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
     SymEntry* tmp = add_entry(yytext);
     // printf("ID RECUPERADO DA HASH : %s\n", tmp->id);
     showID();
-    yylval._id = malloc(yyleng + 1);
-    memcpy(yylval._id, yytext, yyleng+1);
+    // yylval._id = malloc(yyleng + 1);
+    // memcpy(yylval._id, yytext, yyleng+1);
     currCol += yyleng;
     return ID;
     ;
 }
-{relOp} {
-  showRelOp();
+{relOp} {  showRelOp();
   currCol += yyleng;
   char yy0 = yytext[0], yy1 = yytext[1];
-  if(yyleng < 2) {
-    switch(yy0) {
-      case '>':        
-        return GT;
-        ;
-      case '<':
-        return LT;
-        ;
-    }
-  }
+  if(yyleng < 2) {  // '<' ou '>'
+    return yy0;
+    }  
   else
     switch(yy0) {
       case '>': return GE;
@@ -383,26 +358,15 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
       ;
     }
 }
-{binMathOp} {
-  showBinMathOp();
+{binMathOp} { showBinMathOp();  
   currCol += yyleng;
   if(yyleng == 2) {
     return MAT_POW;
     ;
   }
   else {
-    switch(yytext[0]) {
-      case '-': return SUB;
-      ;
-      case '+': return ADD;
-      ;
-      case '/': return DIV;
-      ;
-      case '*': return MUL;
-      ;
-      case '@': return MAT_MUL;
-      ;
-    }
+    return yytext[0];
+    ;
   }
 }
 
@@ -437,6 +401,11 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
   return V_INT;
   ;
 }
+{unaryOp} { printf("UNARIO: %s\n", yytext);
+  currCol += yyleng;
+  return yytext[0];
+  ;
+}
 
 \n  ++numlines, currCol = 1;
 " "+   {
@@ -445,11 +414,11 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
 = {
   currCol++;
   showAttrOp();
-  return ATTR;
+  return '=';
   ;
 }
 . {
-  ++ERRORS_IN_SRC;
+  // ++ERRORS_IN_SRC;
   showErrorCharMessage();
   currCol++;
   return ERRU;
@@ -470,31 +439,31 @@ void delete(void** p) {
 void print_reshi() {
     SymEntry *s;
     for(s=reshi; s != NULL; s=s->hh.next) {        
-        switch(s->tag) {
-          case HFLOAT:
-            printf("<type, Id>: < float ,%s >", s->id);
-            printf("\tVal: %f\n", s->u.fval);
-            break;
-          case HINT:
-            printf("<type, Id>: < int ,%s >", s->id);
-            printf("\tVal: %d\n", s->u.ival); 
-          case HID:
-            break;
-            printf("<type, Id>: < id ,%s >", s->id);            
-            break;
-          case HCHR:
-            printf("<type, Id>: < char ,%s >", s->id);
-            printf("\tVal: %c\n", s->u.cval); 
-            break;
-          case HRES_WORD:
-            printf("<type, Id>: < res-word,%s >", s->id);        
-            break;
-        }
-        printf("\t\tl. %d, c. %d\n", s->local.line, s->local.col);
+      switch(s->tag) {
+        case HFLOAT:
+          printf("< float, %s >", s->id);
+          printf("\tVal: %f", s->u.fval);
+          break;
+        case HINT:
+          printf("< int, %s >", s->id);
+          printf("\tVal: %d", s->u.ival);
+          break;
+        case HID:
+          printf("< id ,%s >", s->id);            
+          break;
+        case HCHR:
+          printf("< char, %s >", s->id);
+          printf("\tVal: %c\t", s->u.cval); 
+          break;
+        case HRES_WORD:
+          printf("< res-word, %s >", s->id);        
+          break;
+      }
+      printf("\tl. %d, c. %d\n", s->local.line, s->local.col);
     }
 }
 
-int _main(int argc, int** argv) {
+int main(int argc, char** argv) {
   Array_Init(&currString, 20);
   Array_Delete(&currString);
   // char c[][10] = {"return", "while", "if", "else", "int", "float"};
