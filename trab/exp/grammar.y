@@ -13,15 +13,27 @@
 %{
 #include <stdio.h>
 extern int yylineno;
-// extern int yylineno;
-// extern int yylex(void);
+extern int yylex();
+extern int yylex_destroy();
+void yyerror (const char *s);
 %}
+%token-table
+%locations
+%defines
+%verbose
+// Write a parser header file containing macro 
+// definitions for the token type names defined in
+// the grammar as well as a few other declarations.
+
 %define parse.error verbose
 %define parse.lac none
+%define parse.trace
 
 // %type<no> exp NUM program
 %type<no> exp NUM program
 %left '+' '-'
+%left '*' '/'
+
 // %token-table
 
 %token NUM
@@ -33,36 +45,60 @@ extern int yylineno;
 %%
 program: exp {
   root = $$;
+  // printf("PROGRAMA CORRETO! %s\n", yytname[program]);
 }
 
 exp : exp '+' exp {
-  printf("Exp1 : %d\n", $1->v);
-  printf("Exp3 : %d\n", $3->v);
-  $$ = No_New($1->v + $3->v);
+  printf("Exp1 : %d\n", $1->ival);
+  printf("Exp3 : %d\n", $3->ival);
+  $$ = No_New($1->ival + $3->ival);
+  $$->sval = "exp-add";
   add_Node_Child($$, $1);
+  add_Node_Child($$, No_New(77));
   add_Node_Child($$, $3);  
-  printf("%d + %d = %d\n",$1->v, $3->v, $$->v );
+  printf("%d + %d = %d\n",$1->ival, $3->ival, $$->ival );
 }
 | exp '-' exp {
-  $$ = No_New($1->v + $3->v);
+  $$ = No_New($1->ival - $3->ival);
+  $$->sval = "exp-sub";
   add_Node_Child($$, $1);
   add_Node_Child($$, $3);
 }
+| exp '*' exp {
+  $$ = No_New($1->ival * $3->ival);
+  $$->sval = "exp-mul";
+  add_Node_Child($$, $1);
+  add_Node_Child($$, $3);
+}
+| exp '/' exp {
+  $$ = No_New($1->ival / $3->ival);
+  $$->sval = "exp-div";
+  add_Node_Child($$, $1);
+  add_Node_Child($$, $3);
+}
+| '(' exp ')' {
+  $$ = $2;
+}
 | NUM {
   $$ = No_New( _.ival );
-  printf("NUM : %d\n", $$->v);
+  $$->sval = "NUM";
+  printf("NUM : %d\n", $$->ival);
+  printf("Numero correto! %s\n", yytname[NUM]);
 }
 
 %%
 
-void yyerror (char const *s) {
+void yyerror (const char *s) {
   fprintf (stderr, "%s | Line %d\n", s, yylineno);
 }
 int main() {
   root = No_New(0);
   printf("ggeasy\n");
   yyparse();  
-  show_Sub_Tree(root, 1);
-  show_Lis(root);
+  show_Sub_Tree(root, 1, IVAL);
+  show_Lis(root, IVAL);
+  show_Sub_Tree(root, 1, SVAL);
+  show_Lis(root, SVAL);
   No_Destroy(root);
+  yylex_destroy();
 }
