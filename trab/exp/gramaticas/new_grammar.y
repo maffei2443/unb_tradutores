@@ -74,7 +74,7 @@ declFun : BASE_TYPE ID '(' paramListVoid ')'
 
 param : BASE_TYPE ID 
 | BASE_TYPE ID '[' ']' 
-| MAT_TYPE BASE_TYPE ID
+| MAT_TYPE BASE_TYPE ID 
 
 declOrdeclInitVar : param ';'
 | param '=' rvalue ';'
@@ -100,6 +100,7 @@ locStmt : call ';'
 | ';'
 flowControl : IF '(' expr ')' block ELSE flowControl 
 | IF '(' expr ')' block ELSE block 
+| IF '(' expr ')' block
 
 loop : WHILE '(' expr ')' block
 
@@ -161,9 +162,6 @@ lvalue: ID
 rvalue : expr
 | '{' numList '}'
 | '[' numListList ']'
-
-flowControl : IF '(' error ')' block ELSE block 
-flowControl : IF '(' expr error block ELSE block 
 
 %%
 void yyerror (char const *s) {
