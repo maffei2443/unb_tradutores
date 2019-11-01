@@ -7,7 +7,7 @@
     float fval;
     char* sval;
     int allocated;
-  } _;  
+  } _;
 }
 
 %{

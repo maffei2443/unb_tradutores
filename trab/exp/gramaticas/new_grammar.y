@@ -32,7 +32,8 @@ extern void print_reshi();
 %left OR
 %left '<' '>'
 %left '+' '-'
-%left '*' '/'
+%left '%'
+%left '*' '/' 
 %left '@'
 %right MAT_POW
 %left '!' '&'
@@ -63,10 +64,13 @@ program: globalStmtList {
   printf("Derivacao foi concluida.\n");
 }
 
-globalStmtList : globalStmtList globalStmt
-|
+globalStmtList :
+| lobalStmtList globalStmt
 
-globalStmt : defFun
+globalStmt : defFun {
+  $$ = No_New();
+  add_Node_Child($$, defFun);
+}
 | declFun ';'
 | declOrdeclInitVar
 
@@ -123,6 +127,7 @@ expr : expr '+' expr
 | expr '-' expr
 | expr '*' expr
 | expr '/' expr
+| expr '%' expr
 | expr '@' expr
 | expr MAT_POW expr
 | expr EQ expr

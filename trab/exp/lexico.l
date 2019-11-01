@@ -83,7 +83,7 @@ NUM {FLOAT}|{INT}
 
 ID {letter_}({letter_}|{digit})*
 relOp >=|<=|==|!=|>|<
-binMathOp @@|[-+*/@]
+binMathOp @@|[-+*/@%]
 binLogiOp &&|\|\|
 unaryOp !|&
 comment \/\/.*
