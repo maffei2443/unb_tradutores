@@ -1,3 +1,14 @@
+%code requires {
+  #include "Tree.h"
+  No* root;
+  struct {
+    int ival;
+    float fval;
+    char* sval;
+    int allocated;
+  } _;
+}
+
 %{
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,9 +18,12 @@ extern int numlines;
 extern int yyleng;
 extern int yylex();
 void yyerror (char const *s);
+extern void print_reshi();
 %}
 %define parse.error verbose
 %define parse.lac none
+%define parse.trace
+
 %token-table
 %locations
 
@@ -30,22 +44,32 @@ void yyerror (char const *s);
 %token AND OR
 %token ERRU
 
+%type<no> globalStmtList globalStmt declFun param declOrdeclInitVar paramListVoid 
+%type<no> paramList locStmtList locStmt flowControl 
+%type<no> loop defFun numListList
+%type<no> numList block declList expr call arglist 
+%type<no> arg rvalue 
+
 %union {
   char* _id;
   int ival;
   float fval;
   char cval;
+  No* no;
 }
 %%
 
-program: globalStmtList
+program: globalStmtList {
+  printf("Derivacao foi concluida.\n");
+}
 
 globalStmtList : globalStmtList globalStmt
-| globalStmt
+|
 
 globalStmt : defFun
 | declFun ';'
 | param ';'
+| param '=' rvalue ';'
 
 declFun : BASE_TYPE ID '(' paramListVoid ')'
 
@@ -79,6 +103,7 @@ flowControl : IF '(' expr ')' block ELSE flowControl
 flowControl : IF '(' expr ')' block ELSE block 
 
 loop : WHILE '(' expr ')' block
+
 
 defFun : BASE_TYPE ID '(' paramListVoid ')' '{' declList locStmtList '}'
 
@@ -147,6 +172,7 @@ void yyerror (char const *s) {
   fprintf (stderr, "%s | l. %d, c. %d\n", s, yylloc.first_line, yylloc.first_column);
 }
 
-int _main(){
-
+int main(){
+  yyparse();
+  print_reshi();
 }

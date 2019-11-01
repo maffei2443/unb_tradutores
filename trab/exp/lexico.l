@@ -370,8 +370,7 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
   }
 }
 
-{binLogiOp} {
-  showBinLogiOp();
+{binLogiOp} { showBinLogiOp();  
   currCol += yyleng;
   if(yyleng == 2) {
     switch(yytext[0]) {
@@ -383,21 +382,21 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
   }
 }
 
-{FLOAT}    {
+{FLOAT}    { showFloatVal();
   CurrTokenTag = HFLOAT;
   SymEntry* t = add_entry(yytext);
+  currCol += yyleng;
   yylval.fval = atof(yytext);
-  t->u.fval = yylval.fval;
-  showFloatVal();
+  t->u.fval = yylval.fval;  
   return V_FLOAT;
   ;
 }
-{INT}      {
+{INT}      { showIntVal();
   CurrTokenTag = HINT;
   SymEntry* t = add_entry(yytext);
+  currCol += yyleng;
   yylval.ival = atoi(yytext);
   t->u.ival = yylval.ival;
-  showIntVal();
   return V_INT;
   ;
 }
@@ -411,14 +410,13 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
 " "+   {
   currCol += yyleng;
 }
-= {
+= { showAttrOp();
   currCol++;
-  showAttrOp();
   return '=';
   ;
 }
 . {
-  // ++ERRORS_IN_SRC;
+  ++ERRORS_IN_SRC;
   showErrorCharMessage();
   currCol++;
   return ERRU;
@@ -463,12 +461,9 @@ void print_reshi() {
     }
 }
 
-int main(int argc, char** argv) {
+int _main(int argc, char** argv) {
   Array_Init(&currString, 20);
   Array_Delete(&currString);
-  // char c[][10] = {"return", "while", "if", "else", "int", "float"};
-  // add_entry(c[0]);  add_entry(c[1]);
-  // add_entry(c[2]);  add_entry(c[3]);
 
   extern FILE *yyin, *yyout; 
   int open = 0;

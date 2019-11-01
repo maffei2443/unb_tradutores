@@ -13,10 +13,10 @@ lexico: lexico.l print.o new_grammar.y
 
 
 
-all: Tree.o lexico.l grammar.y
-	bison $(BFLAGS) grammar.y
+all: Tree.o lexico.l new_grammar.y Prints.o Colorfy.o Array.o
+	bison $(BFLAGS) new_grammar.y
 	flex lexico.l
-	gcc $(FLAGS) -o $@ lex.yy.c grammar.tab.c Tree.o
+	gcc $(FLAGS) -o $@ lex.yy.c new_grammar.tab.c Tree.o Prints.o Colorfy.o Array.o
 
 tree: Tree.o
 	gcc $(FLAGS) -o $@ simTree.c Tree.o
@@ -24,5 +24,11 @@ tree: Tree.o
 Tree.o: Tree.h
 	gcc -c Tree.c
 
-print.o:	Prints.h
+Prints.o:	Prints.h
 	gcc -c Prints.c
+
+Colorfy.o: Colorfy.h
+	gcc -c Colorfy.c
+
+Array.o: Array.h
+	gcc -c Array.c
