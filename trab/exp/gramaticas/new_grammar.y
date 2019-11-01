@@ -68,14 +68,13 @@ globalStmtList : globalStmtList globalStmt
 
 globalStmt : defFun
 | declFun ';'
-| param ';'
-| param '=' rvalue ';'
+| declOrdeclInitVar
 
 declFun : BASE_TYPE ID '(' paramListVoid ')'
 
 param : BASE_TYPE ID 
-| BASE_TYPE ID '[' V_INT ']' 
-| MAT_TYPE BASE_TYPE ID '['V_INT ']' '[' V_INT ']'
+| BASE_TYPE ID '[' ']' 
+| MAT_TYPE BASE_TYPE ID
 
 declOrdeclInitVar : param ';'
 | param '=' rvalue ';'
@@ -100,7 +99,7 @@ locStmt : call ';'
 | COPY '(' lvalue lvalue ')' ';'
 | ';'
 flowControl : IF '(' expr ')' block ELSE flowControl 
-flowControl : IF '(' expr ')' block ELSE block 
+| IF '(' expr ')' block ELSE block 
 
 loop : WHILE '(' expr ')' block
 
