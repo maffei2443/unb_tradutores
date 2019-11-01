@@ -109,7 +109,6 @@ void add_Next(No* no, int v) {
 
 // Pega proximo, libera atual.
 // ... Ao final, atual serah o ultimo
-// NO LEAKS, mas erros :/
 void free_Lis(No* no) {
   if(!no) return;
   No* next = no->n;
