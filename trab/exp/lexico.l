@@ -459,6 +459,7 @@ void print_reshi() {
       }
       printf("\tl. %d, c. %d\n", s->local.line, s->local.col);
     }
+  printf("##########################\n");
 }
 
 int _main(int argc, char** argv) {

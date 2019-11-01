@@ -72,6 +72,7 @@ unsigned nodeCounter;
 
 program: globalStmtList {
   MAKE_NODE(program);
+  add_Node_Child($program, $globalStmtList);
   root = $program;
   printf("Derivacao foi concluida.\n");
 }
@@ -79,8 +80,9 @@ program: globalStmtList {
 globalStmtList : {
   MAKE_NODE(globalStmtList);
 }
-| localStmtList globalStmt {
+| globalStmtList globalStmt {
   MAKE_NODE(globalStmtList);
+
 }
 
 globalStmt : defFun {
@@ -342,6 +344,6 @@ int main(){
   nodeCounter = 0;
   yyparse();
   print_reshi();
-  show_Sub_Tree(root, 0, SVAL);
+  show_Sub_Tree(root, 1, SVAL);
   show_Lis(root, SVAL);
 }
