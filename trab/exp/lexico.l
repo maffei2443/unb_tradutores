@@ -108,7 +108,7 @@ achar '([a-zA-Z0-9_]?)'
     // TODO : 
   }
   else {
-    if(yyleng > 2)
+    if(yyleng == 3)
       yylval.cval = yytext[1];
     else
       yylval.cval = '\n';

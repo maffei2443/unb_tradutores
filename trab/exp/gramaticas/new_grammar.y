@@ -17,8 +17,8 @@
   if(!yyval.no) abort(); \
   yyval.no->tname =  x  ;
 #define MAKE_NODE(x) INITNODE(STR(x))
-#define MAKE_ID(x) \
-  char* id_ = calloc(1, strlen(x));
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -70,7 +70,7 @@ unsigned nodeCounter;
 %type<no> paramList localStmtList localStmt flowControl 
 %type<no> loop defFun numListList
 %type<no> numList block declList expr call arglist 
-%type<no> arg rvalue lvalue
+%type<no> arg rvalue lvalue num
 
 %type<_id> ID BASE_TYPE
 %type<ival> V_INT
@@ -112,9 +112,8 @@ globalStmt : defFun {
 
 declFun : BASE_TYPE ID '(' paramListVoid ')' {
   MAKE_NODE(declFun);
-  No* _BASE_TYPE = Token_New(STR(BASE_TYPE), $BASE_TYPE);;
+  No* _BASE_TYPE = Token_New("BASE_TYPE", $BASE_TYPE);
   No* _ID = Token_New(STR(ID), $ID);
-  // printf("_ID->sval = %s\n", _ID->tname);
   add_Node_Child($$, _BASE_TYPE);
   add_Node_Child($$, _ID);
   add_Node_Child($$, $paramListVoid);
@@ -123,6 +122,7 @@ declFun : BASE_TYPE ID '(' paramListVoid ')' {
 param : BASE_TYPE ID {
   printf("BASE_TYPE ID \n");
   MAKE_NODE(param);
+  $$->ival = 0;
   No* base_no = Token_New(STR(BASE_TYPE), $BASE_TYPE);
   No* id_no = Token_New(STR(ID),$ID);
   add_Node_Child($$, base_no);
@@ -130,19 +130,14 @@ param : BASE_TYPE ID {
 
 }
 | BASE_TYPE ID '[' V_INT ']' {
-  printf("BASE_TYPE ID [ ]\n");
-  printf("%s %s [ ]\n", $1, $2);
   MAKE_NODE(param);
+  $$->ival = 1;
   No* id_no = Token_New(STR(ID),$ID);
   No* base_no = Token_New(STR(BASE_TYPE), $BASE_TYPE);
-
-  $$->sval = calloc(1, strlen($BASE_TYPE)+strlen("Array")+1);
-  memcpy($$->sval, $BASE_TYPE, strlen($BASE_TYPE));
-  memcpy((void*)&$$->sval[strlen($ID) -1], "Array", strlen("Array"));
-  printf("$$$$$$$$$$$$$$$$$$$$$$$$$\n");
 }
 | MAT_TYPE BASE_TYPE ID '[' V_INT ']' '[' V_INT ']'{
   MAKE_NODE(param);
+  $$->ival = 2;
 }
 
 declOrdeclInitVar : param ';' {
@@ -211,31 +206,61 @@ localStmt : call ';' {
 }
 | FREAD '(' lvalue ')' ';' {
   MAKE_NODE(localStmt);
+  No* fread_no = Token_New("FREAD","FREAD");
+  add_Node_Child($$, fread_no);
+  add_Node_Child($$, $lvalue);
 }
 | PRINT '(' lvalue ')' ';' {
   MAKE_NODE(localStmt);
+  No* print_no = Token_New("PRINT","PRINT");
+  add_Node_Child($$, print_no);
+  add_Node_Child($$, $lvalue);
 }
 | PRINT '(' V_ASCII ')' ';' {
   MAKE_NODE(localStmt);
+  $$->ival = $V_ASCII;
+  add_Node_Child($$, Token_New("PRINT","PRINT"));
 }
 | COPY '(' lvalue lvalue ')' ';' {
   MAKE_NODE(localStmt);
+  No* copy_no = Token_New("COPY","COPY");
+  add_Node_Child( $$, copy_no );
+  add_Node_Child( $$, $3 );
+  add_Node_Child( $$, $4 );
 }
 | ';' {
   MAKE_NODE(localStmt);
+  $$->ival = ';';
 }
+
 flowControl : IF '(' expr ')' block ELSE flowControl {
   MAKE_NODE(flowControl);
+  add_Node_Child($$, Token_New("IF","if"));
+  add_Node_Child($$, $expr);
+  add_Node_Child($$, $block);
+  add_Node_Child($$, Token_New("ELSE","else"));
+  add_Node_Child($$, $7);
 }
 | IF '(' expr ')' block ELSE block {
   MAKE_NODE(flowControl);
+  add_Node_Child($$, Token_New("IF","if"));
+  add_Node_Child($$, $expr);
+  add_Node_Child($$, $5);
+  add_Node_Child($$, Token_New("ELSE","else"));
+  add_Node_Child($$, $7);
 }
 | IF '(' expr ')' block {
   MAKE_NODE(flowControl);
+  add_Node_Child($$, Token_New("IF","if"));
+  add_Node_Child($$, $expr);
+  add_Node_Child($$, $block);
 }
 
 loop : WHILE '(' expr ')' block {
   MAKE_NODE(loop);
+  add_Node_Child($$, Token_New("WHILE","while"));
+  add_Node_Child($$, $expr);
+  add_Node_Child($$, $block);
 }
 
 
@@ -252,6 +277,8 @@ defFun : BASE_TYPE ID '(' paramListVoid ')' '{' declList localStmtList '}' {
 
 numListList :  numListList '{' numList '}' {
   MAKE_NODE(numListList);
+  add_Node_Child($$, $1);
+  add_Node_Child($$, $numList);
 }
 | {
   MAKE_NODE(numListList);
@@ -259,112 +286,186 @@ numListList :  numListList '{' numList '}' {
 
 numList : numList ',' num {
   MAKE_NODE(numList);
+  add_Node_Child($$, $1);
+  add_Node_Child($$, $num);
 }
 | num {
   MAKE_NODE(numList);
+  add_Node_Child($$, $num);
 }
 
 
 block : '{' localStmtList '}' {
   MAKE_NODE(block);
+  add_Node_Child($$, $localStmtList);
 }
 
 declList : declList declOrdeclInitVar {
   MAKE_NODE(declList);
+  add_Node_Child($$, $1);
+  add_Node_Child($$, $declOrdeclInitVar);
 }
 | {
   MAKE_NODE(declList);
 }
 
 expr : expr '+' expr {
-  MAKE_NODE(expr);
+  MAKE_NODE(expr); 
+  $$->ival = '+'; 
+  add_Node_Child($$, $1); 
+  add_Node_Child($$, $3);  
 }
 | expr '-' expr {
-  MAKE_NODE(expr);
+  MAKE_NODE(expr); 
+  $$->ival = '-'; 
+  add_Node_Child($$, $1); 
+  add_Node_Child($$, $3);  
 }
 | expr '*' expr {
-  MAKE_NODE(expr);
+  MAKE_NODE(expr); 
+  $$->ival = '*'; 
+  add_Node_Child($$, $1); 
+  add_Node_Child($$, $3);  
+
 }
 | expr '/' expr {
-  MAKE_NODE(expr);
+  MAKE_NODE(expr); 
+  $$->ival = '/'; 
+  add_Node_Child($$, $1); 
+  add_Node_Child($$, $3);  
 }
 | expr '%' expr {
-  MAKE_NODE(expr);
+  MAKE_NODE(expr); 
+  $$->ival = '%'; 
+  add_Node_Child($$, $1); 
+  add_Node_Child($$, $3);    
 }
 | expr '@' expr {
-  MAKE_NODE(expr);
+  MAKE_NODE(expr); 
+  $$->ival = '@'; 
+  add_Node_Child($$, $1); 
+  add_Node_Child($$, $3);    
 }
 | expr MAT_POW expr {
-  MAKE_NODE(expr);
+  MAKE_NODE(expr); 
+  $$->ival = MAT_POW; 
+  add_Node_Child($$, $1); 
+  add_Node_Child($$, $3);    
 }
 | expr EQ expr {
-  MAKE_NODE(expr);
+  MAKE_NODE(expr); 
+  $$->ival = EQ; 
+  add_Node_Child($$, $1); 
+  add_Node_Child($$, $3);  
 }
 | expr NEQ expr {
-  MAKE_NODE(expr);
+  MAKE_NODE(expr); 
+  $$->ival = NEQ; 
+  add_Node_Child($$, $1); 
+  add_Node_Child($$, $3);  
 }
 | expr GE expr {
-  MAKE_NODE(expr);
+  MAKE_NODE(expr); 
+  $$->ival = GE; 
+  add_Node_Child($$, $1); 
+  add_Node_Child($$, $3);  
 }
 | expr LE expr {
-  MAKE_NODE(expr);
+  MAKE_NODE(expr); 
+  $$->ival = LE; 
+  add_Node_Child($$, $1); 
+  add_Node_Child($$, $3);  
 }
 | expr '>' expr {
-  MAKE_NODE(expr);
+  MAKE_NODE(expr); 
+  $$->ival = '>'; 
+  add_Node_Child($$, $1); 
+  add_Node_Child($$, $3);    
 }
 | expr '<' expr {
-  MAKE_NODE(expr);
+  MAKE_NODE(expr); 
+  $$->ival = '<'; 
+  add_Node_Child($$, $1); 
+  add_Node_Child($$, $3);    
 }
 | expr AND expr {
-  MAKE_NODE(expr);
+  MAKE_NODE(expr); 
+  $$->ival = AND; 
+  add_Node_Child($$, $1); 
+  add_Node_Child($$, $3);  
 }
 | expr OR expr {
-  MAKE_NODE(expr);
+  MAKE_NODE(expr); 
+  $$->ival = OR; 
+  add_Node_Child($$, $1); 
+  add_Node_Child($$, $3);  
 }
 | '!' expr {
   MAKE_NODE(expr);
+  $$->ival = '!';
+  add_Node_Child($$, $2);
 }
 | '&' expr {
   MAKE_NODE(expr);
+  $$->ival = '&';
+  add_Node_Child($$, $2);
 }
 | '(' expr ')' {
   MAKE_NODE(expr);
+  add_Node_Child($$, $2);
 }
 | ICAST '(' expr ')' {
   MAKE_NODE(expr);
+  add_Node_Child($$, Token_New("ICAST", "ICAST"));
+  add_Node_Child($$, $3);
 }
 | FCAST '(' expr ')' {
   MAKE_NODE(expr);
+  add_Node_Child($$, Token_New("FCAST", "FCAST"));
+  add_Node_Child($$, $3);
 }
 | lvalue {
   MAKE_NODE(expr);
+  add_Node_Child($$, $lvalue);
 }
 | call {
   MAKE_NODE(expr);
+  add_Node_Child($$, $call);
 }
 | num {
   MAKE_NODE(expr);
+  add_Node_Child($$, $num);
 }
 
 call : ID '(' arglist ')' {
   MAKE_NODE(call);
+  add_Node_Child($$, Token_New("ID", $ID));
+  add_Node_Child($$, $arglist);
 }
 | ID '('  ')' {
   MAKE_NODE(call);
+  add_Node_Child($$, Token_New("ID", $ID));
 }
 
 arglist : arglist ',' arg {
   MAKE_NODE(arglist);
+  add_Node_Child($$, $1);
+  add_Node_Child($$, $3);
 }
 | arg {
   MAKE_NODE(arglist);
+  add_Node_Child($$, $1);
 }
 
 arg : lvalue {
   MAKE_NODE(arg);
+  add_Node_Child($$, $lvalue);
 }
 | ID '(' expr ')' '(' expr ')' {
   MAKE_NODE(arg);
+  add_Node_Child($$, Token_New("ID", $ID));
+  add_Node_Child($$, $3);
+  add_Node_Child($$, $6);
 }
 
 num: V_INT {
