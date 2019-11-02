@@ -98,7 +98,7 @@ par [()]
 bracket [\[\]]
 curly [{}]
 
-achar '(\\|\\?[a-zA-Z0-9_\\])'
+achar '([a-zA-Z0-9_]?)'
 %%
 {achar} {
   if(yyleng == 3 && yytext[1] == '\\'){
@@ -108,7 +108,10 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
     // TODO : 
   }
   else {
-    yylval.cval = yytext[0];
+    if(yyleng > 2)
+      yylval.cval = yytext[1];
+    else
+      yylval.cval = '\n';
     currCol += yyleng;
     showCharVal();
     CurrTokenTag = HCHR;
@@ -275,8 +278,10 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
   char yy1 = yytext[1];
   switch(yy0) {
     case 'i':
-      if (yy1 == 'n') // int
+      if (yy1 == 'n') {// int 
+        yylval._id = "int";
         showBaseType();
+      }
       else                  // if
         showFlowControl();
       currCol += yyleng;
@@ -285,10 +290,12 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
     // outras palavras reservadas comecam todas com letras diferentes
     case 'c':
       showBaseType(); currCol += yyleng;
+      yylval._id = "char";
       return BASE_TYPE;
       break;
     case 'f':
       showBaseType(); currCol += yyleng;
+      yylval._id = "float";
       return BASE_TYPE;
       break;
     case 'e':
@@ -334,8 +341,8 @@ achar '(\\|\\?[a-zA-Z0-9_\\])'
     SymEntry* tmp = add_entry(yytext);
     // printf("ID RECUPERADO DA HASH : %s\n", tmp->id);
     showID();
-    // yylval._id = malloc(yyleng + 1);
-    // memcpy(yylval._id, yytext, yyleng+1);
+    yylval._id = malloc(yyleng + 1);
+    memcpy(yylval._id, yytext, yyleng+1);
     currCol += yyleng;
     return ID;
     ;

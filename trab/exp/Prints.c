@@ -17,7 +17,8 @@ void _blue_dash_red_token() {
   BoldRed();
   fprintf(stdout, "%s", yytext);
   BoldCyan();
-  fprintf(stdout, ">\n");
+  fprintf(stdout, ">");
+  fprintf(stdout, " %lu\n", strlen(yytext));
   Reset();
 }
 

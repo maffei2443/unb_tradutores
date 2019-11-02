@@ -7,20 +7,37 @@
 
 typedef enum {
   IVAL  = 0,
-  SVAL
+  SVAL,
+  TVAL
 } Field;
+
+typedef enum {
+  TYPE_INT = 1,
+  TYPE_FLOAT = 2,
+  TYPE_CHAR = 4,
+  TYPE_ARRAY = 8,
+  TYPE_MAT = 16
+}Type;
 
 typedef struct No {
   struct No * child;
   struct No * childLast;
   struct No * n;
   struct No * p;
-  char* sval;
-  int ival;
+  char* sval; char sval_alloc;
+  char* tname; char tname_alloc;
+  char isToken;    // nesse modo, usa-se mesmo noh para token e regra
+  char ival;
 } No;
 
 // Ok.
 No* No_New(int v);
+
+// not checked
+// Recebe string com o VALOR do token.
+// Aloca DINAMICAMENTE o valor em No->sval
+No* Token_New(char* tname, char* sval);
+
 void show_Spaces(int qtd);
 // Seta ponteiros internos de variavel do tipo No
 // para NULL. Depois, dah free nessa variavel.

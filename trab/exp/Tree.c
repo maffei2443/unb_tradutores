@@ -19,8 +19,22 @@ No* No_New(int v) {
   No* no = (No*)malloc(sizeof(No));
   no->child = NULL; no->n = NULL;
   no->childLast = NULL; no->p = NULL;
-  no->ival = v; no->sval = NULL;
+  no->ival = v; no->sval = NULL; no->tname = NULL;
+  no->tname_alloc = 0; no->sval_alloc = 0;
   return no;
+}
+
+No* Token_New(char* tname, char* sval) {
+  No* token = No_New(-1);
+  token->isToken = 1;
+  token->tname_alloc = 1;  token->tname = calloc(1, strlen(tname) + 1);
+  token->sval_alloc = 1;  token->sval = calloc(1, strlen(sval) + 1);
+  if(!token->tname) abort();
+  if(!token->sval ) abort();
+  memcpy(token->tname, tname, strlen(tname));
+  memcpy(token->sval, sval, strlen(sval));
+  printf("TOKEN-name OK  %s\n", token->tname);
+  return token;
 }
 
 // Seta ponteiros internos de variavel do tipo No
@@ -29,25 +43,11 @@ No* No_New(int v) {
 void No_Destroy(No* no) {
   no -> n = NULL; no -> p = NULL;
   no -> child = NULL; no -> childLast = NULL;  
-  if(no->sval == NULL) free(no->sval), no->sval = NULL;
+  if(no->sval == NULL && no->sval_alloc) free(no->sval), no->sval = NULL;
+  if(no->tname == NULL && no->tname_alloc) free(no->tname), no->tname = NULL;
   free(no);  no = NULL;
 }
 
-void show_Lis(No* head, Field field) {
-  int i = 0;
-  while(head) {
-    // for(int a = 0; a < i; a++) printf(" ");
-    i++;
-    if(field == IVAL) {
-      printf("%d ",head->ival);
-    }
-    else if (field == SVAL) {
-      printf("<%s, %d> ",head->sval, head->ival);
-    }
-    head = head->n;
-  }
-  printf("\n");
-}
 
 
 // TESTADO, FUNCIONA
@@ -133,6 +133,33 @@ void free_All_Child(No * no) {
   }
   free_Lis(no->child);
 }
+
+void show_Lis(No* head, Field field) {
+  int i = 0;
+  while(head) {
+    // for(int a = 0; a < i; a++) printf(" ");
+    i++;
+    if(head->isToken) {
+      printf("%s ", head->sval);
+      // if(!head->tname) // "token" pode ser melhor especificado por sval
+      //   printf("<token, %s> ", head->sval);
+      // else 
+      //   printf("<%s, %s> ", head->tname, head->sval);
+    }
+    else if(field == IVAL) {
+      printf("%d ",head->ival);
+    }
+    else if (field == SVAL || field == TVAL) {
+      if(head->tname && head->sval)
+        printf("<%s, %s> ", head->tname, head->sval);
+      else if (head->tname)
+        printf("<%s, %d> ",head->tname, head->ival);
+    }
+    head = head->n;
+  }
+  printf("\n");
+}
+
 
 int show_Sub_Tree(No* no, int lvl, Field field) {
   if(!no->child) return 0;

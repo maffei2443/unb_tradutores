@@ -13,7 +13,9 @@ lexico: lexico.l print.o new_grammar.y
 
 
 
-all: Tree.o lexico.l new_grammar.y Prints.o Colorfy.o Array.o
+all: Tree.c lexico.l new_grammar.y Prints.o Prints.c Colorfy.o Array.o
+	gcc -c Tree.c
+	gcc -c Prints.c
 	bison $(BFLAGS) new_grammar.y
 	flex lexico.l
 	gcc $(FLAGS) -o $@ lex.yy.c new_grammar.tab.c Tree.o Prints.o Colorfy.o Array.o
