@@ -23,11 +23,12 @@ typedef struct No {
   struct No * child;
   struct No * childLast;
   struct No * n;
-  struct No * p;
+  // struct No * p;
   char* sval; char sval_alloc;
   char* tname; char tname_alloc;
   char isToken;    // nesse modo, usa-se mesmo noh para token e regra
   int ival;
+  float fval;
 } No;
 
 // Ok.
@@ -52,7 +53,7 @@ void add_Node_Child(No* no, No * newNo);
 // Adiciona novo irmao para no.
 // LIMITACAO: no DEVE TER UM PAI!
 // Motivo: insercao RAPIDA!
-void add_Next(No* no, int v) ;
+// void add_Next(No* no, int v) ;
 
 
 // Pega proximo, libera atual.

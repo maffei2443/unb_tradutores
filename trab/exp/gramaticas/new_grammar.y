@@ -70,7 +70,7 @@ unsigned nodeCounter;
 %type<no> paramList localStmtList localStmt flowControl 
 %type<no> loop defFun numListList
 %type<no> numList block declList expr call arglist 
-%type<no> arg rvalue lvalue num
+%type<no> arg rvalue lvalue num typeAndNameSign
 
 %type<_id> ID BASE_TYPE
 %type<ival> V_INT
@@ -84,9 +84,7 @@ program: globalStmtList {
   root = $program;
   printf("Derivacao foi concluida.\n");
 }
-| V_ASCII {
-  printf("ACHAR %c\n", yylval.cval);
-}
+
 
 globalStmtList : {
   MAKE_NODE(globalStmtList);
@@ -120,33 +118,61 @@ declFun : BASE_TYPE ID '(' paramListVoid ')' {
 }
 
 param : BASE_TYPE ID {
-  printf("BASE_TYPE ID \n");
   MAKE_NODE(param);
   $$->ival = 0;
-  No* base_no = Token_New(STR(BASE_TYPE), $BASE_TYPE);
-  No* id_no = Token_New(STR(ID),$ID);
-  add_Node_Child($$, base_no);
-  add_Node_Child($$, id_no);
+  add_Node_Child($$, Token_New("BASE_TYPE", $BASE_TYPE));
+  add_Node_Child($$, Token_New("ID",$ID));
 
 }
-| BASE_TYPE ID '[' V_INT ']' {
+| BASE_TYPE ID '[' ']' {
   MAKE_NODE(param);
-  $$->ival = 1;
-  No* id_no = Token_New(STR(ID),$ID);
-  No* base_no = Token_New(STR(BASE_TYPE), $BASE_TYPE);
+  add_Node_Child($$, Token_New("BASE_TYPE", $BASE_TYPE));
+  add_Node_Child($$, Token_New("ID", $ID));
 }
-| MAT_TYPE BASE_TYPE ID '[' V_INT ']' '[' V_INT ']'{
+| MAT_TYPE BASE_TYPE ID {
   MAKE_NODE(param);
   $$->ival = 2;
+  add_Node_Child($$, Token_New("MAT_TYPE", "mat"));
+  add_Node_Child($$, Token_New("BASE_TYPE", $BASE_TYPE));
+  add_Node_Child($$, Token_New("ID", $ID));
+
 }
 
-declOrdeclInitVar : param ';' {
-  MAKE_NODE(declOrdeclInitVar);
-  add_Node_Child($$, $param);
+typeAndNameSign : BASE_TYPE ID {
+  printf("[typeAndNameSign] BASE_TYPE ID \n");
+  MAKE_NODE(typeAndNameSign);
+  $$->ival = 0;
+  // printf(" >>>>>> %s\n", $BASE_TYPE);
+  // printf(" ------ %s\n", $ID);
+  
+  add_Node_Child($$, Token_New("BASE_TYPE", $BASE_TYPE));
+  add_Node_Child($$, Token_New("ID", $ID));
 }
-| param '=' rvalue ';' {
+| BASE_TYPE ID '[' V_INT ']' {
+  MAKE_NODE(typeAndNameSign);
+  $$->ival = 1;
+  add_Node_Child($$, Token_New("BASE_TYPE", $BASE_TYPE));
+  add_Node_Child($$, Token_New("ID", $ID));
+  $$->childLast->ival = $V_INT;
+
+}
+| MAT_TYPE BASE_TYPE ID '[' V_INT ']' '[' V_INT ']'{
+  MAKE_NODE(typeAndNameSign);
+  $$->ival = 1;
+  add_Node_Child($$, Token_New("MAT_TYPE", "mat"));
+  $$->childLast->ival = $5;
+  add_Node_Child($$, Token_New("BASE_TYPE", $BASE_TYPE));
+  add_Node_Child($$, Token_New("ID", $ID));
+  $$->childLast->ival = $8;
+}
+
+declOrdeclInitVar : typeAndNameSign ';' {
   MAKE_NODE(declOrdeclInitVar);
-  add_Node_Child($$, $param);
+  add_Node_Child($$, $typeAndNameSign);
+}
+| typeAndNameSign '=' rvalue ';' {
+  MAKE_NODE(declOrdeclInitVar);
+  add_Node_Child($$, $typeAndNameSign);
   add_Node_Child($$, $rvalue);
 }
 
@@ -196,6 +222,7 @@ localStmt : call ';' {
 }
 | RETURN expr ';' {
   MAKE_NODE(localStmt);
+  add_Node_Child($$, Token_New("RETURN", "return"));
   add_Node_Child($$, $expr);
 }
 | IREAD '(' lvalue ')' ';' {
@@ -470,30 +497,41 @@ arg : lvalue {
 
 num: V_INT {
   MAKE_NODE(num);
+  $$->ival = $V_INT;
 }
 | V_FLOAT {
   MAKE_NODE(num);
+  $$->fval = $V_FLOAT;
 }
 
 
 lvalue: ID {
   MAKE_NODE(lvalue);
+  add_Node_Child($$, Token_New("ID", $ID));
 }
 | ID '[' expr ']' {
   MAKE_NODE(lvalue);
+  add_Node_Child($$, Token_New("ID", $ID));
+  add_Node_Child($$, $expr);
 }
 | ID '[' expr ']' '[' expr ']' {
   MAKE_NODE(lvalue);
+  add_Node_Child($$, Token_New("ID", $ID));
+  add_Node_Child($$, $3);
+  add_Node_Child($$, $6);
 }
 
 rvalue : expr {
   MAKE_NODE(rvalue);
+  add_Node_Child($$, $expr);
 }
 | '{' numList '}' {
   MAKE_NODE(rvalue);
+  add_Node_Child($$, $numList);
 }
 | '[' numListList ']' {
   MAKE_NODE(rvalue);
+  add_Node_Child($$, $numListList);
 }
 
 %%
