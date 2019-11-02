@@ -70,7 +70,7 @@ unsigned nodeCounter;
 %type<no> paramList localStmtList localStmt flowControl 
 %type<no> loop defFun numListList
 %type<no> numList block declList expr call arglist 
-%type<no> arg rvalue 
+%type<no> arg rvalue lvalue
 
 %type<_id> ID BASE_TYPE
 %type<ival> V_INT
@@ -94,7 +94,7 @@ globalStmtList : {
 | globalStmtList globalStmt {
   MAKE_NODE(globalStmtList);
   add_Node_Child($$, $1);
-  add_Node_Child($$, $2);
+  add_Node_Child($$, $globalStmt);
 }
 
 globalStmt : defFun {
@@ -107,6 +107,7 @@ globalStmt : defFun {
 }
 | declOrdeclInitVar {
   MAKE_NODE(globalStmt);
+  add_Node_Child($$, $declOrdeclInitVar);
 }
 
 declFun : BASE_TYPE ID '(' paramListVoid ')' {
@@ -122,9 +123,11 @@ declFun : BASE_TYPE ID '(' paramListVoid ')' {
 param : BASE_TYPE ID {
   printf("BASE_TYPE ID \n");
   MAKE_NODE(param);
-  $$->tname = calloc(1, strlen($ID)+1);
-  memcpy($$->tname, $ID, strlen($ID));  
-  
+  No* base_no = Token_New(STR(BASE_TYPE), $BASE_TYPE);
+  No* id_no = Token_New(STR(ID),$ID);
+  add_Node_Child($$, base_no);
+  add_Node_Child($$, id_no);
+
 }
 | BASE_TYPE ID '[' V_INT ']' {
   printf("BASE_TYPE ID [ ]\n");
@@ -144,6 +147,7 @@ param : BASE_TYPE ID {
 
 declOrdeclInitVar : param ';' {
   MAKE_NODE(declOrdeclInitVar);
+  add_Node_Child($$, $param);
 }
 | param '=' rvalue ';' {
   MAKE_NODE(declOrdeclInitVar);
@@ -171,6 +175,8 @@ paramList : paramList ',' param {
 
 localStmtList : localStmtList localStmt {
   MAKE_NODE(localStmtList);
+  add_Node_Child($$, $1);
+  add_Node_Child($$, $localStmt);
 }
 |  {
   MAKE_NODE(localStmtList);
@@ -178,22 +184,30 @@ localStmtList : localStmtList localStmt {
 
 localStmt : call ';' {
   MAKE_NODE(localStmt);
-
+  add_Node_Child($$, $call);
 }
 | lvalue '=' rvalue ';'  {
   MAKE_NODE(localStmt);
+  add_Node_Child($$, $lvalue);
+  add_Node_Child($$, $rvalue);
 }
 | flowControl {
   MAKE_NODE(localStmt);
+  add_Node_Child($$, $flowControl);
 }
 | loop {
   MAKE_NODE(localStmt);
+  add_Node_Child($$, $loop);
 }
 | RETURN expr ';' {
   MAKE_NODE(localStmt);
+  add_Node_Child($$, $expr);
 }
 | IREAD '(' lvalue ')' ';' {
   MAKE_NODE(localStmt);
+  No* iread_no = Token_New("IREAD","IREAD");
+  add_Node_Child($$, iread_no);
+  add_Node_Child($$, $lvalue);
 }
 | FREAD '(' lvalue ')' ';' {
   MAKE_NODE(localStmt);
