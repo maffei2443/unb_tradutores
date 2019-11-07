@@ -25,27 +25,29 @@ int main(int argc, char ** argv) {
   if(argc > 1) {
     caso = atoi(argv[1]);
   }
-  if(0) {
+  if(caso > 1) {
     test_add_show_n(head, caso);
     free(head); head = NULL;
   }
   else {
-
+    add_Node_Next(head, No_New(199));
     add_Node_Child(head, No_New(1));
     add_Node_Child(head, No_New(1));
     
     add_Child(head->child, 2);
     add_Child(head->child, 2);
     add_Child(head->child, 2);
+    add_Node_Next(head->child->child, No_New(222));
 
     add_Child(head->child->child, 3);
     add_Child(head->child->child, 3);
 
-    show_Sub_Tree(head, 1, SVAL);
+    show_Sub_Tree(head, 1, IVAL);
 
-    show_Lis(head, SVAL);
+    show_Lis(head, IVAL);
     free_All_Child(head);
-    free(head); head = NULL;
+    No_Destroy(head->n);
+    No_Destroy(head);
   }
 
 }

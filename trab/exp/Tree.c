@@ -17,12 +17,15 @@ void show_Spaces(int qtd){
 // Ok.
 No* No_New(int v) {
   No* no = (No*)malloc(sizeof(No));
-  no->child = NULL; no->n = NULL;
+  no->child = NULL;
   no->childLast = NULL;
+  no->n = NULL;
   // no->p = NULL;
-  no->ival = v; no->sval = NULL; no->tname = NULL;
+  no->sval = NULL;  no->sval_alloc = 0;
+  no->tname = NULL; no->tname_alloc = 0; 
+  no->isToken = 0;
+  no->ival = v;
   no->fval = 0.0;
-  no->tname_alloc = 0; no->sval_alloc = 0;
   return no;
 }
 
@@ -42,12 +45,14 @@ No* Token_New(char* tname, char* sval) {
 // para NULL. Depois, dah free nessa variavel.
 // NAO TESTADO
 void No_Destroy(No* no) {
-  no -> n = NULL;
   // no -> p = NULL;
+  no -> n = NULL;
   no -> child = NULL; no -> childLast = NULL;  
-  if(no->sval == NULL && no->sval_alloc) free(no->sval), no->sval = NULL;
-  if(no->tname == NULL && no->tname_alloc) free(no->tname), no->tname = NULL;
-  free(no);  no = NULL;
+  if(no->sval == NULL && no->sval_alloc)
+    DESTROY_PTR(no->sval);
+  if(no->tname == NULL && no->tname_alloc)
+    DESTROY_PTR(no->tname);
+  DESTROY_PTR(no);
 }
 
 
@@ -88,25 +93,18 @@ void add_Node_Child(No* no, No * newNo) {
 // Adiciona novo irmao para no.
 // LIMITACAO: no DEVE TER UM PAI!
 // Motivo: insercao RAPIDA!
-// void add_Next(No* no, int v) {
-//   if ((no)->p){  // printf("INSERIR VIA PAI\n");    
-//     return add_Child(no->p, v);
-//   }
-//   else {  
-//     printf("[ERRO]O elemento PRECISA ter um pai.\n");    printf("Atribua-lhe um pai paa insercao mais rapida.\n");
-//     return;
-//     /* No* tmp = (*no)->n;
-//     if(!tmp) {  // Se nao tem proximo, insere logo.
-//       (*no)->n = No_New(v); //  printf("'tmp->n == %d\n", (*no)->n->ival);
-//     }
-//     else {      // Senao, pode acessar tmp->n sem crashar
-//       while( tmp->n ) {
-//         tmp = tmp->n;
-//       }
-//       tmp->n = No_New(v); // printf("'tmp->n == %d\n", tmp->ival);
-//     } */
-//   }
-// }
+void add_Node_Next(No* no, No* next) {
+  if(!(no->n)) {  // Se nao tem proximo, insere logo.
+    no->n = next; //  printf("'tmp->n == %d\n", (*no)->n->ival);
+  }
+  else {      // Senao, pode acessar tmp->n sem crashar
+    No* tmp = no->n; 
+    while( tmp->n ) {
+      tmp = tmp->n;
+    }
+    tmp->n = next; // printf("'tmp->n == %d\n", tmp->ival);
+  }
+}
 
 
 // Pega proximo, libera atual.

@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #define ptfi(str, val) printf(str " %d\n",  (val))
-
+#define DESTROY_PTR(ptr) {free(ptr);ptr = NULL;}
 typedef enum {
   IVAL  = 0,
   SVAL,
@@ -20,10 +20,10 @@ typedef enum {
 }Type;
 
 typedef struct No {
+  // struct No * p;   // ponteiro para pai
   struct No * child;
   struct No * childLast;
   struct No * n;
-  // struct No * p;
   char* sval; char sval_alloc;
   char* tname; char tname_alloc;
   char isToken;    // nesse modo, usa-se mesmo noh para token e regra
@@ -50,10 +50,7 @@ void show_Lis(No* head, Field field) ;
 // TESTADO, FUNCIONA
 void add_Child(No* no, int v) ;
 void add_Node_Child(No* no, No * newNo);
-// Adiciona novo irmao para no.
-// LIMITACAO: no DEVE TER UM PAI!
-// Motivo: insercao RAPIDA!
-// void add_Next(No* no, int v) ;
+void add_Node_Next(No* no, No* next) ;
 
 
 // Pega proximo, libera atual.
