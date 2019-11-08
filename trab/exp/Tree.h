@@ -65,5 +65,5 @@ void free_All_Child(No * no) ;
 
 // NAO TESTADO AINDA
 int show_Sub_Tree(No* no, int lvl, Field field);
-
+int ListSize(No* no);
 #endif

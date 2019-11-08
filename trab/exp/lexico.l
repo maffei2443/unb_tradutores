@@ -13,52 +13,16 @@ long long unsigned ERRORS_IN_SRC = 0;
 int escopo = 0;
 StringStart stringStart;
 
-typedef struct {
-  int line, col;
-  int scope;
-  struct Local * next;
-} Local;
 
-typedef struct {
-  char id[257];
-  int tag;
-  union {
-    int ival;
-    float fval;
-    char cval;
-  } u;
-  UT_hash_handle hh;
-  Local local;
-} SymEntry;
 
-enum _HASH_TYPES{
-  HINT, HFLOAT, HID, HCHR, HRES_WORD
-};
+extern int lastTag;
 
-int CurrTokenTag;
-
-SymEntry* reshi = NULL;
+extern SymEntry* reshi;
+// extern SymEntry* add_entry(SymEntry* reshi, char* id);
+extern SymEntry* add_entry(SymEntry** , char*, int);
+extern void addToDel(SymEntry** p);
 
 // Se nao existe, inicializar local. Se jah existe,
-SymEntry* add_entry(char* id) {
-    SymEntry* newEntry;
-    HASH_FIND_STR(reshi, id, newEntry);  /* id already in the hash? */
-    if (newEntry == NULL) {
-      printf("ADDING %s do RESHI\n", id);
-      newEntry = (SymEntry *)malloc(sizeof(SymEntry));
-      strcpy(newEntry->id, id);
-      newEntry->local.line = numlines;
-      newEntry->local.col = currCol; newEntry->local.next = NULL;
-      newEntry->tag = CurrTokenTag;
-      HASH_ADD_STR( reshi, id, newEntry );  /* id: name of key field */
-      // printf(">>>>> Inseriu %s\n", newEntry->id);
-    }
-    else {
-      printf("COULD NOT ADD %s to HASH\n", id);
-    }
-    return newEntry;
-}
-
 // {digit}*("."{digit}*{exp}?|("."{digit}*)?{exp})
 %}
 %option yylineno
@@ -91,7 +55,7 @@ comment \/\/.*
 base_types int|float|char
 types mat|{base_types}
 flux_control while|if|else|return
-reserved_words {types}|{flux_control}|"COPY"|"PRINT"|"IREAD"|"FREAD"|"ICAST"|"FCAST"
+reserved_words {types}|{flux_control}|"COPY"|"PRINT"|"IREAD"|"FREAD"|"ICAST"|"FCAST"|"ahead"
 
 sep [ \t\n\(\)<>[\]\{},.;=]
 par [()]
@@ -114,7 +78,7 @@ achar '([a-zA-Z0-9_]?)'
       yylval.cval = '\n';
     currCol += yyleng;
     showCharVal();
-    CurrTokenTag = HCHR;
+    lastTag = HCHR;
     return V_ASCII;
     ;
   }
@@ -271,12 +235,17 @@ achar '([a-zA-Z0-9_]?)'
 }
 
 {reserved_words}/[^a-zA-Z0-9_] {
-  CurrTokenTag = HRES_WORD;
-  add_entry(yytext);
+  lastTag = HRES_WORD;
+  // add_entry( yytext);
   // printf("RES_WORD: %s\n", yytext);
   char yy0 = yytext[0];
   char yy1 = yytext[1];
   switch(yy0) {
+    case 'a':
+      showAhead();
+      showBaseType(); currCol += yyleng;
+      return AHEAD;
+      break;
     case 'i':
       if (yy1 == 'n') {// int 
         yylval._id = "int";
@@ -287,7 +256,6 @@ achar '([a-zA-Z0-9_]?)'
       currCol += yyleng;
       return yy1 == 'n' ? BASE_TYPE : IF;
       break;
-    // outras palavras reservadas comecam todas com letras diferentes
     case 'c':
       showBaseType(); currCol += yyleng;
       yylval._id = "char";
@@ -337,9 +305,8 @@ achar '([a-zA-Z0-9_]?)'
 }
 
 {ID} {          
-    CurrTokenTag = HID;
-    SymEntry* tmp = add_entry(yytext);
-    // printf("ID RECUPERADO DA HASH : %s\n", tmp->id);
+    lastTag = HID;  // significa "sintatico deve decidir"
+    SymEntry* tmp = add_entry(&reshi, yytext, lastTag);
     showID();
     yylval._id = malloc(yyleng + 1);
     memcpy(yylval._id, yytext, yyleng+1);
@@ -390,20 +357,20 @@ achar '([a-zA-Z0-9_]?)'
 }
 
 {FLOAT}    { showFloatVal();
-  CurrTokenTag = HFLOAT;
-  SymEntry* t = add_entry(yytext);
+  lastTag = HFLOAT;
+  // SymEntry* t = add_entry( yytext);
   currCol += yyleng;
   yylval.fval = atof(yytext);
-  t->u.fval = yylval.fval;  
+  // t->u.fval = yylval.fval;  
   return V_FLOAT;
   ;
 }
 {INT}      { showIntVal();
-  CurrTokenTag = HINT;
-  SymEntry* t = add_entry(yytext);
+  lastTag = HINT;
+  // SymEntry* t = add_entry(&reshi, yytext, lastTag);
   currCol += yyleng;
   yylval.ival = atoi(yytext);
-  t->u.ival = yylval.ival;
+  // t->u.ival = yylval.ival;
   return V_INT;
   ;
 }
@@ -413,10 +380,11 @@ achar '([a-zA-Z0-9_]?)'
   ;
 }
 
-\n  ++numlines, currCol = 1;
+\n+  {numlines += yyleng, currCol = 1;}
 " "+   {
   currCol += yyleng;
 }
+\t+ currCol += yyleng;
 = { showAttrOp();
   currCol++;
   return '=';
@@ -441,41 +409,14 @@ void delete(void** p) {
   *p = NULL;
 }
 
-void print_reshi() {
-    SymEntry *s;
-    for(s=reshi; s != NULL; s=s->hh.next) {        
-      switch(s->tag) {
-        case HFLOAT:
-          printf("< float, %s >", s->id);
-          printf("\tVal: %f", s->u.fval);
-          break;
-        case HINT:
-          printf("< int, %s >", s->id);
-          printf("\tVal: %d", s->u.ival);
-          break;
-        case HID:
-          printf("< id ,%s >", s->id);            
-          break;
-        case HCHR:
-          printf("< char, %s >", s->id);
-          printf("\tVal: %c\t", s->u.cval); 
-          break;
-        case HRES_WORD:
-          printf("< res-word, %s >", s->id);        
-          break;
-      }
-      printf("\tl. %d, c. %d\n", s->local.line, s->local.col);
-    }
-  printf("##########################\n");
-}
-
+extern void print_reshi(void);
 int _main(int argc, char** argv) {
   Array_Init(&currString, 20);
   Array_Delete(&currString);
 
   extern FILE *yyin, *yyout; 
   int open = 0;
-  char* path = malloc(200 * sizeof(char));
+  char* path = calloc(200, sizeof(char));
   if(argc > 1) {
     if(!(yyin = fopen(argv[1], "r"))) {
         perror(argv[1]);
@@ -499,7 +440,7 @@ int _main(int argc, char** argv) {
     BoldGreen();
     fprintf(stdout, "Congrats! The code is in the language.\n");
   }
-  print_reshi();
+  // print_reshi();
   Reset();
   yylex_destroy();
 }

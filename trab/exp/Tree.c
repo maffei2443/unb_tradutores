@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 
 #define ptfi(str, val) printf(str " %d\n",  (val))
 
@@ -32,12 +33,12 @@ No* No_New(int v) {
 No* Token_New(char* tname, char* sval) {
   No* token = No_New(-1);
   token->isToken = 1;
-  token->tname_alloc = 1;  token->tname = calloc(1, strlen(tname) + 1);
-  token->sval_alloc = 1;  token->sval = calloc(1, strlen(sval) + 1);
+  token->tname_alloc = 1;  token->tname = calloc(strlen(tname) + 1, sizeof(char));
+  token->sval_alloc = 1;  token->sval = calloc(strlen(sval) + 1, sizeof(char));
   if(!token->tname) abort();
   if(!token->sval ) abort();
-  memcpy(token->tname, tname, strlen(tname));
-  memcpy(token->sval, sval, strlen(sval));
+  // memcpy(token->tname, tname, strlen(tname));
+  // memcpy(token->sval, sval, strlen(sval));
   return token;
 }
 
@@ -94,15 +95,23 @@ void add_Node_Child(No* no, No * newNo) {
 // LIMITACAO: no DEVE TER UM PAI!
 // Motivo: insercao RAPIDA!
 void add_Node_Next(No* no, No* next) {
+  if(no == next) {printf("stupid loop!\n");return;}
+  int _;
+  if(no->n == no){
+    printf("Ciclo! %p->n = %p!", no, no->n);
+    scanf("%d", &_);
+  }
   if(!(no->n)) {  // Se nao tem proximo, insere logo.
     no->n = next; //  printf("'tmp->n == %d\n", (*no)->n->ival);
   }
   else {      // Senao, pode acessar tmp->n sem crashar
-    No* tmp = no->n; 
-    while( tmp->n ) {
+    No* tmp = no; 
+    while( tmp->n != NULL) {
+      printf("%p %p\n", tmp, tmp->n);
       tmp = tmp->n;
     }
     tmp->n = next; // printf("'tmp->n == %d\n", tmp->ival);
+    if(next == tmp) printf("WTF?? no: %p, no->n: %p", no, no->n), abort();
   }
 }
 
@@ -136,11 +145,12 @@ void free_All_Child(No * no) {
 
 void show_Lis(No* head, Field field) {
   int i = 0;
+  int n_child = ListSize(head);
   while(head) {
     // for(int a = 0; a < i; a++) printf(" ");
     i++;
     if(head->isToken) {
-      printf("%s ", head->sval);
+      printf("tok: %s ", head->sval);
       // if(!head->tname) // "token" pode ser melhor especificado por sval
       //   printf("<token, %s> ", head->sval);
       // else 
@@ -155,8 +165,12 @@ void show_Lis(No* head, Field field) {
       else if (head->tname)
         printf("<%s, %d> ",head->tname, head->ival);
     }
+    else {
+      printf("u should not pass ");
+    }   
     head = head->n;
   }
+  printf("(n: %d) ", n_child);
   printf("\n");
 }
 
@@ -172,3 +186,8 @@ int show_Sub_Tree(No* no, int lvl, Field field) {
   return 1;
 }
 
+int ListSize(No* no) {
+  int c = 0;
+  for(; no; no = no->n, c++);
+  return c;
+}

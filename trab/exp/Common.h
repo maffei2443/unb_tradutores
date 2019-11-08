@@ -2,6 +2,8 @@
 #define _COMMON_H_
 
 #include "Array.h"
+#include "uthash.h"
+#include "Tree.h"
 // Should include another header except the default-ones
 typedef struct {
   int lines, isChar, notChar;
@@ -23,5 +25,35 @@ typedef struct {
   int line,
       col;
 } StringStart;
+
+typedef struct {
+  int line, col;
+  int scope;
+} Local;
+
+typedef enum {
+  HINT, HFLOAT, HID, HCHR, HRES_WORD, HFUN
+} _HASH_TYPES;
+
+typedef struct {
+  char id[257];
+  _HASH_TYPES tag;
+  Local local;
+  char* escopo;
+  union {
+    int ival;
+    char cval;
+    float fval;
+    struct {
+      struct No* next;  // next eh usado para PARAMETROS DE FUNCOES
+      struct SymEntry* upperSym;
+      struct SymEntry* nestedSym;
+    } func;
+  } u;
+  UT_hash_handle hh;
+} SymEntry;
+
+SymEntry* SymEntry_New(char* id, int tag, char*);
+void* SymEntry_Destroy(void*);
 
 #endif
