@@ -4,6 +4,7 @@
 #include "Array.h"
 #include "uthash.h"
 #include "Tree.h"
+#include <assert.h>
 // Should include another header except the default-ones
 typedef struct {
   int lines, isChar, notChar;

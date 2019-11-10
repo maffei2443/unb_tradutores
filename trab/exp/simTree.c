@@ -31,8 +31,8 @@ int main(int argc, char ** argv) {
   }
   else {
     add_Node_Next(head, No_New(199));
-    add_Node_Child(head, No_New(1));
-    add_Node_Child(head, No_New(1));
+    add_Node_Child_If_Not_Null(head, No_New(1));
+    add_Node_Child_If_Not_Null(head, No_New(1));
     
     add_Child(head->child, 2);
     add_Child(head->child, 2);

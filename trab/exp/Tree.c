@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-
+#include <assert.h>
 #define ptfi(str, val) printf(str " %d\n",  (val))
 
 void show_Spaces(int qtd){
@@ -26,6 +26,7 @@ No* No_New(int v) {
   no->tname = NULL; no->tname_alloc = 0; 
   // no->scope = NULL; no->scope_alloc = 0; 
   no->isToken = 0;
+  no->hasAux = 0;
   no->ival = v;
   no->fval = 0.0;
   return no;
@@ -49,9 +50,12 @@ No* Token_New(char* tname, char* sval) {
 // para NULL. Depois, dah free nessa variavel.
 // NAO TESTADO
 void No_Destroy(No* no) {
-  // no -> p = NULL;
-  no -> n = NULL;
-  no -> child = NULL; no -> childLast = NULL;  
+  if(!no) return;
+  // NAO DEVE TER NEXT E AUX; UM OU OUTRO
+  assert(!(no->hasAux == 1 && no->n != NULL));
+  no->n = NULL;
+  no->child = NULL; no -> childLast = NULL;
+  no->nextAux = NULL;
   if(no->sval == NULL && no->sval_alloc)
     DESTROY_PTR(no->sval);
   if(no->tname == NULL && no->tname_alloc)
@@ -81,12 +85,13 @@ void add_Child(No* no, int v) {
   // neo->p = no;
 }
 // TODO: testar
-void add_Node_Child(No* no, No * newNo) {
+void add_Node_Child_If_Not_Null(No* no, No * newNo) {
   if(!no) {
     printf("Erro: %p aponsta pra NULO.\n", no);
     printf("Nao foi possivel adicionar um filho.\n");
     return;
   }
+  else if (!newNo) {printf("Nao adiciona noh nulo como next!");return;}
   if( (no)->childLast != NULL ) {
     (no)->childLast->n = newNo;
     (no)->childLast = newNo;
@@ -100,6 +105,7 @@ void add_Node_Child(No* no, No * newNo) {
 // LIMITACAO: no DEVE TER UM PAI!
 // Motivo: insercao RAPIDA!
 void add_Node_Next(No* no, No* next) {
+  if(!no) {printf("[Tree.c:add_Node_Next] no eh NULO!\n");return;}
   if(no == next) {printf("stupid loop!\n");return;}
   int _;
   if(no->n == no){
@@ -151,10 +157,20 @@ void free_All_Child(No * no) {
 void show_Lis(No* head, Field field) {
   int i = 0;
   int n_child = ListSize(head);
+  int auxCount = 0;
   while(head) {
     // for(int a = 0; a < i; a++) printf(" ");
     i++;
-    if(head->isToken) {
+    if(head->hasAux) {
+      n_child--;    // para nao contar duas vezes o primeiro parametro ;)
+      No* aux = head;
+      while(aux) {
+        auxCount++;
+        printf("<%s> ", aux->tname);
+        aux = aux->nextAux;
+      }
+    }
+    else if(head->isToken) {
       printf("%s ", head->sval);
     }
     else if(field == IVAL) {
@@ -171,7 +187,7 @@ void show_Lis(No* head, Field field) {
     }   
     head = head->n;
   }
-  printf("(n: %d) ", n_child);
+  printf("(n: %d) ", n_child + auxCount);
   printf("\n");
 }
 

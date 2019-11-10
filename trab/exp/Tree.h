@@ -24,10 +24,12 @@ typedef struct No {
   struct No * child;
   struct No * childLast;
   struct No * n;
+  struct No * nextAux;
   char* sval; char sval_alloc;
   char* tname; char tname_alloc;
   // char* scope; char scope_alloc;
   char isToken;    // nesse modo, usa-se mesmo noh para token e regra
+  char hasAux;
   int ival;
   float fval;
 } No;
@@ -50,7 +52,7 @@ void show_Lis(No* head, Field field) ;
 
 // TESTADO, FUNCIONA
 void add_Child(No* no, int v) ;
-void add_Node_Child(No* no, No * newNo);
+void add_Node_Child_If_Not_Null(No* no, No * newNo);
 void add_Node_Next(No* no, No* next) ;
 
 

@@ -53,28 +53,28 @@ exp : exp '+' exp {
   printf("Exp3 : %d\n", $3->ival);
   $$ = No_New($1->ival + $3->ival);
   $$->sval = "exp-add";
-  add_Node_Child($$, $1);
-  add_Node_Child($$, No_New('+'));
-  add_Node_Child($$, $3);  
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, No_New('+'));
+  add_Node_Child_If_Not_Null($$, $3);  
   printf("%d + %d = %d\n",$1->ival, $3->ival, $$->ival );
 }
 | exp '-' exp {
   $$ = No_New($1->ival - $3->ival);
   $$->sval = "exp-sub";
-  add_Node_Child($$, $1);
-  add_Node_Child($$, $3);
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
 }
 | exp '*' exp {
   $$ = No_New($1->ival * $3->ival);
   $$->sval = "exp-mul";
-  add_Node_Child($$, $1);
-  add_Node_Child($$, $3);
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
 }
 | exp '/' exp {
   $$ = No_New($1->ival / $3->ival);
   $$->sval = "exp-div";
-  add_Node_Child($$, $1);
-  add_Node_Child($$, $3);
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
 }
 | '(' exp ')' {
   $$ = $2;
