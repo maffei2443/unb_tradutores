@@ -135,8 +135,8 @@ void free_Lis(No* no) {
 // mas soh quando todos os childs jah o tiverem feito tambem.
 // TESTADO, FUNCIONA
 void free_All_Child(No * no) {
-  No* child = (no)->child;
-  No* tmp = no;
+  if(!no) return;
+  No* child = no->child;
   if(!child) return;
   while(child != NULL) {    
     free_All_Child(child);
@@ -153,10 +153,6 @@ void show_Lis(No* head, Field field) {
     i++;
     if(head->isToken) {
       printf("%s ", head->sval);
-      // if(!head->tname) // "token" pode ser melhor especificado por sval
-      //   printf("<token, %s> ", head->sval);
-      // else 
-      //   printf("<%s, %s> ", head->tname, head->sval);
     }
     else if(field == IVAL) {
       printf("%d ",head->ival);
@@ -165,7 +161,7 @@ void show_Lis(No* head, Field field) {
       if(head->tname && head->sval)
         printf("<%s, %s> ", head->tname, head->sval);
       else if (head->tname)
-        printf("<%s, %d> ",head->tname, head->ival);
+        printf("<%s> ",head->tname /*, head->ival */);
     }
     else {
       printf("u should not pass ");

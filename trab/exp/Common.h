@@ -39,6 +39,7 @@ typedef struct {
   _HASH_TYPES tag;
   Local local;
   char* escopo;
+  Type type;
   union {
     int ival;
     char cval;
@@ -52,7 +53,14 @@ typedef struct {
   UT_hash_handle hh;
 } SymEntry;
 
+enum Return {
+  R_UNITIALIZED,
+  R_INT,
+  R_FLOAT,
+  R_VOID
+};
+
 SymEntry* SymEntry_New(char* id, int tag, char*);
 void* SymEntry_Destroy(void*);
-
+char* type2string(Type t);
 #endif

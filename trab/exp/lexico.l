@@ -38,7 +38,7 @@ ws {delim}+
 digit [0-9]
 letter_ [a-zA-Z_]
 
-matType <\s*(int|float|char)\s*>
+matType <\s*(int|float)\s*>
 
 INT [0-9]+
 exp [eE][+-]?{digit}+
@@ -52,7 +52,7 @@ binLogiOp &&|\|\|
 unaryOp !|&
 comment \/\/.*
 
-base_types int|float|char
+base_types int|float
 types mat|{base_types}
 flux_control while|if|else|return
 reserved_words {types}|{flux_control}|"COPY"|"PRINT"|"IREAD"|"FREAD"|"ICAST"|"FCAST"|"ahead"
@@ -255,7 +255,7 @@ achar '([a-zA-Z0-9_]?)'
       break;
     case 'i':
       if (yy1 == 'n') {// int 
-        yylval._id = "int";
+        yylval.type = R_INT;
         // showBaseType();
       }
       else                  // if
@@ -263,14 +263,9 @@ achar '([a-zA-Z0-9_]?)'
       currCol += yyleng;
       return yy1 == 'n' ? BASE_TYPE : IF;
       break;
-    case 'c':
-      // showBaseType(); currCol += yyleng;
-      yylval._id = "char";
-      return BASE_TYPE;
-      break;
     case 'f':
       // showBaseType(); currCol += yyleng;
-      yylval._id = "float";
+      yylval.type = R_FLOAT;
       return BASE_TYPE;
       break;
     case 'e':

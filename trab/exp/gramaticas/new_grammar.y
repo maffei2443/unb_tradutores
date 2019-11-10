@@ -104,6 +104,8 @@ void print_reshi(void) {
         case HRES_WORD:
           printf("< res-word, %s >", s->id);        
           break;
+        case HFUN:
+          printf("<fun, %s, %s>", s->id, type2string(s->type));
       }
       printf("\t(%p)l. %d, c. %d\n", s,s->local.line, s->local.col);
       void* toFree = (void*)s;
@@ -139,6 +141,7 @@ void print_reshi(void) {
   float fval;
   char cval;
   No* no;
+  Type type;
 }
 
 %token BASE_TYPE WHILE V_INT V_FLOAT V_ASCII AHEAD
@@ -156,7 +159,8 @@ void print_reshi(void) {
 %type<no> numList block declList expr call arglist 
 %type<no> arg rvalue lvalue num typeAndNameSign
 
-%type<_id> ID BASE_TYPE
+%type<_id> ID 
+%type<type> BASE_TYPE
 %type<ival> V_INT
 %type<cval> V_ASCII
 %type<fval> V_FLOAT
@@ -164,8 +168,6 @@ void print_reshi(void) {
 
 program: globalStmtList {
   $$ = $1;
-  // MAKE_NODE(program);
-  // add_Node_Child($program, $globalStmtList);
   root = $$;
   printf("Derivacao foi concluida.\n");
 }
@@ -190,11 +192,9 @@ globalStmt : defFun
 
 declFun : AHEAD BASE_TYPE ID {currScope = $ID;} '(' paramListVoid ')' {
   MAKE_NODE(declFun);
-  // SymEntry
-  // add_entry(&reshi)
-  add_Node_Child($$, Token_New("BASE_TYPE", $BASE_TYPE));
-  add_Node_Child($$, Token_New(STR(ID), $ID));
+  add_Node_Child($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
   
+  add_Node_Child($$, Token_New(STR(ID), $ID));
   free($ID), $ID = NULL;
   add_Node_Child($$, $paramListVoid);
   currScope = GLOBAL_SCOPE;
@@ -204,7 +204,7 @@ param : BASE_TYPE ID {
   printf("param : BASE_TYPE ID\n");
   MAKE_NODE(param);
   $$->ival = 0;
-  add_Node_Child($$, Token_New("BASE_TYPE", $BASE_TYPE));
+  add_Node_Child($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
   add_Node_Child($$, Token_New("ID",$ID));
   printf("ID: %s\n", $ID);
   free($ID), $ID = NULL;
@@ -212,7 +212,7 @@ param : BASE_TYPE ID {
 }
 | BASE_TYPE ID '[' ']' {
   MAKE_NODE(param);
-  add_Node_Child($$, Token_New("BASE_TYPE", $BASE_TYPE));
+  add_Node_Child($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
   add_Node_Child($$, Token_New("ID", $ID));
   printf("ID: %s\n", $ID);
   free($ID), $ID = NULL;
@@ -221,7 +221,7 @@ param : BASE_TYPE ID {
   MAKE_NODE(param);
   $$->ival = 2;
   add_Node_Child($$, Token_New("MAT_TYPE", "mat"));
-  add_Node_Child($$, Token_New("BASE_TYPE", $BASE_TYPE));
+  add_Node_Child($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
   add_Node_Child($$, Token_New("ID", $ID));
   printf("ID: %s\n", $ID);
   free($ID), $ID = NULL;
@@ -232,10 +232,10 @@ typeAndNameSign : BASE_TYPE ID {
   printf("[typeAndNameSign] BASE_TYPE ID \n");
   MAKE_NODE(typeAndNameSign);
   $$->ival = 0;
-  printf(" >>>>>> %s\n", $BASE_TYPE);
+  printf(" >>>>>> %s\n", type2string($BASE_TYPE));
   printf(" ------ %s\n", $ID);
   
-  add_Node_Child($$, Token_New("BASE_TYPE", $BASE_TYPE));
+  add_Node_Child($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
   add_Node_Child($$, Token_New("ID", $ID));
   free($ID); $ID = NULL;
 }
@@ -250,7 +250,7 @@ typeAndNameSign : BASE_TYPE ID {
 | BASE_TYPE ID '[' V_INT ']' {
   MAKE_NODE(typeAndNameSign);
   $$->ival = 1;
-  add_Node_Child($$, Token_New("BASE_TYPE", $BASE_TYPE));
+  add_Node_Child($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
   add_Node_Child($$, Token_New("ID", $ID));
   free($ID); $ID = NULL;
   $$->childLast->ival = $V_INT;
@@ -261,7 +261,7 @@ typeAndNameSign : BASE_TYPE ID {
   $$->ival = 1;
   add_Node_Child($$, Token_New("MAT_TYPE", "mat"));
   $$->childLast->ival = $5;
-  add_Node_Child($$, Token_New("BASE_TYPE", $BASE_TYPE));
+  add_Node_Child($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
   add_Node_Child($$, Token_New("ID", $ID));
   $$->childLast->ival = $8;
 }
@@ -395,10 +395,11 @@ defFun : BASE_TYPE ID '(' paramListVoid ')' '{' {
   SymEntry* tmp;
   HASH_FIND_STR(reshi, $ID, tmp);
   tmp->tag = HFUN;
+  tmp->type = $BASE_TYPE;
   currScope = $ID;
 } declList localStmtList '}' {
   MAKE_NODE(defFun);
-  No* _BASE_TYPE = Token_New(STR(BASE_TYPE), $BASE_TYPE);
+  No* _BASE_TYPE = Token_New(STR(BASE_TYPE), type2string($BASE_TYPE));
   No* _ID = Token_New(STR(ID), $ID);
   free($ID); $ID = NULL;
   add_Node_Child($$, _BASE_TYPE);
