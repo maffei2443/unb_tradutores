@@ -15,10 +15,8 @@ StringStart stringStart;
 
 
 
-extern int lastTag;
 
 extern SymEntry* reshi;
-// extern SymEntry* add_entry(SymEntry* reshi, char* id);
 extern SymEntry* add_entry(SymEntry** , char*, int);
 extern void addToDel(SymEntry** p);
 
@@ -77,8 +75,7 @@ achar '([a-zA-Z0-9_]?)'
     else
       yylval.cval = '\n';
     currCol += yyleng;
-    // showCharVal();
-    lastTag = HCHR;
+    // showCharVal();    
     return V_ASCII;
     ;
   }
@@ -241,9 +238,7 @@ achar '([a-zA-Z0-9_]?)'
   ;
 }
 
-{reserved_words}/[^a-zA-Z0-9_] {
-  lastTag = HRES_WORD;
-  // add_entry( yytext);
+{reserved_words}/[^a-zA-Z0-9_] {  
   // printf("RES_WORD: %s\n", yytext);
   char yy0 = yytext[0];
   char yy1 = yytext[1];
@@ -306,9 +301,8 @@ achar '([a-zA-Z0-9_]?)'
   }
 }
 
-{ID} {          
-    lastTag = HID;  // significa "sintatico deve decidir"
-    SymEntry* tmp = add_entry(&reshi, yytext, lastTag);
+{ID} {              
+    SymEntry* tmp = add_entry(&reshi, yytext, HID);
     // showID();
     yylval._id = malloc(yyleng + 1);
     memcpy(yylval._id, yytext, yyleng+1);
@@ -363,21 +357,15 @@ achar '([a-zA-Z0-9_]?)'
 
 {FLOAT}    {
   // showFloatVal();
-  lastTag = HFLOAT;
-  // SymEntry* t = add_entry( yytext);
   currCol += yyleng;
   yylval.fval = atof(yytext);
-  // t->u.fval = yylval.fval;  
   return V_FLOAT;
   ;
 }
 {INT}      {
   showIntVal();
-  lastTag = HINT;
-  // SymEntry* t = add_entry(&reshi, yytext, lastTag);
   currCol += yyleng;
   yylval.ival = atoi(yytext);
-  // t->u.ival = yylval.ival;
   return V_INT;
   ;
 }

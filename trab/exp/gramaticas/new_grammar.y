@@ -61,7 +61,6 @@ void delGambs() {
 }
 
 
-int lastTag;   // gambs para setar corretamente se eh int,float, etc [?]
 SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
     SymEntry* newEntry = NULL;
     HASH_FIND_STR((*reshi), id, newEntry);  /* id already in the hash? */
@@ -191,42 +190,20 @@ globalStmt : defFun
 | declOrdeclInitVar
 
 declFun : AHEAD BASE_TYPE ID {currScope = $ID;} '(' paramListVoid ')' {
+  SymEntry* tmp;
+  HASH_FIND_STR(reshi, $ID, tmp);
+  tmp->tag = HFUN;
+  tmp->type = $BASE_TYPE;
+
   MAKE_NODE(declFun);
-  add_Node_Child($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
   
+  add_Node_Child($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
   add_Node_Child($$, Token_New(STR(ID), $ID));
   free($ID), $ID = NULL;
   add_Node_Child($$, $paramListVoid);
   currScope = GLOBAL_SCOPE;
 }
 
-param : BASE_TYPE ID {
-  printf("param : BASE_TYPE ID\n");
-  MAKE_NODE(param);
-  $$->ival = 0;
-  add_Node_Child($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
-  add_Node_Child($$, Token_New("ID",$ID));
-  printf("ID: %s\n", $ID);
-  free($ID), $ID = NULL;
-
-}
-| BASE_TYPE ID '[' ']' {
-  MAKE_NODE(param);
-  add_Node_Child($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
-  add_Node_Child($$, Token_New("ID", $ID));
-  printf("ID: %s\n", $ID);
-  free($ID), $ID = NULL;
-}
-| MAT_TYPE BASE_TYPE ID {
-  MAKE_NODE(param);
-  $$->ival = 2;
-  add_Node_Child($$, Token_New("MAT_TYPE", "mat"));
-  add_Node_Child($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
-  add_Node_Child($$, Token_New("ID", $ID));
-  printf("ID: %s\n", $ID);
-  free($ID), $ID = NULL;
-
-}
 
 typeAndNameSign : BASE_TYPE ID {
   printf("[typeAndNameSign] BASE_TYPE ID \n");
@@ -273,25 +250,44 @@ declOrdeclInitVar : typeAndNameSign ';'
   add_Node_Child($$, $rvalue);
 }
 
-paramListVoid : paramList {$$ = $1;}
+paramListVoid : paramList
 | %empty {
   MAKE_NODE(paramListVoid);
 }
 
 paramList : paramList ',' param {
-  if(!strcmp("param", $1->tname)) { // $1 eh parametro
-    $$ = $1;
-    add_Node_Next($$, $param);
-  }
-  else {
-    MAKE_NODE(paramList);
-    add_Node_Next($$, $1);
-    add_Node_Next($$, $param);
-  }
-  // add_Node_Child($$, $1);
-  
+  $$ = $1;
+  add_Node_Next($$, $param);  
 }
 | param
+
+param : BASE_TYPE ID {
+  MAKE_NODE(param);
+  $$->ival = 0;
+  add_Node_Child($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
+  add_Node_Child($$, Token_New("ID",$ID));
+  printf("ID: %s\n", $ID);
+  free($ID), $ID = NULL;
+
+}
+| BASE_TYPE ID '[' ']' {
+  MAKE_NODE(param);
+  add_Node_Child($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
+  add_Node_Child($$, Token_New("ID", $ID));
+  printf("ID: %s\n", $ID);
+  free($ID), $ID = NULL;
+}
+| MAT_TYPE BASE_TYPE ID {
+  MAKE_NODE(param);
+  $$->ival = 2;
+  add_Node_Child($$, Token_New("MAT_TYPE", "mat"));
+  add_Node_Child($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
+  add_Node_Child($$, Token_New("ID", $ID));
+  printf("ID: %s\n", $ID);
+  free($ID), $ID = NULL;
+
+}
+
 
 localStmtList : localStmtList localStmt {
   MAKE_NODE(localStmtList);
@@ -390,8 +386,7 @@ loop : WHILE '(' expr ')' block {
   add_Node_Child($$, $block);
 }
 
-
-defFun : BASE_TYPE ID '(' paramListVoid ')' '{' {
+defFun : BASE_TYPE ID '('{currScope = $ID;} paramListVoid ')' '{' {
   SymEntry* tmp;
   HASH_FIND_STR(reshi, $ID, tmp);
   tmp->tag = HFUN;
@@ -405,6 +400,7 @@ defFun : BASE_TYPE ID '(' paramListVoid ')' '{' {
   add_Node_Child($$, _BASE_TYPE);
   add_Node_Child($$, _ID);
   add_Node_Child($$, $paramListVoid);
+
   add_Node_Child($$, $declList);
   add_Node_Child($$, $localStmtList);
   currScope = GLOBAL_SCOPE;

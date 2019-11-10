@@ -26,6 +26,7 @@ typedef struct No {
   struct No * n;
   char* sval; char sval_alloc;
   char* tname; char tname_alloc;
+  // char* scope; char scope_alloc;
   char isToken;    // nesse modo, usa-se mesmo noh para token e regra
   int ival;
   float fval;
