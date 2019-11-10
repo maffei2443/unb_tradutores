@@ -95,15 +95,25 @@ SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
     return newEntry;
 }
 
-int was_declared(SymEntry** reshi, char* id){
+// funcao booleana.
+// Retorna NULL caso nao o tenha sido; senao,
+// retorna ponteiro para declracao mais prohxima.
+SymEntry* was_declared(SymEntry** reshi, char* id){
   SymEntry* oldEntry = NULL;
+  SymEntry* last_same_id = oldEntry;
   HASH_FIND_STR((*reshi), id, oldEntry);
-  if(!oldEntry) {
-    return 0;
+  while( oldEntry ) {
+    if( strcmp(oldEntry->id, id) != 0 ) {
+      oldEntry = oldEntry->next;
+    }
+    else if(strcmp(oldEntry->escopo, currScope) == 0){  // declaracao sob mesmo escopo
+      return oldEntry;
+    }
+    else if(strcmp(oldEntry->escopo, GLOBAL_SCOPE) == 0){
+      last_same_id = oldEntry;
+    }
   }
-  else {
-    // Checar questao de ESCOPO!
-  }
+  return last_same_id;
 }
 
 void show_entry(SymEntry* s) {
@@ -231,7 +241,11 @@ globalStmt : defFun
 | declFun ';' 
 | declOrdeclInitVar
 
-declFun : AHEAD BASE_TYPE ID {currScope = $ID;} '(' paramListVoid ')' {
+declFun : AHEAD BASE_TYPE ID {
+  SymEntry* neoEntry = add_entry(&reshi, $ID, HFUN);
+  neoEntry->tag = $BASE_TYPE;
+  currScope = $ID;
+} '(' paramListVoid ')' {
   SymEntry* tmp;
   HASH_FIND_STR(reshi, $ID, tmp);
   tmp->tag = HFUN;
@@ -429,7 +443,11 @@ loop : WHILE '(' expr ')' block {
   add_Node_Child_If_Not_Null($$, $block);
 }
 
-defFun : BASE_TYPE ID '('{currScope = $ID;} paramListVoid ')' '{' declList localStmtList '}' {
+defFun : BASE_TYPE ID '('{
+  SymEntry* neoEntry = add_entry(&reshi, $ID, HFUN);
+  neoEntry->tag = $BASE_TYPE;
+  currScope = $ID;
+} paramListVoid ')' '{' declList localStmtList '}' {
   SymEntry* tmp;
   HASH_FIND_STR(reshi, $ID, tmp);
   tmp->tag = HFUN;
@@ -598,18 +616,9 @@ expr : expr '+' expr {
   add_Node_Child_If_Not_Null($$, Token_New("FCAST", "FCAST"));
   add_Node_Child_If_Not_Null($$, $3);
 }
-| lvalue {
-  MAKE_NODE(expr);
-  add_Node_Child_If_Not_Null($$, $lvalue);
-}
-| call {
-  MAKE_NODE(expr);
-  add_Node_Child_If_Not_Null($$, $call);
-}
-| num {
-  MAKE_NODE(expr);
-  add_Node_Child_If_Not_Null($$, $num);
-}
+| lvalue
+| call 
+| num 
 
 call : ID '(' arglist ')' {
   MAKE_NODE(call);
@@ -653,8 +662,9 @@ num: V_INT {
 
 
 lvalue: ID {
-  MAKE_NODE(lvalue);
-  add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
+  // MAKE_NODE(lvalue);
+  // add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
+  $$ = Token_New("ID", $ID);
   free($ID), $ID = NULL;
 }
 | ID '[' expr ']' {
@@ -669,18 +679,9 @@ lvalue: ID {
   add_Node_Child_If_Not_Null($$, $6);
 }
 
-rvalue : expr {
-  MAKE_NODE(rvalue);
-  add_Node_Child_If_Not_Null($$, $expr);
-}
-| '{' numList '}' {
-  MAKE_NODE(rvalue);
-  add_Node_Child_If_Not_Null($$, $numList);
-}
-| '[' numListList ']' {
-  MAKE_NODE(rvalue);
-  add_Node_Child_If_Not_Null($$, $numListList);
-}
+rvalue : expr
+| '{' numList '}' {$$ = $2;}
+| '[' numListList ']' {$$ = $2;}
 
 %%
 

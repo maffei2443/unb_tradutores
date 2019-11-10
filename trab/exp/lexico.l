@@ -303,7 +303,7 @@ achar '([a-zA-Z0-9_]?)'
 }
 
 {ID} {              
-    SymEntry* tmp = add_entry(&reshi, yytext, HID);
+    // SymEntry* tmp = add_entry(&reshi, yytext, HID);
     // showID();
     yylval._id = malloc(yyleng + 1);
     memcpy(yylval._id, yytext, yyleng+1);
