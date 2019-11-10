@@ -63,7 +63,6 @@ void delGambs() {
 
 SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
     SymEntry* newEntry = NULL;
-    printf("id: %s, scope: %s\n", id, currScope);
     HASH_FIND_STR((*reshi), id, newEntry);  /* id already in the hash? */
     if (newEntry == NULL) {
       newEntry = SymEntry_New(id, tag, currScope);
@@ -73,7 +72,7 @@ SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
       addToDel(&newEntry);
     }
     else {    // Checar se eh declaracao no msm escopo. Se for, nao adiciona e dah pau (retorna NULL);
-      printf("Possivel conflito com %s\n", id);
+      printf("Possivel conflito com %s:%s\n", id, newEntry->escopo);
       while(newEntry && strcmp(id, newEntry->id) == 0 ) {
         if(!strcmp(currScope, newEntry->escopo)){
           printf("Erro: redeclaracao de %s:%s em l.%d, r.%d\n",
