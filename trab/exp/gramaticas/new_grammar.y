@@ -386,13 +386,11 @@ loop : WHILE '(' expr ')' block {
   add_Node_Child($$, $block);
 }
 
-defFun : BASE_TYPE ID '('{currScope = $ID;} paramListVoid ')' '{' {
+defFun : BASE_TYPE ID '('{currScope = $ID;} paramListVoid ')' '{' declList localStmtList '}' {
   SymEntry* tmp;
   HASH_FIND_STR(reshi, $ID, tmp);
   tmp->tag = HFUN;
   tmp->type = $BASE_TYPE;
-  currScope = $ID;
-} declList localStmtList '}' {
   MAKE_NODE(defFun);
   No* _BASE_TYPE = Token_New(STR(BASE_TYPE), type2string($BASE_TYPE));
   No* _ID = Token_New(STR(ID), $ID);
