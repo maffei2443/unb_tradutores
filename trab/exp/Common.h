@@ -10,7 +10,6 @@ typedef struct {
   int lines, isChar, notChar;
   int lineInit, colInit;
 } CommBlock;
-
 CommBlock comm_block;
 
 typedef struct  {
@@ -31,9 +30,6 @@ typedef struct {
   int line, col;
 } Local;
 
-typedef enum {
-  HINT, HFLOAT, HID, HCHR, HRES_WORD, HFUN
-} _HASH_TYPES;
 
 typedef struct SymEntry{
   char id[257];

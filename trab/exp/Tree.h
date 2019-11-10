@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #define ptfi(str, val) printf(str " %d\n",  (val))
 #define DESTROY_PTR(ptr) {free(ptr);ptr = NULL;}
+
+
+
 typedef enum {
   IVAL  = 0,
   SVAL,
@@ -12,12 +15,19 @@ typedef enum {
 } Field;
 
 typedef enum {
+  TYPE_VOID = 0, 
   TYPE_INT = 1,
   TYPE_FLOAT = 2,
-  TYPE_CHAR = 4,
-  TYPE_ARRAY = 8,
-  TYPE_MAT = 16
+  TYPE_ARRAY_INT = 4,
+  TYPE_ARRAY_FLOAT = 8,
+  TYPE_MAT_INT = 16,
+  TYPE_MAT_FLOAT = 32
 }Type;
+
+typedef enum {
+  HINT, HFLOAT, HID, HFUN
+} _HASH_TYPES;
+
 
 typedef struct No {
   // struct No * p;   // ponteiro para pai

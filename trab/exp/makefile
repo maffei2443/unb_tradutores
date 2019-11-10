@@ -23,8 +23,8 @@ all: Tree.o lexico.l new_grammar.y Prints.o Prints.c Colorfy.o Array.o SymEntry.
 tree: Tree.o simTree.c
 	gcc $(FLAGS) -o $@ simTree.c Tree.o
 
-Tree.o: Tree.h Tree.c
-	gcc -c Tree.c
+Tree.o: Tree.h Tree.c Common.c Common.o
+	gcc -c Tree.c Common.o
 
 SymEntry.o: SymEntry.h SymEntry.c
 	gcc -c SymEntry.c

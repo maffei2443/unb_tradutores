@@ -130,13 +130,6 @@ void show_entry(SymEntry* s) {
     case HID:
       printf("< id ,%s >", s->id);            
       break;
-    case HCHR:
-      printf("< char, %s >", s->id);
-      printf("\tVal: %c\t", s->u.cval); 
-      break;
-    case HRES_WORD:
-      printf("< res-word, %s >", s->id);        
-      break;
     case HFUN:
       printf("<fun, %s, %s>", s->id, type2string(s->type));
   }
@@ -262,6 +255,8 @@ declFun : AHEAD BASE_TYPE ID {
 
 
 typeAndNameSign : BASE_TYPE ID {
+  SymEntry* neoEntry = add_entry(&reshi, $ID, $BASE_TYPE);
+
   printf("[typeAndNameSign] BASE_TYPE ID \n");
   MAKE_NODE(typeAndNameSign);
   $$->ival = 0;
@@ -273,6 +268,8 @@ typeAndNameSign : BASE_TYPE ID {
   free($ID); $ID = NULL;
 }
 | BASE_TYPE ID '[' V_INT ']' {
+  SymEntry* neoEntry = add_entry(&reshi, $ID, $BASE_TYPE);
+
   MAKE_NODE(typeAndNameSign);
   $$->ival = 1;
   add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
@@ -319,6 +316,9 @@ paramList : paramList ',' param {
 | param
 
 param : BASE_TYPE ID {
+  SymEntry* neoEntry = add_entry(&reshi, $ID, HID);
+  neoEntry->type = $BASE_TYPE;
+
   MAKE_NODE(param);
   $$->ival = 0;  
   add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
