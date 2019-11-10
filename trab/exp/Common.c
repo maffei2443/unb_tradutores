@@ -1,7 +1,8 @@
 #include "Common.h"
 
 SymEntry* SymEntry_New(char* id, int tag, char* escopo){
-  SymEntry* neo = (SymEntry*)calloc(1, sizeof(SymEntry));
+  SymEntry* neo = (SymEntry*)calloc( sizeof(SymEntry), 1);
+  
   memcpy(neo->id, id, strlen(id)+1); neo->id[strlen(id)+1] = '\0';
   neo->tag = tag;
   size_t t = strlen(escopo);

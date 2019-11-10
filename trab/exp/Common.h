@@ -35,7 +35,7 @@ typedef enum {
   HINT, HFLOAT, HID, HCHR, HRES_WORD, HFUN
 } _HASH_TYPES;
 
-typedef struct {
+typedef struct SymEntry{
   char id[257];
   _HASH_TYPES tag;
   Local local;
@@ -46,11 +46,12 @@ typedef struct {
     char cval;
     float fval;
     struct {
-      struct No* next;  // next eh usado para PARAMETROS DE FUNCOES
+      struct No* next;
       struct SymEntry* upperSym;
       struct SymEntry** nestedSym;
     } func;
   } u;
+  struct SymEntry* next; // encadeamento para caso de conflito
   UT_hash_handle hh;
 } SymEntry;
 

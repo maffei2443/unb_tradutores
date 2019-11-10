@@ -91,7 +91,7 @@ void add_Node_Child_If_Not_Null(No* no, No * newNo) {
     printf("Nao foi possivel adicionar um filho.\n");
     return;
   }
-  else if (!newNo) {printf("Nao adiciona noh nulo como next!");return;}
+  else if (!newNo) {printf("Nao adiciona noh nulo como next!\n");return;}
   if( (no)->childLast != NULL ) {
     (no)->childLast->n = newNo;
     (no)->childLast = newNo;

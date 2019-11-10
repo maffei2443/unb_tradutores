@@ -63,20 +63,39 @@ void delGambs() {
 
 SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
     SymEntry* newEntry = NULL;
+    printf("id: %s, scope: %s\n", id, currScope);
     HASH_FIND_STR((*reshi), id, newEntry);  /* id already in the hash? */
     if (newEntry == NULL) {
-      // printf("ADDING %s do RESHI\n", id);
       newEntry = SymEntry_New(id, tag, currScope);
       newEntry->local.line = numlines;
       newEntry->local.col = currCol;
       HASH_ADD_STR( (*reshi), id, newEntry );  /* id: name of key field */
       addToDel(&newEntry);
-      // printf(">>>>> Inseriu %s\n", newEntry->id);
     }
-    else {
-      printf("COULD NOT ADD %s to HASH\n", id);
+    else {    // Checar se eh declaracao no msm escopo. Se for, nao adiciona e dah pau (retorna NULL);
+      printf("Possivel conflito com %s\n", id);
+      while(newEntry && strcmp(id, newEntry->id) == 0 ) {
+        if(!strcmp(currScope, newEntry->escopo)){
+          printf("Erro: redeclaracao de %s:%s em l.%d, r.%d\n",
+            currScope, id, newEntry->local.line, newEntry->local.col);
+          return NULL;
+        }
+        newEntry = newEntry->next;
+      }
+      if(newEntry);
     }
     return newEntry;
+}
+
+int was_declared(SymEntry** reshi, char* id){
+  SymEntry* oldEntry = NULL;
+  HASH_FIND_STR((*reshi), id, oldEntry);
+  if(!oldEntry) {
+    return 0;
+  }
+  else {
+    // Checar questao de ESCOPO!
+  }
 }
 
 void print_reshi(void) {
@@ -220,14 +239,6 @@ typeAndNameSign : BASE_TYPE ID {
   printf(" ------ %s\n", $ID);
   
   add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
-  add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
-  free($ID); $ID = NULL;
-}
-| '+' ID {
-  printf("[TODELETE]  ID \n");
-  MAKE_NODE(typeAndNameSign);
-  $$->ival = 0;
-  printf(" ------ %s\n", $ID);
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
   free($ID); $ID = NULL;
 }
