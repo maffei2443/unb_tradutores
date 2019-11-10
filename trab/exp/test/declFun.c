@@ -1,1 +1,1 @@
-float foo(int g, float vector[], mat int d);
+ahead float foo(int g,	float vector[], mat int d);

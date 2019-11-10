@@ -77,7 +77,7 @@ achar '([a-zA-Z0-9_]?)'
     else
       yylval.cval = '\n';
     currCol += yyleng;
-    showCharVal();
+    // showCharVal();
     lastTag = HCHR;
     return V_ASCII;
     ;
@@ -91,7 +91,7 @@ achar '([a-zA-Z0-9_]?)'
         BEGIN (BL_COMMENT);
   }
 <BL_COMMENT>"*/"    {
-    showBlockComment();
+    // showBlockComment();
     currCol += 2;
     Array_Delete(&currString);
     BEGIN (INITIAL);  
@@ -135,7 +135,7 @@ achar '([a-zA-Z0-9_]?)'
 }
 <LN_COMMENT>{EOL}    {
     ++numlines;
-    showLineComment();
+    // showLineComment();
     currCol = 1;
     Array_Delete(&currString);
     BEGIN (INITIAL);
@@ -182,18 +182,18 @@ achar '([a-zA-Z0-9_]?)'
   currCol += yyleng;
 }
 <STRING>\" {
-  showString();
+  // showString();
   currCol += yyleng;
   BEGIN(INITIAL);
 }
 <STRING>\n {
-  showMissingString();
+  // showMissingString();
   ++numlines, currCol = 1;
   BEGIN(INITIAL);
 }
 <STRING><<EOF>> {
   ++ERRORS_IN_SRC;
-  showMissingString();
+  // showMissingString();
   currCol += yyleng;
   BEGIN(INITIAL);
 }
@@ -202,33 +202,40 @@ achar '([a-zA-Z0-9_]?)'
   Array_Insert(&currString, yytext);
 }
 
-{matType} { showMatParam();
-    currCol += yyleng;
-    return MAT_TYPE;
+{matType} {
+  // showMatParam();
+  currCol += yyleng;
+  return MAT_TYPE;
     ;
 }
 
-{par} { showPar(), currCol += yyleng;
+{par} {
+  // showPar();
+  currCol += yyleng;
   return yytext[0];
   ;
 }
 
-{curly} { showCurly();
+{curly} { 
+  // showCurly();
   currCol += yyleng;
   return yytext[0];
   ;
 }
-{bracket} { showBracket();  
+{bracket} {
+  // showBracket();  
   currCol += yyleng;
   return yytext[0];
   ;
 }
-;     { showStmtEnd();
+;     {
+  // showStmtEnd();
   currCol += yyleng;
   return ';';  
   ;
 }
-[,.] { showDotOrComma();
+[,.] { 
+  // showDotOrComma();
   currCol += yyleng;
   return yytext[0];
   ;
@@ -242,52 +249,52 @@ achar '([a-zA-Z0-9_]?)'
   char yy1 = yytext[1];
   switch(yy0) {
     case 'a':
-      showAhead();
-      showBaseType(); currCol += yyleng;
+      // showAhead();
+      currCol += yyleng;
       return AHEAD;
       break;
     case 'i':
       if (yy1 == 'n') {// int 
         yylval._id = "int";
-        showBaseType();
+        // showBaseType();
       }
       else                  // if
-        showFlowControl();
+        // showFlowControl();
       currCol += yyleng;
       return yy1 == 'n' ? BASE_TYPE : IF;
       break;
     case 'c':
-      showBaseType(); currCol += yyleng;
+      // showBaseType(); currCol += yyleng;
       yylval._id = "char";
       return BASE_TYPE;
       break;
     case 'f':
-      showBaseType(); currCol += yyleng;
+      // showBaseType(); currCol += yyleng;
       yylval._id = "float";
       return BASE_TYPE;
       break;
     case 'e':
-      showFlowControl(); currCol += yyleng;
+      // showFlowControl(); currCol += yyleng;
       return ELSE;
       break;
     case 'r':
-      showFlowControl(); currCol += yyleng;
+      // showFlowControl(); currCol += yyleng;
       return RETURN;
       break;
     case 'w':
-      showFlowControl(); currCol += yyleng;
+      // showFlowControl(); currCol += yyleng;
       return WHILE;
       break;
     case 'm':
-      showMat(); currCol += yyleng;
+      // showMat(); currCol += yyleng;
       return MAT_TYPE;
       break;
     case 'C':
-      showCopy(); currCol += yyleng;
+      // showCopy(); currCol += yyleng;
       return COPY;
       break;
     case 'P':
-      showPrint(); currCol += yyleng;
+      // showPrint(); currCol += yyleng;
       return PRINT;
       break;
     case 'I':
@@ -307,14 +314,15 @@ achar '([a-zA-Z0-9_]?)'
 {ID} {          
     lastTag = HID;  // significa "sintatico deve decidir"
     SymEntry* tmp = add_entry(&reshi, yytext, lastTag);
-    showID();
+    // showID();
     yylval._id = malloc(yyleng + 1);
     memcpy(yylval._id, yytext, yyleng+1);
     currCol += yyleng;
     return ID;
     ;
 }
-{relOp} {  showRelOp();
+{relOp} {
+  // showRelOp();
   currCol += yyleng;
   char yy0 = yytext[0], yy1 = yytext[1];
   if(yyleng < 2) {  // '<' ou '>'
@@ -332,7 +340,8 @@ achar '([a-zA-Z0-9_]?)'
       ;
     }
 }
-{binMathOp} { showBinMathOp();  
+{binMathOp} {
+  // showBinMathOp();  
   currCol += yyleng;
   if(yyleng == 2) {
     return MAT_POW;
@@ -344,7 +353,8 @@ achar '([a-zA-Z0-9_]?)'
   }
 }
 
-{binLogiOp} { showBinLogiOp();  
+{binLogiOp} {
+  // showBinLogiOp();  
   currCol += yyleng;
   if(yyleng == 2) {
     switch(yytext[0]) {
@@ -356,7 +366,8 @@ achar '([a-zA-Z0-9_]?)'
   }
 }
 
-{FLOAT}    { showFloatVal();
+{FLOAT}    {
+  // showFloatVal();
   lastTag = HFLOAT;
   // SymEntry* t = add_entry( yytext);
   currCol += yyleng;
@@ -365,7 +376,8 @@ achar '([a-zA-Z0-9_]?)'
   return V_FLOAT;
   ;
 }
-{INT}      { showIntVal();
+{INT}      {
+  showIntVal();
   lastTag = HINT;
   // SymEntry* t = add_entry(&reshi, yytext, lastTag);
   currCol += yyleng;
@@ -374,7 +386,8 @@ achar '([a-zA-Z0-9_]?)'
   return V_INT;
   ;
 }
-{unaryOp} { printf("UNARIO: %s\n", yytext);
+{unaryOp} {
+  printf("UNARIO: %s\n", yytext);
   currCol += yyleng;
   return yytext[0];
   ;
@@ -385,14 +398,15 @@ achar '([a-zA-Z0-9_]?)'
   currCol += yyleng;
 }
 \t+ currCol += yyleng;
-= { showAttrOp();
+= {
+  showAttrOp();
   currCol++;
   return '=';
   ;
 }
 . {
   ++ERRORS_IN_SRC;
-  showErrorCharMessage();
+  // showErrorCharMessage();
   currCol++;
   return ERRU;
   ;

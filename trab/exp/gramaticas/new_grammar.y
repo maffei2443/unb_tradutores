@@ -1,5 +1,6 @@
 %code requires {
   #include "Tree.h"
+  #include "Common.h"
   No* root;
   struct {
     int ival;
@@ -10,15 +11,15 @@
 }
 
 %{
-#define STR(x) #x 
 
+#define STR(x) #x 
 #define INITNODE(x) \
   yyval.no = No_New(nodeCounter++); \
   if(!yyval.no) abort(); \
   yyval.no->tname =  x  ;
 #define MAKE_NODE(x) INITNODE(STR(x))
-
-
+#define  GLOBAL_SCOPE "0global"
+#include "Common.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,8 +29,91 @@ extern int numlines;
 extern int yyleng;
 extern int yylex();
 void yyerror (char const *s);
-extern void print_reshi();
+void print_reshi();
+extern void yylex_destroy();
+extern SymEntry* SymEntry_New(char*, int, char*);
 unsigned nodeCounter;
+
+static int gambs_tam = 0;
+static int gambs_qtd = 0;
+SymEntry* reshi;
+SymEntry** gambs;
+char* currScope = NULL;
+void addToDel(SymEntry** p) {
+  if(gambs_qtd  >= gambs_tam) {
+    gambs_tam = 2 * (gambs_tam + 1);    
+    gambs = (SymEntry**)realloc(gambs, gambs_tam*sizeof(SymEntry*));
+  }
+  gambs[gambs_qtd] = *p;
+  // printf("AddToDel: %p\n", gambs[gambs_qtd]);
+  // printf("\tcom id: %s\n", gambs[gambs_qtd]->id);
+  gambs_qtd++;
+}
+
+void delGambs() {
+  printf("QTD : %d\n", gambs_qtd);
+  for(int i = 0; i < gambs_qtd; i++){
+    printf("id: %s\n", (gambs[i])->id);
+    SymEntry_Destroy(gambs[i]);
+    gambs[i] = NULL;
+  }
+  free(gambs);
+}
+
+
+int lastTag;   // gambs para setar corretamente se eh int,float, etc [?]
+SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
+    SymEntry* newEntry = NULL;
+    HASH_FIND_STR((*reshi), id, newEntry);  /* id already in the hash? */
+    if (newEntry == NULL) {
+      // printf("ADDING %s do RESHI\n", id);
+      newEntry = SymEntry_New(id, tag, currScope);
+      newEntry->local.line = numlines;
+      newEntry->local.col = currCol;
+      HASH_ADD_STR( (*reshi), id, newEntry );  /* id: name of key field */
+      addToDel(&newEntry);
+      // printf(">>>>> Inseriu %s\n", newEntry->id);
+    }
+    else {
+      printf("COULD NOT ADD %s to HASH\n", id);
+    }
+    return newEntry;
+}
+
+void print_reshi(void) {
+    SymEntry *s;
+    printf(">>>>>> TABELA DE SIMBOLOS <<<<<<<\n");
+    for(s=reshi; s != NULL;) {
+      printf("%10s: ", s->escopo);        
+      switch(s->tag) {
+        case HFLOAT:
+          printf("< float, %s >", s->id);
+          printf("\tVal: %f", s->u.fval);
+          break;
+        case HINT:
+          printf("< int, %s >", s->id);
+          printf("\tVal: %d", s->u.ival);
+          break;
+        case HID:
+          printf("< id ,%s >", s->id);            
+          break;
+        case HCHR:
+          printf("< char, %s >", s->id);
+          printf("\tVal: %c\t", s->u.cval); 
+          break;
+        case HRES_WORD:
+          printf("< res-word, %s >", s->id);        
+          break;
+      }
+      printf("\t(%p)l. %d, c. %d\n", s,s->local.line, s->local.col);
+      void* toFree = (void*)s;
+      s=s->hh.next;
+      SymEntry_Destroy(toFree);
+    }
+  printf("---------------------------\n");
+}
+
+
 %}
 %define parse.error verbose
 %define parse.lac none
@@ -57,7 +141,7 @@ unsigned nodeCounter;
   No* no;
 }
 
-%token BASE_TYPE WHILE V_INT V_FLOAT V_ASCII
+%token BASE_TYPE WHILE V_INT V_FLOAT V_ASCII AHEAD
 %token MAT_TYPE IF ID ICAST FCAST ELSE
 
 
@@ -79,55 +163,59 @@ unsigned nodeCounter;
 %%
 
 program: globalStmtList {
-  MAKE_NODE(program);
-  add_Node_Child($program, $globalStmtList);
-  root = $program;
+  $$ = $1;
+  // MAKE_NODE(program);
+  // add_Node_Child($program, $globalStmtList);
+  root = $$;
   printf("Derivacao foi concluida.\n");
 }
 
 
-globalStmtList : {
-  MAKE_NODE(globalStmtList);
+globalStmtList : %empty {
+  $$ = NULL;
 }
 | globalStmtList globalStmt {
-  MAKE_NODE(globalStmtList);
-  add_Node_Child($$, $1);
-  add_Node_Child($$, $globalStmt);
+  if($1){
+    MAKE_NODE(globalStmtList);
+    add_Node_Child($$, $1);
+  }
+  else {
+    $$ = $globalStmt;
+  }
 }
 
-globalStmt : defFun {
-  MAKE_NODE(globalStmt);
-  add_Node_Child($$, $defFun);
-}
-| declFun ';' {
-  MAKE_NODE(globalStmt);
-  add_Node_Child($$, $declFun);
-}
-| declOrdeclInitVar {
-  MAKE_NODE(globalStmt);
-  add_Node_Child($$, $declOrdeclInitVar);
-}
+globalStmt : defFun 
+| declFun ';' 
+| declOrdeclInitVar
 
-declFun : BASE_TYPE ID '(' paramListVoid ')' {
+declFun : AHEAD BASE_TYPE ID {currScope = $ID;} '(' paramListVoid ')' {
   MAKE_NODE(declFun);
-  No* _BASE_TYPE = Token_New("BASE_TYPE", $BASE_TYPE);
-  No* _ID = Token_New(STR(ID), $ID);
-  add_Node_Child($$, _BASE_TYPE);
-  add_Node_Child($$, _ID);
+  // SymEntry
+  // add_entry(&reshi)
+  add_Node_Child($$, Token_New("BASE_TYPE", $BASE_TYPE));
+  add_Node_Child($$, Token_New(STR(ID), $ID));
+  
+  free($ID), $ID = NULL;
   add_Node_Child($$, $paramListVoid);
+  currScope = GLOBAL_SCOPE;
 }
 
 param : BASE_TYPE ID {
+  printf("param : BASE_TYPE ID\n");
   MAKE_NODE(param);
   $$->ival = 0;
   add_Node_Child($$, Token_New("BASE_TYPE", $BASE_TYPE));
   add_Node_Child($$, Token_New("ID",$ID));
+  printf("ID: %s\n", $ID);
+  free($ID), $ID = NULL;
 
 }
 | BASE_TYPE ID '[' ']' {
   MAKE_NODE(param);
   add_Node_Child($$, Token_New("BASE_TYPE", $BASE_TYPE));
   add_Node_Child($$, Token_New("ID", $ID));
+  printf("ID: %s\n", $ID);
+  free($ID), $ID = NULL;
 }
 | MAT_TYPE BASE_TYPE ID {
   MAKE_NODE(param);
@@ -135,6 +223,8 @@ param : BASE_TYPE ID {
   add_Node_Child($$, Token_New("MAT_TYPE", "mat"));
   add_Node_Child($$, Token_New("BASE_TYPE", $BASE_TYPE));
   add_Node_Child($$, Token_New("ID", $ID));
+  printf("ID: %s\n", $ID);
+  free($ID), $ID = NULL;
 
 }
 
@@ -142,17 +232,27 @@ typeAndNameSign : BASE_TYPE ID {
   printf("[typeAndNameSign] BASE_TYPE ID \n");
   MAKE_NODE(typeAndNameSign);
   $$->ival = 0;
-  // printf(" >>>>>> %s\n", $BASE_TYPE);
-  // printf(" ------ %s\n", $ID);
+  printf(" >>>>>> %s\n", $BASE_TYPE);
+  printf(" ------ %s\n", $ID);
   
   add_Node_Child($$, Token_New("BASE_TYPE", $BASE_TYPE));
   add_Node_Child($$, Token_New("ID", $ID));
+  free($ID); $ID = NULL;
+}
+| '+' ID {
+  printf("[TODELETE]  ID \n");
+  MAKE_NODE(typeAndNameSign);
+  $$->ival = 0;
+  printf(" ------ %s\n", $ID);
+  add_Node_Child($$, Token_New("ID", $ID));
+  free($ID); $ID = NULL;
 }
 | BASE_TYPE ID '[' V_INT ']' {
   MAKE_NODE(typeAndNameSign);
   $$->ival = 1;
   add_Node_Child($$, Token_New("BASE_TYPE", $BASE_TYPE));
   add_Node_Child($$, Token_New("ID", $ID));
+  free($ID); $ID = NULL;
   $$->childLast->ival = $V_INT;
 
 }
@@ -166,41 +266,41 @@ typeAndNameSign : BASE_TYPE ID {
   $$->childLast->ival = $8;
 }
 
-declOrdeclInitVar : typeAndNameSign ';' {
-  MAKE_NODE(declOrdeclInitVar);
-  add_Node_Child($$, $typeAndNameSign);
-}
+declOrdeclInitVar : typeAndNameSign ';'
 | typeAndNameSign '=' rvalue ';' {
   MAKE_NODE(declOrdeclInitVar);
   add_Node_Child($$, $typeAndNameSign);
   add_Node_Child($$, $rvalue);
 }
 
-paramListVoid : paramList {
-  MAKE_NODE(paramListVoid);
-  add_Node_Child($$, $paramList);
-}
-| {
+paramListVoid : paramList {$$ = $1;}
+| %empty {
   MAKE_NODE(paramListVoid);
 }
 
 paramList : paramList ',' param {
-  MAKE_NODE(paramList);
-  add_Node_Child($$, $1);
-  add_Node_Child($$, $param);
+  if(!strcmp("param", $1->tname)) { // $1 eh parametro
+    $$ = $1;
+    add_Node_Next($$, $param);
+  }
+  else {
+    MAKE_NODE(paramList);
+    add_Node_Next($$, $1);
+    add_Node_Next($$, $param);
+  }
+  // add_Node_Child($$, $1);
+  
 }
-| param {
-  MAKE_NODE(paramList);
-  add_Node_Child($$, $param);
-}
+| param
 
 localStmtList : localStmtList localStmt {
   MAKE_NODE(localStmtList);
   add_Node_Child($$, $1);
   add_Node_Child($$, $localStmt);
 }
-|  {
-  MAKE_NODE(localStmtList);
+| %empty {
+  $$ = NULL;
+  // MAKE_NODE(localStmtList);
 }
 
 localStmt : call ';' {
@@ -291,15 +391,22 @@ loop : WHILE '(' expr ')' block {
 }
 
 
-defFun : BASE_TYPE ID '(' paramListVoid ')' '{' declList localStmtList '}' {
+defFun : BASE_TYPE ID '(' paramListVoid ')' '{' {
+  SymEntry* tmp;
+  HASH_FIND_STR(reshi, $ID, tmp);
+  tmp->tag = HFUN;
+  currScope = $ID;
+} declList localStmtList '}' {
   MAKE_NODE(defFun);
   No* _BASE_TYPE = Token_New(STR(BASE_TYPE), $BASE_TYPE);
   No* _ID = Token_New(STR(ID), $ID);
+  free($ID); $ID = NULL;
   add_Node_Child($$, _BASE_TYPE);
   add_Node_Child($$, _ID);
   add_Node_Child($$, $paramListVoid);
   add_Node_Child($$, $declList);
   add_Node_Child($$, $localStmtList);
+  currScope = GLOBAL_SCOPE;
 }
 
 numListList :  numListList '{' numList '}' {
@@ -307,8 +414,9 @@ numListList :  numListList '{' numList '}' {
   add_Node_Child($$, $1);
   add_Node_Child($$, $numList);
 }
-| {
-  MAKE_NODE(numListList);
+| %empty {
+  $$ = NULL;
+  // MAKE_NODE(numListList);
 }
 
 numList : numList ',' num {
@@ -332,7 +440,7 @@ declList : declList declOrdeclInitVar {
   add_Node_Child($$, $1);
   add_Node_Child($$, $declOrdeclInitVar);
 }
-| {
+| %empty {
   MAKE_NODE(declList);
 }
 
@@ -508,6 +616,7 @@ num: V_INT {
 lvalue: ID {
   MAKE_NODE(lvalue);
   add_Node_Child($$, Token_New("ID", $ID));
+  free($ID), $ID = NULL;
 }
 | ID '[' expr ']' {
   MAKE_NODE(lvalue);
@@ -535,19 +644,29 @@ rvalue : expr {
 }
 
 %%
+
 void yyerror (char const *s) {
   fprintf (stderr, "%s | l. %d, c. %d\n", s, numlines, currCol - yyleng);
   fprintf (stderr, "%s | l. %d, c. %d\n", s, yylloc.first_line, yylloc.first_column);
 }
 
+void nullify(void** p) {
+  *p = NULL;
+}
+
 int main(){
-  root = NULL;
+  currScope = GLOBAL_SCOPE;
+  reshi = NULL;
   nodeCounter = 0;
   yyparse();
-  print_reshi();
   if(root) {
     show_Sub_Tree(root, 1, SVAL);
     show_Lis(root,SVAL);
   }
-
+  print_reshi();
+  yylex_destroy();
+  // delGambs();
+  free(gambs); gambs = NULL;
+  free_All_Child(root);
+  free_Lis(root);
 }

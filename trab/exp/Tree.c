@@ -37,8 +37,10 @@ No* Token_New(char* tname, char* sval) {
   token->sval_alloc = 1;  token->sval = calloc(strlen(sval) + 1, sizeof(char));
   if(!token->tname) abort();
   if(!token->sval ) abort();
-  // memcpy(token->tname, tname, strlen(tname));
-  // memcpy(token->sval, sval, strlen(sval));
+  memcpy(token->tname, tname, strlen(tname));
+  memcpy(token->sval, sval, strlen(sval));
+  // printf("[Token_New(char* tname, char* sval)] sval = %s\n", sval);
+  // printf("[Token_New(char* tname, char* sval)] token->sval = %s\n\n", token->sval);
   return token;
 }
 
@@ -107,7 +109,7 @@ void add_Node_Next(No* no, No* next) {
   else {      // Senao, pode acessar tmp->n sem crashar
     No* tmp = no; 
     while( tmp->n != NULL) {
-      printf("%p %p\n", tmp, tmp->n);
+      // printf("%p %p\n", tmp, tmp->n);
       tmp = tmp->n;
     }
     tmp->n = next; // printf("'tmp->n == %d\n", tmp->ival);
@@ -150,7 +152,7 @@ void show_Lis(No* head, Field field) {
     // for(int a = 0; a < i; a++) printf(" ");
     i++;
     if(head->isToken) {
-      printf("tok: %s ", head->sval);
+      printf("%s ", head->sval);
       // if(!head->tname) // "token" pode ser melhor especificado por sval
       //   printf("<token, %s> ", head->sval);
       // else 

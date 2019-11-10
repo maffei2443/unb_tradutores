@@ -2,14 +2,14 @@
 
 SymEntry* SymEntry_New(char* id, int tag, char* escopo){
   SymEntry* neo = (SymEntry*)calloc(1, sizeof(SymEntry));
-  memcpy(neo->id, id, strlen(id)); neo->id[strlen(id)] = '\0';
+  memcpy(neo->id, id, strlen(id)+1); neo->id[strlen(id)+1] = '\0';
   neo->tag = tag;
   size_t t = strlen(escopo);
   neo->escopo = malloc( t );
   memcpy(neo->escopo, escopo, t);
   neo->escopo[t] = '\0';
   neo->u.ival = 0; neo->u.func.next = 0;
-  neo->local.line = neo->local.col = neo->local.scope = -1;
+  neo->local.line = neo->local.col = -1;
 }
 // Destroi entrada da TS e todas suas TS aninhadas 
 // (valido apenas p/ declaracao de funcao)

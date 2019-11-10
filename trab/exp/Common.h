@@ -28,7 +28,6 @@ typedef struct {
 
 typedef struct {
   int line, col;
-  int scope;
 } Local;
 
 typedef enum {
@@ -47,7 +46,7 @@ typedef struct {
     struct {
       struct No* next;  // next eh usado para PARAMETROS DE FUNCOES
       struct SymEntry* upperSym;
-      struct SymEntry* nestedSym;
+      struct SymEntry** nestedSym;
     } func;
   } u;
   UT_hash_handle hh;
