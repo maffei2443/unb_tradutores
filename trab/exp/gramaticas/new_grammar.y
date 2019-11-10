@@ -73,15 +73,24 @@ SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
     }
     else {    // Checar se eh declaracao no msm escopo. Se for, nao adiciona e dah pau (retorna NULL);
       printf("Possivel conflito com %s:%s\n", id, newEntry->escopo);
-      while(newEntry && strcmp(id, newEntry->id) == 0 ) {
-        if(!strcmp(currScope, newEntry->escopo)){
+      for(; newEntry->next; newEntry = newEntry->next) {
+        continue;  // apenas para testar se encadeamento tah ok
+        if(strcmp(id, newEntry->id) == 0 && strcmp(currScope, newEntry->escopo)) {
           printf("Erro: redeclaracao de %s:%s em l.%d, r.%d\n",
             currScope, id, newEntry->local.line, newEntry->local.col);
           return NULL;
         }
-        newEntry = newEntry->next;
       }
-      if(newEntry);
+      if( /* 0 &&  */strcmp(id, newEntry->id) == 0 && !strcmp(currScope, newEntry->escopo) ) {          
+        printf("Erro: redeclaracao de %s:%s em l.%d, r.%d\n",
+          currScope, id, newEntry->local.line, newEntry->local.col);
+        return NULL;
+      }
+      else {
+        newEntry->next = SymEntry_New(id, tag, currScope);
+        newEntry->next->local.line = numlines;
+        newEntry->next->local.col = currCol;
+      }
     }
     return newEntry;
 }
@@ -97,37 +106,45 @@ int was_declared(SymEntry** reshi, char* id){
   }
 }
 
+void show_entry(SymEntry* s) {
+  printf("%10s: ", s->escopo);        
+  switch(s->tag) {
+    case HFLOAT:
+      printf("< float, %s >", s->id);
+      printf("\tVal: %f", s->u.fval);
+      break;
+    case HINT:
+      printf("< int, %s >", s->id);
+      printf("\tVal: %d", s->u.ival);
+      break;
+    case HID:
+      printf("< id ,%s >", s->id);            
+      break;
+    case HCHR:
+      printf("< char, %s >", s->id);
+      printf("\tVal: %c\t", s->u.cval); 
+      break;
+    case HRES_WORD:
+      printf("< res-word, %s >", s->id);        
+      break;
+    case HFUN:
+      printf("<fun, %s, %s>", s->id, type2string(s->type));
+  }
+  printf("\t(%p)l. %d, c. %d\n", s,s->local.line, s->local.col);
+
+}
+
 void print_reshi(void) {
     SymEntry *s;
+    SymEntry *nexti;
     printf(">>>>>> TABELA DE SIMBOLOS <<<<<<<\n");
-    for(s=reshi; s != NULL;) {
-      printf("%10s: ", s->escopo);        
-      switch(s->tag) {
-        case HFLOAT:
-          printf("< float, %s >", s->id);
-          printf("\tVal: %f", s->u.fval);
-          break;
-        case HINT:
-          printf("< int, %s >", s->id);
-          printf("\tVal: %d", s->u.ival);
-          break;
-        case HID:
-          printf("< id ,%s >", s->id);            
-          break;
-        case HCHR:
-          printf("< char, %s >", s->id);
-          printf("\tVal: %c\t", s->u.cval); 
-          break;
-        case HRES_WORD:
-          printf("< res-word, %s >", s->id);        
-          break;
-        case HFUN:
-          printf("<fun, %s, %s>", s->id, type2string(s->type));
-      }
-      printf("\t(%p)l. %d, c. %d\n", s,s->local.line, s->local.col);
-      void* toFree = (void*)s;
-      s=s->hh.next;
-      SymEntry_Destroy(toFree);
+    for(s=reshi; s != NULL;s = nexti) {
+      nexti = s->hh.next;
+      show_entry(s);
+      while(s->next) {
+        show_entry(s->next);
+        s = s->next;
+      }      
     }
   printf("---------------------------\n");
 }

@@ -253,8 +253,9 @@ achar '([a-zA-Z0-9_]?)'
         yylval.type = R_INT;
         // showBaseType();
       }
-      else                  // if
+      else{ // if
         // showFlowControl();
+      } 
       currCol += yyleng;
       return yy1 == 'n' ? BASE_TYPE : IF;
       break;
