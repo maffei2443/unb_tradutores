@@ -32,6 +32,8 @@ void yyerror (char const *s);
 void print_reshi();
 extern void yylex_destroy();
 extern SymEntry* SymEntry_New(char*, int, char*);
+// 
+Type bin_expr_type(Type left, Type right, int op);
 unsigned nodeCounter;
 
 static int gambs_tam = 0;
@@ -150,7 +152,6 @@ void print_reshi(void) {
     }
   printf("---------------------------\n");
 }
-
 
 %}
 %define parse.error verbose
@@ -528,21 +529,28 @@ declList : declList declOrdeclInitVar {
 
 expr : expr '+' expr {
   MAKE_NODE(expr); 
-  $$->ival = '+'; 
-  add_Node_Child_If_Not_Null($$, $1); 
-  add_Node_Child_If_Not_Null($$, $3);  
+  $$->ival = '+';
+  
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, '+');
 }
 | expr '-' expr {
   MAKE_NODE(expr); 
   $$->ival = '-'; 
   add_Node_Child_If_Not_Null($$, $1); 
   add_Node_Child_If_Not_Null($$, $3);  
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, '-');
 }
 | expr '*' expr {
   MAKE_NODE(expr); 
   $$->ival = '*'; 
   add_Node_Child_If_Not_Null($$, $1); 
   add_Node_Child_If_Not_Null($$, $3);  
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, '*');
 
 }
 | expr '/' expr {
@@ -550,72 +558,96 @@ expr : expr '+' expr {
   $$->ival = '/'; 
   add_Node_Child_If_Not_Null($$, $1); 
   add_Node_Child_If_Not_Null($$, $3);  
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, '/');
 }
 | expr '%' expr {
   MAKE_NODE(expr); 
   $$->ival = '%'; 
   add_Node_Child_If_Not_Null($$, $1); 
   add_Node_Child_If_Not_Null($$, $3);    
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, '%');
 }
 | expr '@' expr {
   MAKE_NODE(expr); 
   $$->ival = '@'; 
   add_Node_Child_If_Not_Null($$, $1); 
   add_Node_Child_If_Not_Null($$, $3);    
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, '@');
 }
 | expr MAT_POW expr {
   MAKE_NODE(expr); 
   $$->ival = MAT_POW; 
   add_Node_Child_If_Not_Null($$, $1); 
   add_Node_Child_If_Not_Null($$, $3);    
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, MAT_POW);
 }
 | expr EQ expr {
   MAKE_NODE(expr); 
   $$->ival = EQ; 
   add_Node_Child_If_Not_Null($$, $1); 
   add_Node_Child_If_Not_Null($$, $3);  
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, EQ);
 }
 | expr NEQ expr {
   MAKE_NODE(expr); 
   $$->ival = NEQ; 
   add_Node_Child_If_Not_Null($$, $1); 
   add_Node_Child_If_Not_Null($$, $3);  
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, NEQ);
 }
 | expr GE expr {
   MAKE_NODE(expr); 
   $$->ival = GE; 
   add_Node_Child_If_Not_Null($$, $1); 
   add_Node_Child_If_Not_Null($$, $3);  
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, GE);
 }
 | expr LE expr {
   MAKE_NODE(expr); 
   $$->ival = LE; 
   add_Node_Child_If_Not_Null($$, $1); 
   add_Node_Child_If_Not_Null($$, $3);  
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, LE);
 }
 | expr '>' expr {
   MAKE_NODE(expr); 
   $$->ival = '>'; 
   add_Node_Child_If_Not_Null($$, $1); 
   add_Node_Child_If_Not_Null($$, $3);    
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, '>');
 }
 | expr '<' expr {
   MAKE_NODE(expr); 
   $$->ival = '<'; 
   add_Node_Child_If_Not_Null($$, $1); 
   add_Node_Child_If_Not_Null($$, $3);    
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, '<');
 }
 | expr AND expr {
   MAKE_NODE(expr); 
   $$->ival = AND; 
   add_Node_Child_If_Not_Null($$, $1); 
   add_Node_Child_If_Not_Null($$, $3);  
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, AND);
 }
 | expr OR expr {
   MAKE_NODE(expr); 
   $$->ival = OR; 
   add_Node_Child_If_Not_Null($$, $1); 
   add_Node_Child_If_Not_Null($$, $3);  
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, OR);
 }
 | '!' expr {
   MAKE_NODE(expr);
@@ -707,10 +739,14 @@ arg : lvalue {
 num: V_INT {
   MAKE_NODE(num);
   $$->ival = $V_INT;
+  // SEMANTICO
+  $$->type = TYPE_INT;
 }
 | V_FLOAT {
   MAKE_NODE(num);
   $$->fval = $V_FLOAT;
+  // SEMANTICO
+  $$->type = TYPE_FLOAT;
 }
 
 
@@ -747,6 +783,44 @@ rvalue : expr
 | '[' numListList ']' {$$ = $2;}
 
 %%
+// Retorna TYPE_UNDEFINED nos casos:
+// - left/right ser TYPE_UNDEFINED
+// - left/right ser TYPE_VOID
+// - left/right ser TYPE_ARRAY
+
+Type bin_expr_type(Type left, Type right, int op) {
+  Type leftClass = Type_Class(left);
+  Type rightClass = Type_Class(right);
+  if(left == TYPE_UNDEFINED || right == TYPE_UNDEFINED) return TYPE_UNDEFINED;  // erro de inicializacao...
+  else if(left == TYPE_VOID || right == TYPE_VOID ) return TYPE_VOID;  // tentando usar retorno de funcao VOID
+  else if(leftClass == TYPE_ARRAY || rightClass == TYPE_ARRAY) return TYPE_UNDEFINED; 
+  // NAO SE PODE OPERAR SOBRE ARRAYS.
+ 
+  switch (op)  {
+    case '+': case '-':
+      if(leftClass == rightClass) return leftClass;
+      else if()
+      /* code */
+    case '/':
+      /* code */
+    case MAT_POW:
+      if((left == TYPE_MAT_INT || left == TYPE_MAT_FLOAT)
+        && (right == TYPE_INT || right == TYPE_FLOAT)) {
+        return left == TYPE_MAT_INT ? TYPE_MAT_INT : TYPE_MAT_FLOAT;
+      }
+      else
+        return TYPE_UNDEFINED;
+
+    case EQ:  case NEQ:
+    case GE:  case LE:
+    case '<':  case '>':
+    case AND:  case OR:
+      return TYPE_INT;
+    default: 
+      return TYPE_UNDEFINED;
+  }
+}
+
 
 void yyerror (char const *s) {
   fprintf (stderr, "%s | l. %d, c. %d\n", s, numlines, currCol - yyleng);

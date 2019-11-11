@@ -6,6 +6,24 @@
 #include <assert.h>
 #define ptfi(str, val) printf(str " %d\n",  (val))
 
+Type Type_Class(Type type) {
+  switch (type)  {
+    case TYPE_VOID:
+      return  TYPE_VOID;
+    case TYPE_UNDEFINED:
+      return TYPE_UNDEFINED;
+    case TYPE_INT:
+    case TYPE_FLOAT:
+      return TYPE_SCALAR;      
+    case TYPE_MAT_INT:
+    case TYPE_MAT_FLOAT:
+      return TYPE_MAT;
+    default:
+      return TYPE_INVALID;
+  }
+}
+
+
 void show_Spaces(int qtd){
   char*  p = malloc(sizeof(char) * qtd+1);
   memset(p, ' ', qtd);
@@ -22,6 +40,7 @@ No* No_New(int v) {
   no->childLast = NULL;
   no->n = NULL;
   // no->p = NULL;
+  no->type = TYPE_UNDEFINED;
   no->sval = NULL;  no->sval_alloc = 0;
   no->tname = NULL; no->tname_alloc = 0;
   no->symEntry = NULL;

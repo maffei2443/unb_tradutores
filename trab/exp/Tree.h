@@ -8,6 +8,19 @@
 
 #define ptfi(str, val) printf(str " %d\n",  (val))
 #define DESTROY_PTR(ptr) {free(ptr);ptr = NULL;}
+#define max(a,b)             \
+({                           \
+    __typeof__ (a) _a = (a); \
+    __typeof__ (b) _b = (b); \
+    _a > _b ? _a : _b;       \
+})
+
+#define min(a,b)             \
+({                           \
+    __typeof__ (a) _a = (a); \
+    __typeof__ (b) _b = (b); \
+    _a < _b ? _a : _b;       \
+})
 
 typedef struct {
   int lines, isChar, notChar;
@@ -40,14 +53,18 @@ typedef enum {
 } Field;
 
 typedef enum {
+  TYPE_INVALID = -1,
   TYPE_VOID = -1,
   TYPE_UNDEFINED = 0, 
   TYPE_INT = 1,
   TYPE_FLOAT = 2,
+  TYPE_SCALAR = 3,
   TYPE_ARRAY_INT = 4,
   TYPE_ARRAY_FLOAT = 8,
+  TYPE_ARRAY = 9,
   TYPE_MAT_INT = 16,
-  TYPE_MAT_FLOAT = 32
+  TYPE_MAT_FLOAT = 32,
+  TYPE_MAT = 33
 }Type;
 
 typedef enum {
@@ -81,8 +98,15 @@ typedef struct No {
   struct No * n;
   struct No * nextAux;
   SymEntry* symEntry;
-  char* sval; char sval_alloc;
-  char* tname; char tname_alloc;
+  // 
+  char* sval;
+  
+  //  Indica tipo do no (ex: expr, param, loop...)
+  char* tname;        
+  
+  char sval_alloc;
+  char tname_alloc;
+  Type type;
   // char* scope; char scope_alloc;
   char isToken;    // nesse modo, usa-se mesmo noh para token e regra
   char hasAux;
@@ -90,7 +114,7 @@ typedef struct No {
   float fval;
 } No;
 
-
+Type Type_Class(Type type);
 
 
 // Ok.

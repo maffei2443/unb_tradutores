@@ -1,5 +1,5 @@
 - [] Verificação de tipos
-- [] Verificação de escopo
+- [x] Verificação de escopo
   - [x] usar variavel soh se foi declarada
   - [x] erro ao declarar 2+ vezes variavel de mesmo nome sob mesmo escopo
   - [x] mesmo nome de variavel permitido quando:

@@ -42,22 +42,3 @@ char* type2string(Type t) {
     case TYPE_MAT_FLOAT: return "mat(float)";
   }
 }
-
-// SymEntry* add_entry(/* SymEntry* reshi,  */char* id) {
-//     SymEntry* newEntry;
-//     HASH_FIND_STR(reshi, id, newEntry);  /* id already in the hash? */
-//     if (newEntry == NULL) {
-//       printf("ADDING %s do RESHI\n", id);
-//       newEntry = (SymEntry *)malloc(sizeof(SymEntry));
-//       strcpy(newEntry->id, id);
-//       newEntry->local.line = numlines;
-//       newEntry->local.col = currCol;
-//       newEntry->tag = CurrTokenTag;
-//       HASH_ADD_STR( reshi, id, newEntry );  /* id: name of key field */
-//       // printf(">>>>> Inseriu %s\n", newEntry->id);
-//     }
-//     else {
-//       printf("COULD NOT ADD %s to HASH\n", id);
-//     }
-//     return newEntry;
-// }
