@@ -95,7 +95,6 @@ SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
     return newEntry;
 }
 
-// funcao booleana.
 // Retorna NULL caso nao o tenha sido; senao,
 // retorna ponteiro para declracao mais prohxima.
 SymEntry* was_declared(SymEntry** reshi, char* id){
@@ -103,13 +102,13 @@ SymEntry* was_declared(SymEntry** reshi, char* id){
   SymEntry* last_same_id = oldEntry;
   HASH_FIND_STR((*reshi), id, oldEntry);
   while( oldEntry ) {
-    if( strcmp(oldEntry->id, id) != 0 ) {
+    if( strcmp(oldEntry->id, id) != 0 ) {   // Se nao eh mesmo nomve, passa pro proximo.
       oldEntry = oldEntry->next;
     }
     else if(strcmp(oldEntry->escopo, currScope) == 0){  // declaracao sob mesmo escopo
       return oldEntry;
     }
-    else if(strcmp(oldEntry->escopo, GLOBAL_SCOPE) == 0){
+    else if(strcmp(oldEntry->escopo, GLOBAL_SCOPE) == 0){  // mesmo nome e escopo global
       last_same_id = oldEntry;
     }
   }
@@ -325,6 +324,15 @@ param : BASE_TYPE ID {
   // $$->ival = 0;  
   // add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
   // add_Node_Child_If_Not_Null($$, Token_New("ID",$ID));
+  if(was_declared(&reshi, $ID))
+    printf("%s foi declarado\n", $ID);
+  else
+    printf("%s NAO FOI declarado\n", $ID);
+  if(was_declared(&reshi, "m"))
+    printf("%s foi declarado\n", "m");
+  else
+    printf("%s NAO FOI declarado\n", "m");
+  
   free($ID), $ID = NULL;
 
 }
