@@ -23,7 +23,9 @@ No* No_New(int v) {
   no->n = NULL;
   // no->p = NULL;
   no->sval = NULL;  no->sval_alloc = 0;
-  no->tname = NULL; no->tname_alloc = 0; 
+  no->tname = NULL; no->tname_alloc = 0;
+  no->symEntry = NULL;
+  no->nextAux = NULL;
   // no->scope = NULL; no->scope_alloc = 0; 
   no->isToken = 0;
   no->hasAux = 0;
@@ -60,6 +62,7 @@ void No_Destroy(No* no) {
     DESTROY_PTR(no->sval);
   if(no->tname == NULL && no->tname_alloc)
     DESTROY_PTR(no->tname);
+  no->symEntry = NULL;  // NAO MEXR NA TABELA DE SIMBOLOS!
   // if(no->scope == NULL && no->scope_alloc)
   //   DESTROY_PTR(no->scope);
   DESTROY_PTR(no);

@@ -296,53 +296,70 @@ declOrdeclInitVar : typeAndNameSign ';'
 }
 
 paramListVoid : paramList {
-  $$ = $1;
-  No* tmp = $paramList;
+  No* tmp = $1;
   while(tmp) {
-    printf("paramId: %s\n", tmp->child->n->sval);
+    printf("...%p", tmp);fflush(stdout);
+    printf("<!>param-sval: %s\n", tmp->sval);
     tmp = tmp->nextAux;
   }
-}
-| %empty {
-  $$ = NULL;
-  // MAKE_NODE(paramListVoid);
-}
-
-paramList : paramList ',' param {
-  $1->hasAux = 1;
-  $1->nextAux = $param;
+  printf("gg-easy\n"); fflush(stdout);
   $$ = $1;
 }
-| param
+| %empty {$$ = NULL;}
+
+paramList : paramList ',' param {
+  $3->nextAux = $1;
+  $3->hasAux = 1;
+  $$ = $3;
+}
+| param {
+  $$ = $1;
+  $$->hasAux = 0; 
+}
 
 param : BASE_TYPE ID {
+  $$ = Token_New(STR(param), $ID);
   SymEntry* neoEntry = add_entry(&reshi, $ID, HID);
   neoEntry->type = $BASE_TYPE;
-
-  MAKE_NODE(param);
-  $$->ival = 0;  
-  add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
-  add_Node_Child_If_Not_Null($$, Token_New("ID",$ID));
-  printf("ID: %s\n", $ID);
+  $param->symEntry = neoEntry;
+  // $$->ival = 0;  
+  // add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
+  // add_Node_Child_If_Not_Null($$, Token_New("ID",$ID));
   free($ID), $ID = NULL;
 
 }
 | BASE_TYPE ID '[' ']' {
-  MAKE_NODE(param);
-  add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
-  add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
-  printf("ID: %s\n", $ID);
+  $$ = Token_New(STR(param), $ID);
+  SymEntry* neoEntry = add_entry(&reshi, $ID, HID);
+  if($BASE_TYPE == TYPE_INT) {
+    neoEntry->type = TYPE_ARRAY_INT;
+  }
+  else if ($BASE_TYPE == TYPE_FLOAT) {
+    neoEntry->type = TYPE_ARRAY_FLOAT;
+  }
+  else {
+    // Nao deve entrar aqui.
+    printf("BASE_TYPE deve ser apenas TYPE_INT ou TYPE_FLOAT\n");
+    abort();
+  }
+  $param->symEntry = neoEntry;
   free($ID), $ID = NULL;
 }
 | MAT_TYPE BASE_TYPE ID {
-  MAKE_NODE(param);
-  $$->ival = 2;
-  add_Node_Child_If_Not_Null($$, Token_New("MAT_TYPE", "mat"));
-  add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
-  add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
-  printf("ID: %s\n", $ID);
+  $param = Token_New(STR(param), $ID);
+  SymEntry* neoEntry = add_entry(&reshi, $ID, HID);
+  if($BASE_TYPE == TYPE_INT) {
+    neoEntry->type = TYPE_MAT_INT;
+  }
+  else if ($BASE_TYPE == TYPE_FLOAT) {
+    neoEntry->type = TYPE_MAT_FLOAT;
+  }
+  else {
+    printf("BASE_TYPE deve ser apenas TYPE_INT ou TYPE_FLOAT\n");
+    abort();
+  }
+  $param->symEntry = neoEntry;
   free($ID), $ID = NULL;
-
 }
 
 

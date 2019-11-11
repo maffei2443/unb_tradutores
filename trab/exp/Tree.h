@@ -3,10 +3,35 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "Array.h"
+#include "uthash.h"
+
 #define ptfi(str, val) printf(str " %d\n",  (val))
 #define DESTROY_PTR(ptr) {free(ptr);ptr = NULL;}
 
+typedef struct {
+  int lines, isChar, notChar;
+  int lineInit, colInit;
+} CommBlock;
+CommBlock comm_block;
 
+typedef struct  {
+  int lineInit,
+      colInit,
+      notChar,
+      isChar;
+} LineComment;
+LineComment lineComm;
+
+Array currString;
+typedef struct {
+  int line,
+      col;
+} StringStart;
+
+typedef struct {
+  int line, col;
+} Local;
 
 typedef enum {
   IVAL  = 0,
@@ -15,7 +40,8 @@ typedef enum {
 } Field;
 
 typedef enum {
-  TYPE_VOID = 0, 
+  TYPE_VOID = -1,
+  TYPE_UNDEFINED = 0, 
   TYPE_INT = 1,
   TYPE_FLOAT = 2,
   TYPE_ARRAY_INT = 4,
@@ -28,6 +54,25 @@ typedef enum {
   HINT, HFLOAT, HID, HFUN
 } _HASH_TYPES;
 
+typedef struct SymEntry{
+  char id[257];
+  _HASH_TYPES tag;
+  Local local;
+  char* escopo;
+  Type type;
+  union {
+    int ival;
+    char cval;
+    float fval;
+    struct {
+      struct No* next;
+      struct SymEntry* upperSym;
+      struct SymEntry** nestedSym;
+    } func;
+  } u;
+  struct SymEntry* next; // encadeamento para caso de conflito
+  UT_hash_handle hh;
+} SymEntry;
 
 typedef struct No {
   // struct No * p;   // ponteiro para pai
@@ -35,6 +80,7 @@ typedef struct No {
   struct No * childLast;
   struct No * n;
   struct No * nextAux;
+  SymEntry* symEntry;
   char* sval; char sval_alloc;
   char* tname; char tname_alloc;
   // char* scope; char scope_alloc;
@@ -43,6 +89,9 @@ typedef struct No {
   int ival;
   float fval;
 } No;
+
+
+
 
 // Ok.
 No* No_New(int v);

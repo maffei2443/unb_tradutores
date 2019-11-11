@@ -250,7 +250,7 @@ achar '([a-zA-Z0-9_]?)'
       break;
     case 'i':
       if (yy1 == 'n') {// int 
-        yylval.type = R_INT;
+        yylval.type = TYPE_INT;
         // showBaseType();
       }
       else{ // if
@@ -261,7 +261,7 @@ achar '([a-zA-Z0-9_]?)'
       break;
     case 'f':
       // showBaseType(); currCol += yyleng;
-      yylval.type = R_FLOAT;
+      yylval.type = TYPE_FLOAT;
       return BASE_TYPE;
       break;
     case 'e':

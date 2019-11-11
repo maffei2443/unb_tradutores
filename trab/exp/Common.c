@@ -11,7 +11,7 @@ SymEntry* SymEntry_New(char* id, int tag, char* escopo){
   neo->escopo[t] = '\0';
   neo->u.ival = 0; neo->u.func.next = 0;
   neo->local.line = neo->local.col = -1;
-  neo->type = R_UNITIALIZED;
+  neo->type = TYPE_UNDEFINED;
 }
 // Destroi entrada da TS e todas suas TS aninhadas 
 // (valido apenas p/ declaracao de funcao)
@@ -32,10 +32,14 @@ void* SymEntry_Destroy(void* p){
 
 char* type2string(Type t) {
   switch (t) {
-    case R_FLOAT: return "float";
-    case R_INT: return "int";
-    case R_VOID: return "void";
-    case R_UNITIALIZED: return "undefined";
+    case TYPE_VOID: return "void";
+    case TYPE_UNDEFINED: return "undefined";
+    case TYPE_INT: return "int";
+    case TYPE_FLOAT: return "float";
+    case TYPE_ARRAY_INT: return "array(int)";
+    case TYPE_ARRAY_FLOAT: return "array(float)";
+    case TYPE_MAT_INT: return "mat(int)";
+    case TYPE_MAT_FLOAT: return "mat(float)";
   }
 }
 
