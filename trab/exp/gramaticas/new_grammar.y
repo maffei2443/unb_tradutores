@@ -168,7 +168,7 @@ void print_reshi(void) {
 %left '+' '-'
 %left '%'
 %left '*' '/' 
-%left '@'
+%right '@'
 %right MAT_POW
 %left '!' '&'
 
@@ -787,7 +787,8 @@ rvalue : expr
 // - left/right ser TYPE_UNDEFINED
 // - left/right ser TYPE_VOID
 // - left/right ser TYPE_ARRAY
-
+// - expressão mal formada como por exemplo divisão de 
+// escalar por matriz
 Type bin_expr_type(Type left, Type right, int op) {
   Type leftClass = Type_Class(left);
   Type rightClass = Type_Class(right);
@@ -798,10 +799,20 @@ Type bin_expr_type(Type left, Type right, int op) {
  
   switch (op)  {
     case '+': case '-':
-      if(leftClass == rightClass) return leftClass;
-      // else if()
-      /* code */
+      if(leftClass == rightClass) max(left, right);
+      else if(left == TYPE_MAT && right == TYPE_SCALAR) return left;
+      else return TYPE_UNDEFINED;  
+    case '*':
+      if(leftClass == rightClass) max(left, right);
+      else if(left == TYPE_SCALAR && right == TYPE_MAT) return left;
+      else return TYPE_UNDEFINED;
     case '/':
+      if(leftClass == rightClass) max(left, right);
+      else if(left == TYPE_MAT && right ==  TYPE_SCALAR ) return left;
+      else return TYPE_UNDEFINED;
+    case '@':
+      if(leftClass == TYPE_MAT && rightClass == TYPE_MAT) return max(left, right);    
+      else return TYPE_UNDEFINED;
       /* code */
     case MAT_POW:
       if((left == TYPE_MAT_INT || left == TYPE_MAT_FLOAT)
