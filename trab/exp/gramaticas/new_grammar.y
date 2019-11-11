@@ -470,7 +470,7 @@ loop : WHILE '(' expr ')' block {
 
 defFun : BASE_TYPE ID '('{
   SymEntry* neoEntry = add_entry(&reshi, $ID, HFUN);
-  neoEntry->tag = $BASE_TYPE;
+  neoEntry->type = $BASE_TYPE;
   currScope = $ID;
 } paramListVoid ')' '{' declList localStmtList '}' {
   SymEntry* tmp;
@@ -649,10 +649,34 @@ call : ID '(' arglist ')' {
   MAKE_NODE(call);
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
   add_Node_Child_If_Not_Null($$, $arglist);
+  // SEMANTICO  
+  // OBS: nao eh muito robusto, pois pode haver um monte de blanks entre os parenteses.
+  SymEntry* aux = was_declared(&reshi, $ID);
+  
+  if(!aux){
+    printf("Funcao %s, l.%d c.%lu nao declarada!\n", $ID, numlines, currCol - (strlen($ID) + 2));
+  }
+  else {
+    if(aux->tag != HFUN) {
+      printf("%s nao eh uma funcao.\n", aux->id);
+    }
+  }
 }
 | ID '('  ')' {
   MAKE_NODE(call);
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
+  // SEMANTICO  
+  // OBS: nao eh muito robusto, pois pode haver um monte de blanks entre os parenteses.
+  SymEntry* aux = was_declared(&reshi, $ID);
+  if(!aux){
+    printf("Funcao %s, l.%d c.%lu nao declarada!\n", $ID, numlines, currCol - (strlen($ID) + 2));
+  }
+  else {
+    if(aux->tag != HFUN) {
+      printf("%s nao eh uma funcao.\n", aux->id);
+    }
+  }
+
 }
 
 arglist : arglist ',' arg {
@@ -674,6 +698,10 @@ arg : lvalue {
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
   add_Node_Child_If_Not_Null($$, $3);
   add_Node_Child_If_Not_Null($$, $6);
+  // SEMANTICO  
+  // OBS: nao eh muito robusto, pois pode haver um monte de blanks entre os parenteses.
+  if(!was_declared(&reshi, $ID)){printf("Variavel %s, l.%d\n", $ID, numlines);}
+
 }
 
 num: V_INT {
@@ -690,18 +718,28 @@ lvalue: ID {
   // MAKE_NODE(lvalue);
   // add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
   $$ = Token_New("ID", $ID);
+  // SEMANTICO  
+  // OBS: nao eh muito robusto, pois pode haver um monte de blanks entre os parenteses.
+  if(!was_declared(&reshi, $ID)){printf("Funcao %s, l.%d c.%lu nao declarada!\n", $ID, numlines, currCol - (strlen($ID) + 2));}
+
   free($ID), $ID = NULL;
 }
 | ID '[' expr ']' {
   MAKE_NODE(lvalue);
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
   add_Node_Child_If_Not_Null($$, $expr);
+  // SEMANTICO  
+  // OBS: nao eh muito robusto, pois pode haver um monte de blanks entre os parenteses.
+  if(!was_declared(&reshi, $ID)){printf("Funcao %s, l.%d nao declarada!\n", $ID, numlines);}
 }
 | ID '[' expr ']' '[' expr ']' {
   MAKE_NODE(lvalue);
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
   add_Node_Child_If_Not_Null($$, $3);
   add_Node_Child_If_Not_Null($$, $6);
+  // SEMANTICO  
+  // OBS: nao eh muito robusto, pois pode haver um monte de blanks entre os parenteses.
+  if(!was_declared(&reshi, $ID)){printf("Funcao %s, l.%d nao declarada!\n", $ID, numlines);}
 }
 
 rvalue : expr
