@@ -799,7 +799,7 @@ Type bin_expr_type(Type left, Type right, int op) {
   switch (op)  {
     case '+': case '-':
       if(leftClass == rightClass) return leftClass;
-      else if()
+      // else if()
       /* code */
     case '/':
       /* code */
