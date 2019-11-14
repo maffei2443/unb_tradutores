@@ -495,8 +495,7 @@ defFun : BASE_TYPE ID '('{
   free($ID);$ID = NULL;
   add_Node_Child_If_Not_Null($$, _BASE_TYPE);
   add_Node_Child_If_Not_Null($$, _ID);
-  if($paramListVoid)
-    add_Node_Child_If_Not_Null($$, $paramListVoid);
+  add_Node_Child_If_Not_Null($$, $paramListVoid);
 
   add_Node_Child_If_Not_Null($$, $declList);
   add_Node_Child_If_Not_Null($$, $localStmtList);  
@@ -725,8 +724,12 @@ call : ID '(' argList ')' {
     printf("Funcao %s, l.%d c.%lu nao declarada!\n", $ID, numlines, currCol - (strlen($ID) + 2));
   }
   else {
-    if(aux->tag != TYPE_DEF_FUN && aux->tag != TYPE_DEF_FUN) {
-      printf("%s nao eh uma funcao.\n", aux->id);
+    $$->type = aux->type;
+    if(aux->tag != TYPE_DEF_FUN && aux->tag != TYPE_DECL_FUN ) {
+      printf("[Semantico] %s nao eh funcao pra ser chamada.\n", aux->id);
+    }
+    else {
+      // Checar lista de argumentos e vre se dah certo
     }
   }
 }
@@ -738,11 +741,15 @@ call : ID '(' argList ')' {
   if(!aux){
     printf("Funcao %s, l.%d c.%lu nao declarada!\n", $ID, numlines, currCol - (strlen($ID) + 2));
   }
-  else {
+  else{
+    $$->type = aux->type;
     if(is_fun (aux->tag)) {
-      printf("%s nao eh uma funcao.\n", aux->id);
+      printf("%s eh uma funcao!.\n", aux->id);
     }
-  }
+    else {
+      printf("%s nao eh funcao para ser chamada\n", aux->id);
+    }    
+  }  
 }
 
 argList : argList ',' arg {
@@ -760,19 +767,30 @@ argList : argList ',' arg {
 }
 | arg 
 
-arg : lvalue {
-  $$ = $1;
-  // MAKE_NODE(arg);
-  // add_Node_Child_If_Not_Null($$, $lvalue);
-}
+arg : lvalue 
 | ID '(' expr ')' '(' expr ')' {
   MAKE_NODE(arg);
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
   add_Node_Child_If_Not_Null($$, $3);
   add_Node_Child_If_Not_Null($$, $6);
   // SEMANTICO    
-  if(!last_decl(&reshi, $ID)){printf("Variavel %s, l.%d\n", $ID, numlines);}
-
+  SymEntry* entry = last_decl(&reshi, $ID);
+  if(!entry) {  // var na odeclarada
+    printf("[Semantico] Erro: Variavel %s, l.%d nao declarada\n", $ID, numlines);    
+  }
+  else {
+    if(is_fun(entry->tag)) {
+      printf("[Semantico] Erro: Uso inadequado de funcao %s, l.%d\n", $ID, numlines);
+    }
+    else if(Type_Class(entry->type) != TYPE_MAT ) {
+      printf("[Semantico] Erro: Variavel %s, l.%d nao eh matriz\n", $ID, numlines);    
+    }
+    else {
+      $$->type = entry->type;
+      printf("argType: %s\n", type2string($$->type));
+      // TODO: checar dimensoes, mas isso eh em tempo de excucao
+    }
+  }
 }
 
 num : V_INT {
