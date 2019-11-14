@@ -17,8 +17,8 @@
   if(!yyval.no) abort();\
   yyval.no->tname =  x  ;
 #define MAKE_NODE(x) INITNODE(STR(x))
-#define  GLOBAL_SCOPE "0global"
 #include "Tree.h" // importante
+#include "SemanticChecker.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -37,6 +37,7 @@ unsigned nodeCounter;
 
 static int gambs_tam = 0;
 static int gambs_qtd = 0;
+char* GLOBAL_SCOPE = "0global";
 
 SymEntry* reshi;
 SymEntry** gambs;
@@ -98,22 +99,7 @@ SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
 
 // Retorna NULL caso nao o tenha sido;senao,
 // retorna ponteiro para declracao mais prohxima.
-SymEntry* was_declared(SymEntry** reshi, char* id){
-  SymEntry* oldEntry = NULL;
-  SymEntry* last_same_id = oldEntry;
-  HASH_FIND_STR((*reshi), id, oldEntry);
-  while( oldEntry ) {
-    printf("old: %p, next: %p\n", oldEntry, oldEntry->next);
-    if(strcmp(oldEntry->escopo, currScope) == 0){  // declaracao sob mesmo escopo
-      return oldEntry;
-    }
-    else if(strcmp(oldEntry->escopo, GLOBAL_SCOPE) == 0){  // mesmo nome e escopo global
-      last_same_id = oldEntry;
-    }
-    oldEntry = oldEntry->next;
-  }
-  return last_same_id;
-}
+
 
 void show_entry(SymEntry* s) {
   printf("%10s: ", s->escopo);
@@ -438,11 +424,11 @@ localStmt : call ';' {
   add_Node_Child_If_Not_Null($$, fread_no);
   add_Node_Child_If_Not_Null($$, $lvalue);
 }
-| PRINT '(' lvalue ')' ';' {
+| PRINT '(' rvalue ')' ';' {
   MAKE_NODE(localStmt);
   No* print_no = Token_New("PRINT","PRINT");
   add_Node_Child_If_Not_Null($$, print_no);
-  add_Node_Child_If_Not_Null($$, $lvalue);
+  add_Node_Child_If_Not_Null($$, $rvalue);
 }
 | PRINT '(' V_ASCII ')' ';' {
   MAKE_NODE(localStmt);
@@ -457,8 +443,8 @@ localStmt : call ';' {
   add_Node_Child_If_Not_Null( $$, $4 );
 }
 | ';' {
-  MAKE_NODE(localStmt);
-  $$->ival = ';';
+  // Nao faz mal, mas nao eh util!
+  $$ = NULL;
 }
 
 flowControl : IF '(' expr ')' block ELSE flowControl {

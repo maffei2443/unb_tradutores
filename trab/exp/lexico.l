@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "Array.h"
-// #include "Colorfy.h"
-
 #include "Tree.h"
 #include "Prints.h"
 #include "uthash.h"
@@ -12,16 +10,7 @@ int numlines = 1, currCol = 1;
 long long unsigned ERRORS_IN_SRC = 0;
 int escopo = 0;
 StringStart stringStart;
-
-
-
-
 extern SymEntry* reshi;
-extern SymEntry* add_entry(SymEntry** , char*, int);
-extern void addToDel(SymEntry** p);
-
-// Se nao existe, inicializar local. Se jah existe,
-// {digit}*("."{digit}*{exp}?|("."{digit}*)?{exp})
 %}
 %option yylineno
 
@@ -304,7 +293,6 @@ achar '([a-zA-Z0-9_]?)'
 }
 
 {ID} {              
-    // SymEntry* tmp = add_entry(&reshi, yytext, HID);
     // showID();
     yylval._id = malloc(yyleng + 1);
     memcpy(yylval._id, yytext, yyleng+1);
@@ -424,8 +412,6 @@ int _main(int argc, char** argv) {
     }
   }
   while(yylex());
-
-
   if (open)    fclose(yyin);
   delete((void*)&path);
   Cyan();
@@ -439,7 +425,7 @@ int _main(int argc, char** argv) {
     BoldGreen();
     fprintf(stdout, "Congrats! The code is in the language.\n");
   }
-  // print_reshi();
+  print_reshi();
   Reset();
   yylex_destroy();
 }
