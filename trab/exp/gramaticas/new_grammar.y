@@ -501,6 +501,7 @@ defFun : BASE_TYPE ID '('{
   add_Node_Child_If_Not_Null($$, $declList);
   add_Node_Child_If_Not_Null($$, $localStmtList);  
   def_fun_rule = 0;
+  currScope = GLOBAL_SCOPE;
 }
 
 numListList :  numListList '{' numList '}' {
