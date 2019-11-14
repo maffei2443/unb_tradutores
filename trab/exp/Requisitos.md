@@ -1,6 +1,6 @@
 - [] Verificação de tipos
   - [] declarar 2x mesma função só funciona se *nomes E tipos do parametros forem os mesmos*
-  - [] função só pode ser definida 1 vez (add flag *isDef* para noh)
+  - [] função só pode ser definida 1 vez (add flag *def_fun* para SymEntry)
 
 - [x] Verificação de escopo
   - [x] usar variavel soh se foi declarada

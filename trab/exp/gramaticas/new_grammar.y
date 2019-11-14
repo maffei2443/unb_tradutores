@@ -17,7 +17,7 @@
   if(!yyval.no) abort();\
   yyval.no->tname =  x  ;}
 #define MAKE_NODE(x) INITNODE(STR(x))
-#define PARAM_CHECK(__baseType, __id) \
+#define PARAM_RPT_NAME_CHECK(__baseType, __id) \
   if(!neoEntry) {\
     neoEntry = was_declared(&reshi, yyvsp[__id]._id);    \
     printf("[Semantico] Parametros de mesmo nome! Arvore vai ficar inconsistente..\n");\
@@ -51,7 +51,10 @@ char* GLOBAL_SCOPE = "0global";
 SymEntry* reshi;
 
 char* currScope = NULL;
-
+int check_signature = 0;
+int decl_fun = 0;
+int def_fun = 0;
+int check_parameters = 0;
 %}
 %define parse.error verbose
 %define parse.lac none
@@ -134,12 +137,14 @@ globalStmt : defFun
 | declOrdeclInitVar
 
 declFun : AHEAD BASE_TYPE ID {
-  if(!was_declared(&reshi, $ID) ) {
+  decl_fun = 1;
+  SymEntry* tmp = was_declared(&reshi, $ID);
+  if( !tmp ) {
     SymEntry* neoEntry = add_entry(&reshi, $ID, HFUN);
     neoEntry->tag = $BASE_TYPE;
   }
   else {
-    // TODO: CHECAR SE EXISTE BATEM OS PARAMETROS!
+    printf("%s nao pode ser definido pois jah foi declarado em l.%d, c.%d\n", tmp->id, tmp->local.line, tmp->local.col);
   }
   currScope = $ID;
 } '(' paramListVoid ')' {
@@ -155,10 +160,7 @@ declFun : AHEAD BASE_TYPE ID {
   free($ID), $ID = NULL;
   add_Node_Child_If_Not_Null($$, $paramListVoid);
   currScope = GLOBAL_SCOPE;
-  // TODO: checar se funcao foi declarado e a QUANTIDADE DE PARAMETROS!.
-  // E os TIPOS de parametros
-
-
+  decl_fun = 0;
 }
 
 
@@ -240,7 +242,7 @@ paramList : paramList ',' param {
 param : BASE_TYPE ID {
   $$ = Token_New(STR(param), $ID);
   SymEntry* neoEntry = add_entry(&reshi, $ID, HID);
-  PARAM_CHECK(-1, 0);
+  PARAM_RPT_NAME_CHECK(-1, 0);
   link_symentry_no(neoEntry, $$);
   free($ID), $ID = NULL;
 }
@@ -248,7 +250,7 @@ param : BASE_TYPE ID {
   $$ = Token_New(STR(param), $ID);
   SymEntry* neoEntry = add_entry(&reshi, $ID, HID);
   // SEMANTICO
-  PARAM_CHECK(-3, -2);
+  PARAM_RPT_NAME_CHECK(-3, -2);
   
   if($BASE_TYPE == TYPE_INT)    neoEntry->type = TYPE_ARRAY_INT;
   else if ($BASE_TYPE == TYPE_FLOAT) neoEntry->type = TYPE_ARRAY_FLOAT;
@@ -264,7 +266,7 @@ param : BASE_TYPE ID {
   $param = Token_New(STR(param), $ID);
   SymEntry* neoEntry = add_entry(&reshi, $ID, HID);
   // Semantico
-  PARAM_CHECK(-1, 0);
+  PARAM_RPT_NAME_CHECK(-1, 0);
 
   if($BASE_TYPE == TYPE_INT) neoEntry->type = TYPE_MAT_INT;  
   else if ($BASE_TYPE == TYPE_FLOAT) neoEntry->type = TYPE_MAT_FLOAT;
@@ -376,10 +378,38 @@ loop : WHILE '(' expr ')' block {
 }
 
 defFun : BASE_TYPE ID '('{
-  SymEntry* neoEntry = add_entry(&reshi, $ID, HFUN);
-  neoEntry->type = $BASE_TYPE;
+  def_fun = 1;
+  SymEntry* old = was_declared(&reshi, $ID);
+  if(old) {
+    if(old->tag == HFUN) {
+      if(old->def_fun){
+        printf("[Semantico] Funcao %s jah foi definida em l.%d, c.%d",
+        old->id, old->local.line, old->local.col);
+      }
+      else {
+        // PODE SER QUE FUNCAO TENHA ASSINATURA DIFERENTE!
+        check_signature = 1;
+      }
+    }
+  }
+  else {
+    SymEntry* neoEntry = add_entry(&reshi, $ID, HFUN);
+    neoEntry->type = $BASE_TYPE;
+  }
   currScope = $ID;
-} paramListVoid ')' '{' declList localStmtList '}' {
+} paramListVoid ')' {
+  if(check_signature) {
+    if(match_paramList(was_declared(&reshi, $ID), $paramListVoid) > 0){
+      SymEntry* neoEntry = add_entry(&reshi, $ID, HFUN);
+      neoEntry->type = $BASE_TYPE;      
+    }
+    else {
+      printf("Lista de parametros de %s incompativel com sua declaracao!\n", $ID);
+    }
+    check_signature = 0;
+  }
+} '{' declList localStmtList '}' {
+  
   SymEntry* tmp;
   HASH_FIND_STR(reshi, $ID, tmp);
   tmp->tag = HFUN;
@@ -396,6 +426,7 @@ defFun : BASE_TYPE ID '('{
   add_Node_Child_If_Not_Null($$, $declList);
   add_Node_Child_If_Not_Null($$, $localStmtList);
   currScope = GLOBAL_SCOPE;
+  def_fun = 0;
 }
 
 numListList :  numListList '{' numList '}' {

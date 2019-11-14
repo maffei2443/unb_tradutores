@@ -79,6 +79,8 @@ typedef struct SymEntry{
   Local local;
   char* escopo;
   Type type;
+  char def_fun;
+
   union {
     int ival;
     char cval;

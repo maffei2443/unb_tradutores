@@ -1,9 +1,10 @@
 #ifndef SEMANTIC_CHECKER_H
 #define SEMANTIC_CHECKER_H
 #include "Tree.h"
+
+int match_paramList(SymEntry* sym, No* no);
 void link_symentry_no(SymEntry* sym, No* no);
 Type bin_expr_type(Type left, Type right, int op);
-
 SymEntry* add_entry(SymEntry** reshi, char* id, int tag);
 SymEntry* was_declared(SymEntry** reshi, char* id);
 
@@ -11,7 +12,6 @@ SymEntry* was_declared(SymEntry** reshi, char* id);
 // n-esimos parametros
 
 
-int match_paramList(No* firstParam, No* firstArg);
 
 int match_decl();
 

@@ -251,6 +251,7 @@ SymEntry* SymEntry_New(char* id, int tag, char* escopo){
   neo->local.line = neo->local.col = -1;
   neo->type = TYPE_UNDEFINED;
   neo->astNode = NULL; // NAO MEXER NA ARVORE ABSTRATA!
+  neo->def_fun = 0;    // usado para diferenciar entre declaracao e definicao de funcao
 }
 // Destroi entrada da TS e todas suas TS aninhadas 
 // (valido apenas p/ declaracao de funcao)
@@ -313,6 +314,10 @@ void show_entry(SymEntry* s) {
       break;
     case HFUN:
       printf("<fun, %s, %s>", s->id, type2string(s->type));
+      break;
+    case HPARAM:
+      printf("<param, %s, %s>", s->id, type2string(s->type));
+      break;
   }
   printf("\t(%p)l. %d, c. %d\n", s,s->local.line, s->local.col);
 }

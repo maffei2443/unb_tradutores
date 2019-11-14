@@ -10,6 +10,20 @@ int gambs_qtd = 0;
 
 SymEntry** gambs;
 
+int match_paramList(SymEntry* sym, No* no) {
+  if(!sym || !no) return -1;
+  No* oldParam = sym->astNode;
+  No* param = no;
+  while (oldParam && param){
+    if(oldParam->type != param->type)
+      break;
+    oldParam = oldParam->nextAux;
+    param = param->nextAux;
+  }
+  return !oldParam && !sym;
+}
+
+
 void link_symentry_no(SymEntry* sym, No* no) {
   sym->astNode = no;
   no->symEntry = sym;
