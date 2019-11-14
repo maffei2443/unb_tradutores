@@ -14,10 +14,14 @@ SymEntry** gambs;
 // -1 se noh eh NULL
 // TODO: FIX IT
 int match_paramList(SymEntry* sym, No* no) {
+  // printf("sym: %p vs no: %p\n", sym, no);
   if(!sym && !no) return -2;
   if(!no) return -1;
+  // printf("sym: %p vs no: %p\n", sym, no);
+  // printf("sym: %s vs no: %s OK\n", type2string(sym->type), type2string(no->type));
   No* oldParam = sym->astNode;
   No* param = no;
+  printf("%s vs %s\n", type2string(oldParam->type), type2string(param->type));
   while (oldParam && param){
     if(oldParam->type != param->type)
       break;
@@ -91,6 +95,21 @@ Type bin_expr_type(Type left, Type right, int op) {
 
 // Retorna NULL caso nao o tenha sido;senao,
 // retorna ponteiro para declracao mais prohxima.
+SymEntry* was_defined(SymEntry** reshi, char* id){
+  SymEntry* oldEntry = NULL;
+  SymEntry* last_same_id = oldEntry;
+  HASH_FIND_STR((*reshi), id, oldEntry);
+  while( oldEntry ) {
+    if(strcmp(oldEntry->escopo, currScope) == 0){  // declaracao sob mesmo escopo
+      return oldEntry;
+    }
+    else if(strcmp(oldEntry->escopo, GLOBAL_SCOPE) == 0){  // mesmo nome e escopo global
+      last_same_id = oldEntry;
+    }
+    oldEntry = oldEntry->next;
+  }
+  return last_same_id;
+}
 SymEntry* was_declared(SymEntry** reshi, char* id){
   SymEntry* oldEntry = NULL;
   SymEntry* last_same_id = oldEntry;

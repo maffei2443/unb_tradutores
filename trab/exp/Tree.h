@@ -66,9 +66,10 @@ typedef enum {
   TYPE_MAT_INT = 16,
   TYPE_MAT_FLOAT = 32,
   TYPE_MAT = 33,
-  TYPE_FUN = 60,
-  TYPE_IF = 61,
-  TYPE_PARAM = 62
+  TYPE_DECL_FUN = 60,
+  TYPE_DEF_FUN = 61,
+  TYPE_IF = 80,
+  TYPE_PARAM = 100
 }Type;
 
 // Indica TIPO DA REGRA da entrada de simbolos
@@ -117,6 +118,8 @@ typedef struct No {
   char isToken;    // nesse modo, usa-se mesmo noh para token e regra
   char hasAux;
 } No;
+
+int is_fun(Type t);
 
 Type Type_Class(Type type);
 

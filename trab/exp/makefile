@@ -13,7 +13,7 @@ lexico: lexico.l print.o new_grammar.y
 		Colorfy.c  Prints.o
 
 
-all: Tree.o lexico.l new_grammar.y Prints.o Prints.c Colorfy.o Array.o
+all: Tree.o lexico.l new_grammar.y Prints.o Prints.c Colorfy.o Array.o SemanticChecker.c
 	bison $(BFLAGS) new_grammar.y
 	flex lexico.l
 	gcc -c SemanticChecker.c
@@ -34,7 +34,7 @@ Colorfy.o: Colorfy.h Colorfy.c
 Array.o: Array.h Array.c
 	gcc -c Array.c
 
-SemanticChecker.o: SemanticChecker.h new_grammar.tab.h		
+SemanticChecker.o: SemanticChecker.c SemanticChecker.h new_grammar.tab.h		
 	bison $(BFLAGS) new_grammar.y
 	gcc -c SemanticChecker.c
 

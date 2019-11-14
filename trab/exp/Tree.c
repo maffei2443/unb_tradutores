@@ -5,6 +5,9 @@
 #include <stdarg.h>
 #include <assert.h>
 #define ptfi(str, val) printf(str " %d\n",  (val))
+int is_fun(Type t) {
+  return t == TYPE_DEF_FUN || t == TYPE_DECL_FUN;
+}
 
 Type Type_Class(Type type) {
   switch (type)  {
@@ -258,7 +261,7 @@ SymEntry* SymEntry_New(char* id, int tag, char* escopo){
 void* SymEntry_Destroy(void* p){
   SymEntry* sym = (SymEntry*)p;
   if(!sym) return NULL;
-  if(sym->tag == TYPE_FUN) {
+  if(sym->tag == TYPE_DEF_FUN || sym->tag == TYPE_DECL_FUN) {
     // trata-se se funcao! liberar portanto
     // a lista de nohs que compoem sua assinatura
     free_Lis(sym->u.func.next); sym->u.func.next = NULL;
@@ -283,7 +286,8 @@ char* type2string(Type t) {
     case TYPE_MAT_INT: return "mat(int)";
     case TYPE_MAT_FLOAT: return "mat(float)";
     case TYPE_MAT: return "mat(int|float)";
-    case TYPE_FUN: return "fun";
+    case TYPE_DECL_FUN: return "fun";
+    case TYPE_DEF_FUN: return "fun";
     case TYPE_IF: return "if";
     case TYPE_PARAM: return "param";
 
@@ -314,7 +318,7 @@ void show_entry(SymEntry* s) {
     case TYPE_INT:
       printf("< int, %s >", s->id);
       break;
-    case TYPE_FUN:
+    case TYPE_DECL_FUN: case TYPE_DEF_FUN:
       printf("< fun(%s), %s>", type2string(s->type), s->id);
       break;    
     case TYPE_PARAM:
