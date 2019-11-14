@@ -35,71 +35,13 @@ extern SymEntry* SymEntry_New(char*, int, char*);
 Type bin_expr_type(Type left, Type right, int op);
 unsigned nodeCounter;
 
-static int gambs_tam = 0;
-static int gambs_qtd = 0;
+extern int gambs_tam;
+extern int gambs_qtd;
 char* GLOBAL_SCOPE = "0global";
 
 SymEntry* reshi;
-SymEntry** gambs;
+
 char* currScope = NULL;
-void addToDel(SymEntry** p) {
-  if(gambs_qtd  >= gambs_tam) {
-    gambs_tam = 2 * (gambs_tam + 1);
-    gambs = (SymEntry**)realloc(gambs, gambs_tam*sizeof(SymEntry*));
-  }
-  gambs[gambs_qtd] = *p;
-  // printf("AddToDel: %p\n", gambs[gambs_qtd]);
-  // printf("\tcom id: %s\n", gambs[gambs_qtd]->id);
-  gambs_qtd++;
-}
-
-void delGambs() {
-  printf("QTD : %d\n", gambs_qtd);
-  for(int i = 0;i < gambs_qtd;i++){
-    printf("id: %s\n", (gambs[i])->id);
-    SymEntry_Destroy(gambs[i]);
-    gambs[i] = NULL;
-  }
-  free(gambs);
-}
-
-
-SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
-    SymEntry* newEntry = NULL;
-    HASH_FIND_STR((*reshi), id, newEntry);/* id already in the hash? */
-    if (newEntry == NULL) {
-      newEntry = SymEntry_New(id, tag, currScope);
-      newEntry->local.line = numlines;
-      newEntry->local.col = currCol;
-      HASH_ADD_STR( (*reshi), id, newEntry );/* id: name of key field */
-      addToDel(&newEntry);
-    }
-    else {    // Checar se eh declaracao no msm escopo. Se for, nao adiciona e dah pau (retorna NULL);
-      printf("Possivel conflito com %s:%s\n", id, newEntry->escopo);
-      for(;newEntry->next;newEntry = newEntry->next) {
-        if(strcmp(id, newEntry->id) == 0 && strcmp(currScope, newEntry->escopo)) {
-          printf("Erro: redeclaracao de %s:%s em l.%d, r.%d\n",
-            currScope, id, newEntry->local.line, newEntry->local.col);
-          return NULL;
-        }
-      }
-      if( /* 0 &&  */strcmp(id, newEntry->id) == 0 && !strcmp(currScope, newEntry->escopo) ) {          
-        printf("Erro: redeclaracao de %s:%s em l.%d, r.%d\n",
-          currScope, id, newEntry->local.line, newEntry->local.col);
-        return NULL;
-      }
-      else {
-        newEntry->next = SymEntry_New(id, tag, currScope);
-        newEntry->next->local.line = numlines;
-        newEntry->next->local.col = currCol;
-      }
-    }
-    return newEntry;
-}
-
-// Retorna NULL caso nao o tenha sido;senao,
-// retorna ponteiro para declracao mais prohxima.
-
 
 void show_entry(SymEntry* s) {
   printf("%10s: ", s->escopo);
@@ -870,8 +812,7 @@ int main(){
   }
   print_reshi();
   yylex_destroy();
-  // delGambs();
-  free(gambs);gambs = NULL;
+  
   free_All_Child(root);
   free_Lis(root);
 }
