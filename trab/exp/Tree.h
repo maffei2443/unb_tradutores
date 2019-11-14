@@ -69,7 +69,8 @@ typedef enum {
   TYPE_DECL_FUN = 60,
   TYPE_DEF_FUN = 61,
   TYPE_IF = 80,
-  TYPE_PARAM = 100
+  TYPE_PARAM = 100,
+  TYPE_POINTER = 120,
 }Type;
 
 // Indica TIPO DA REGRA da entrada de simbolos

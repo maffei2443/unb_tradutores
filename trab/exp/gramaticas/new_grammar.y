@@ -167,9 +167,16 @@ declFun : AHEAD BASE_TYPE ID {
 
 
 typeAndNameSign : BASE_TYPE ID {
+  SymEntry* oldEntry = was_defined(&reshi, $ID);
+
+  if(oldEntry) {
+    if( !strcmp(oldEntry->escopo, currScope) ) {
+      printf("[Semantico]\n");
+    }
+  }
+
   SymEntry* neoEntry = add_entry(&reshi, $ID, $BASE_TYPE);
-  printf("[typeAndNameSign] %p\n", neoEntry);
-  printf("[typeAndNameSign->tag] %s\n", type2string(neoEntry->tag));
+  neoEntry->type = neoEntry->tag;
   MAKE_NODE(typeAndNameSign);
   link_symentry_no(neoEntry, $$);
   
@@ -178,10 +185,11 @@ typeAndNameSign : BASE_TYPE ID {
   free($ID);$ID = NULL;
 }
 | BASE_TYPE ID '[' num ']' {
-  SymEntry* neoEntry = add_entry(&reshi, $ID, $BASE_TYPE);
-
+  SymEntry* neoEntry = add_entry(&reshi, $ID, $BASE_TYPE == TYPE_INT ? TYPE_ARRAY_INT : TYPE_ARRAY_FLOAT);
+  neoEntry->type = neoEntry->tag;
   MAKE_NODE(typeAndNameSign);
-  $$->ival = 1;
+  link_symentry_no(neoEntry, $$);
+
   add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
   // SEMANTICO!
@@ -191,11 +199,14 @@ typeAndNameSign : BASE_TYPE ID {
   add_Node_Child_If_Not_Null($$, $num);
   free($ID);$ID = NULL;
   // $$->childLast->ival = $V_INT;
-
 }
-| MAT_TYPE BASE_TYPE ID '[' num ']' '[' num ']'{
+| MAT_TYPE BASE_TYPE ID '[' num ']' '[' num ']' {
+  SymEntry* neoEntry = add_entry(&reshi, $ID, $BASE_TYPE == TYPE_INT ? TYPE_MAT_INT : TYPE_MAT_FLOAT);
+  neoEntry->type = neoEntry->tag;
   MAKE_NODE(typeAndNameSign);
-  $$->ival = 1;
+  link_symentry_no(neoEntry, $$);
+
+  MAKE_NODE(typeAndNameSign);
   add_Node_Child_If_Not_Null($$, Token_New("MAT_TYPE", "mat"));
   if($5->type == TYPE_FLOAT) {
     printf("[Semantico] ERRO: Indexacao soh pode ser feita com indices inteiros. (%f encontrado)\n", $5->fval);
@@ -271,7 +282,7 @@ param : BASE_TYPE ID {
   // SEMANTICO
   PARAM_RPT_NAME_CHECK(-3, -2);
   
-  if($BASE_TYPE == TYPE_INT)    neoEntry->type = TYPE_ARRAY_INT;
+  if($BASE_TYPE == TYPE_INT)    neoEntry->type = TYPE_MAT_INT;
   else if ($BASE_TYPE == TYPE_FLOAT) neoEntry->type = TYPE_ARRAY_FLOAT;
   else {
     printf("BASE_TYPE deve ser apenas TYPE_INT ou TYPE_FLOAT\n");
@@ -281,6 +292,7 @@ param : BASE_TYPE ID {
   link_symentry_no(neoEntry, $$);
   free($ID), $ID = NULL;
 }
+
 | MAT_TYPE BASE_TYPE ID {
   $param = Token_New(STR(param), $ID);
   SymEntry* neoEntry = add_entry(&reshi, $ID, TYPE_PARAM);
@@ -411,8 +423,7 @@ defFun : BASE_TYPE ID '('{
       }
     }
     else {
-      printf("[Semantico] Identificador %s jah foi definida em l.%d, c.%d como nao-funcao!\n",
-        old->id, old->local.line, old->local.col);
+      mensagem_redeclaracao(old);
     }
   }
   else {
@@ -493,15 +504,18 @@ declList : declList declOrdeclInitVar {
 
 expr : expr '+' expr {
   MAKE_NODE(expr);
+  printf("addExpr\n");
   $$->ival = '+';
   
   add_Node_Child_If_Not_Null($$, $1);
   add_Node_Child_If_Not_Null($$, $3);
   // SEMANTICO
   $$->type = bin_expr_type( $1->type, $3->type, '+');
+  printf("tipoResultante: %s\n", type2string($$->type));
 }
 | expr '-' expr {
   MAKE_NODE(expr);
+
   $$->ival = '-';
   add_Node_Child_If_Not_Null($$, $1);
   add_Node_Child_If_Not_Null($$, $3);
@@ -510,15 +524,18 @@ expr : expr '+' expr {
 }
 | expr '*' expr {
   MAKE_NODE(expr);
+
   $$->ival = '*';
   add_Node_Child_If_Not_Null($$, $1);
   add_Node_Child_If_Not_Null($$, $3);
   // SEMANTICO
   $$->type = bin_expr_type( $1->type, $3->type, '*');
+  printf("tipoResultante: %s\n", type2string($$->type));
 
 }
 | expr '/' expr {
   MAKE_NODE(expr);
+
   $$->ival = '/';
   add_Node_Child_If_Not_Null($$, $1);
   add_Node_Child_If_Not_Null($$, $3);
@@ -527,6 +544,7 @@ expr : expr '+' expr {
 }
 | expr '%' expr {
   MAKE_NODE(expr);
+
   $$->ival = '%';
   add_Node_Child_If_Not_Null($$, $1);
   add_Node_Child_If_Not_Null($$, $3);
@@ -535,6 +553,7 @@ expr : expr '+' expr {
 }
 | expr '@' expr {
   MAKE_NODE(expr);
+
   $$->ival = '@';
   add_Node_Child_If_Not_Null($$, $1);
   add_Node_Child_If_Not_Null($$, $3);
@@ -543,6 +562,7 @@ expr : expr '+' expr {
 }
 | expr MAT_POW expr {
   MAKE_NODE(expr);
+
   $$->ival = MAT_POW;
   add_Node_Child_If_Not_Null($$, $1);
   add_Node_Child_If_Not_Null($$, $3);
@@ -551,6 +571,7 @@ expr : expr '+' expr {
 }
 | expr EQ expr {
   MAKE_NODE(expr);
+
   $$->ival = EQ;
   add_Node_Child_If_Not_Null($$, $1);
   add_Node_Child_If_Not_Null($$, $3);
@@ -559,6 +580,7 @@ expr : expr '+' expr {
 }
 | expr NEQ expr {
   MAKE_NODE(expr);
+
   $$->ival = NEQ;
   add_Node_Child_If_Not_Null($$, $1);
   add_Node_Child_If_Not_Null($$, $3);
@@ -567,6 +589,7 @@ expr : expr '+' expr {
 }
 | expr GE expr {
   MAKE_NODE(expr);
+
   $$->ival = GE;
   add_Node_Child_If_Not_Null($$, $1);
   add_Node_Child_If_Not_Null($$, $3);
@@ -575,6 +598,7 @@ expr : expr '+' expr {
 }
 | expr LE expr {
   MAKE_NODE(expr);
+
   $$->ival = LE;
   add_Node_Child_If_Not_Null($$, $1);
   add_Node_Child_If_Not_Null($$, $3);
@@ -583,6 +607,7 @@ expr : expr '+' expr {
 }
 | expr '>' expr {
   MAKE_NODE(expr);
+
   $$->ival = '>';
   add_Node_Child_If_Not_Null($$, $1);
   add_Node_Child_If_Not_Null($$, $3);
@@ -591,6 +616,7 @@ expr : expr '+' expr {
 }
 | expr '<' expr {
   MAKE_NODE(expr);
+
   $$->ival = '<';
   add_Node_Child_If_Not_Null($$, $1);
   add_Node_Child_If_Not_Null($$, $3);
@@ -599,6 +625,7 @@ expr : expr '+' expr {
 }
 | expr AND expr {
   MAKE_NODE(expr);
+
   $$->ival = AND;
   add_Node_Child_If_Not_Null($$, $1);
   add_Node_Child_If_Not_Null($$, $3);
@@ -607,6 +634,7 @@ expr : expr '+' expr {
 }
 | expr OR expr {
   MAKE_NODE(expr);
+
   $$->ival = OR;
   add_Node_Child_If_Not_Null($$, $1);
   add_Node_Child_If_Not_Null($$, $3);
@@ -615,25 +643,33 @@ expr : expr '+' expr {
 }
 | '!' expr {
   MAKE_NODE(expr);
+  // TODO: RECLAMAR SE NAO "BOOL"
+  $$->type = TYPE_INT;
   $$->ival = '!';
   add_Node_Child_If_Not_Null($$, $2);
 }
 | '&' expr {
   MAKE_NODE(expr);
+  // CHECAR SE EH LVAL; SE NAO FOR, TEM QUE DAR ERRO
+  if(strcmp($2->tname, "lvalue")) {
+    printf("[Semantico] Erro: operando de & deve se lvalue.\n");
+  }
+  $$->type = TYPE_POINTER;
   $$->ival = '&';
   add_Node_Child_If_Not_Null($$, $2);
 }
-| '(' expr ')' {
-  MAKE_NODE(expr);
-  add_Node_Child_If_Not_Null($$, $2);
-}
+| '(' expr ')' {$$ = $2;}
 | ICAST '(' expr ')' {
   MAKE_NODE(expr);
+  // TODO: checar se faz sentido a conversao
+  $$->type = TYPE_INT;
   add_Node_Child_If_Not_Null($$, Token_New("ICAST", "ICAST"));
   add_Node_Child_If_Not_Null($$, $3);
 }
 | FCAST '(' expr ')' {
   MAKE_NODE(expr);
+  // TODO: checar se faz sentido a conversao
+  $$->type = TYPE_FLOAT;  
   add_Node_Child_If_Not_Null($$, Token_New("FCAST", "FCAST"));
   add_Node_Child_If_Not_Null($$, $3);
 }
@@ -719,9 +755,9 @@ num : V_INT {
 
 
 lvalue : ID {
-  // MAKE_NODE(lvalue);
-  // add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
-  $$ = Token_New("ID", $ID);
+  MAKE_NODE(lvalue);
+  No* tok = Token_New("ID", $ID);
+  add_Node_Child_If_Not_Null($$, tok);
   // SEMANTICO    
   SymEntry* entry = was_defined(&reshi, $ID);
   if(entry) {
@@ -729,11 +765,17 @@ lvalue : ID {
       printf("Identificador %s, l.%d c.%lu DECLARADO PREVIAMENTE como funcao em l.%d, c.%d!\n",
        $ID, numlines, currCol - (strlen($ID) + 2), entry->local.line, entry->local.col);
     }
+    else {
+      tok->type = entry->type;
+      $$->type = entry->type;
+      link_symentry_no(entry, tok);
+    }
   }
   else {
+    $$->type = TYPE_UNDEFINED;
     printf("Variavel %s, l.%d c.%lu nao declarada!\n", $ID, numlines, currCol - (strlen($ID) + 2));
   }
-
+  printf("lvalue->type=%s \n", type2string( $$->type ));
   free($ID), $ID = NULL;
 }
 | ID '[' expr ']' {

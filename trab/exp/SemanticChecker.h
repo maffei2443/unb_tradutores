@@ -23,4 +23,5 @@ int can_cast(Type t1, Type t2);
 void addToDel(SymEntry** p);
 void delGambs();
 
+void mensagem_redeclaracao(SymEntry* s);
 #endif

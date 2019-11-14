@@ -204,6 +204,12 @@ void show_Lis(No* head, Field field) {
     else if(head->isToken) {
       printf("%s ", head->sval);
     }
+    else if(!strcmp(head->tname, "expr")) {
+      printf("<%s, %s> ",head->tname, type2string(head->type));
+    }
+    else if(!strcmp(head->tname, "lvalue")) {
+      printf("<lvalue, %s> ", type2string(head->type));
+    }
     else if(field == IVAL) {
       printf("%d ",head->ival);
     }
@@ -214,7 +220,7 @@ void show_Lis(No* head, Field field) {
         printf("<%s> ",head->tname /*, head->ival */);
     }
     else {
-      printf("u should not pass ");
+      printf("u should not pass \n");
     }   
     head = head->n;
   }
@@ -290,10 +296,13 @@ char* type2string(Type t) {
     case TYPE_DEF_FUN: return "fun";
     case TYPE_IF: return "if";
     case TYPE_PARAM: return "param";
+    case TYPE_POINTER: return "pointer";
 
   }
 }
-
+static char* t2s(Type t) {
+  return type2string(t);
+}
 void print_reshi(SymEntry* reshi) {
     SymEntry *s;
     SymEntry *nexti;
@@ -311,23 +320,30 @@ void print_reshi(SymEntry* reshi) {
 
 void show_entry(SymEntry* s) {
   printf("%10s %d: %p ", s->escopo, s->tag, s);
-  switch(s->tag) {
-    case TYPE_FLOAT:
-      printf("< float, %s >", s->id);
-      break;
-    case TYPE_INT:
-      printf("< int, %s >", s->id);
-      break;
-    case TYPE_DECL_FUN: case TYPE_DEF_FUN:
-      printf("< fun(%s), %s>", type2string(s->type), s->id);
-      break;    
-    case TYPE_PARAM:
-      printf("< param, %s, %s>", s->id, type2string(s->type));
-      break;
-    // case TYPE_MAT_FLOAT: case TYPE_MAT_INT:
-    //   printf("< mat(float), %s>",  s->id);
-    //   break;
-    
+  int classType = Type_Class(s->tag); 
+  if(classType == TYPE_MAT) {
+    printf("< %s, %s >", 
+      t2s(s->tag == TYPE_INT ? TYPE_MAT_INT : TYPE_MAT_FLOAT) ,s->id);
+  }
+  else {
+    switch(s->tag) {
+      case TYPE_FLOAT:
+        printf("< float, %s >", s->id);
+        break;
+      case TYPE_INT:
+        printf("< int, %s >", s->id);
+        break;
+      case TYPE_DECL_FUN: case TYPE_DEF_FUN:
+        printf("< fun(%s), %s>", type2string(s->type), s->id);
+        break;    
+      case TYPE_PARAM:
+        printf("< param, %s, %s>", s->id, type2string(s->type));
+        break;
+      // case TYPE_MAT_FLOAT: case TYPE_MAT_INT:
+      //   printf("< mat(float), %s>",  s->id);
+      //   break;
+      
+    }
   }
   printf("\t(%p)l. %d, c. %d\n", s,s->local.line, s->local.col);
 }
