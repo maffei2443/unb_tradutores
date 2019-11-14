@@ -50,7 +50,7 @@ void link_symentry_no(SymEntry* sym, No* no) {
 // - expressão mal formada como por exemplo divisão de 
 // escalar por matriz
 Type bin_expr_type(Type left, Type right, int op) {
-  printf("\n[bin_expr_type] tipos:  = %s <%c> %s\n", type2string(left),op, type2string(right));
+  printf("\n[bin_expr_type] tipos:  = %s <<%c>> %s\n", type2string(left),op, type2string(right));
   Type leftClass = Type_Class(left);
   Type rightClass = Type_Class(right);
   if(left == TYPE_UNDEFINED || right == TYPE_UNDEFINED) return TYPE_UNDEFINED;// erro de inicializacao...
@@ -58,7 +58,6 @@ Type bin_expr_type(Type left, Type right, int op) {
   else if(leftClass == TYPE_ARRAY || rightClass == TYPE_ARRAY) return TYPE_UNDEFINED;
   // NAO SE PODE OPERAR SOBRE ARRAYS.
   printf("**** %s %s\n\n", type2string(leftClass), type2string(rightClass));  
-  printf("**** %d\n\n", leftClass == TYPE_SCALAR && rightClass == TYPE_MAT );  
   switch (op)  {
     case '%': 
       if(left == right && left == TYPE_INT) return TYPE_INT;
@@ -75,20 +74,18 @@ Type bin_expr_type(Type left, Type right, int op) {
       else return TYPE_UNDEFINED;
     case '/':
       if(leftClass == rightClass) max(left, right);
-      else if(left == TYPE_MAT && right ==  TYPE_SCALAR ) return left;
+      else if(leftClass == TYPE_MAT && rightClass ==  TYPE_SCALAR ) return left;
       else return TYPE_UNDEFINED;
     case '@':
       if(leftClass == TYPE_MAT && rightClass == TYPE_MAT) return max(left, right);
       else return TYPE_UNDEFINED;
       /* code */
     case MAT_POW:
-      if((left == TYPE_MAT_INT || left == TYPE_MAT_FLOAT)
-        && (right == TYPE_INT || right == TYPE_FLOAT)) {
-        return left == TYPE_MAT_INT ? TYPE_MAT_INT : TYPE_MAT_FLOAT;
+      if(leftClass == TYPE_MAT && rightClass == TYPE_SCALAR) {
+        return right;
       }
       else
         return TYPE_UNDEFINED;
-
     case EQ:  case NEQ:
     case GE:  case LE:
     case '<':  case '>':
