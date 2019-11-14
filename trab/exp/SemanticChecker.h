@@ -3,7 +3,7 @@
 #include "Tree.h"
 
 int match_paramList(No* , No*);
-void link_symentry_no(SymEntry* sym, No* no);
+void link_symentry_no(SymEntry** sym, No** no);
 Type bin_expr_type(Type left, Type right, int op);
 SymEntry* add_entry(SymEntry** reshi, char* id, int tag);
 SymEntry* last_decl(SymEntry** reshi, char* id);

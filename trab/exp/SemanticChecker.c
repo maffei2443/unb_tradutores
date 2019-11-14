@@ -20,25 +20,26 @@ int match_paramList(No* oldParam, No* param) {
   // printf("oldParam: %p vs param: %p\n", oldParam, param);
   // printf("oldParam: %s vs param: %s OK\n", type2string(oldParam->type), type2string(no->type));
   printf("%s vs %s\n", type2string(oldParam->type), type2string(param->type));
+  printf("%s vs %s\n", oldParam->sval, param->sval);
   while (oldParam && param){
     if(oldParam->type != param->type)
       break;
     else {
-      free(oldParam->sval);
-      oldParam->sval = calloc(strlen(param->symEntry->id)+1, sizeof(char));
-      memcpy(oldParam->sval, param->symEntry->id, strlen(param->symEntry->id));
-      memcpy(oldParam->sval, param->symEntry->id, strlen(param->symEntry->id));
+      printf("pametro igual!\n");
+      // Alterar os ponteiros por fora, aqui nao estah dando nada certo.
     }
     oldParam = oldParam->nextAux;
     param = param->nextAux;
   }
+  printf("OK, FOI mach_paramList\n");
   return !oldParam && !param;
 }
 
 
-void link_symentry_no(SymEntry* sym, No* no) {
-  sym->astNode = no;
-  no->symEntry = sym;
+void link_symentry_no(SymEntry** sym, No** no) {
+  (*sym)->astNode = *no;
+  (*no)->symEntry = *sym;
+  fprintf(stderr, "\t[link_symentry_no]\t %p %p\n", *sym, *no);
 }
 
 //  Retorna TYPE_UNDEFINED nos casos:
@@ -136,6 +137,7 @@ SymEntry* was_declared(SymEntry** reshi, char* id){
 
 SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
     SymEntry* neoEntry = NULL;
+    fprintf(stderr,"tegi: %s\n", type2string(tag));
     HASH_FIND_STR((*reshi), id, neoEntry);/* id already in the hash? */
     if (neoEntry == NULL) {
       neoEntry = SymEntry_New(id, tag, currScope);
@@ -154,9 +156,13 @@ SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
           return NULL;
         }
       }
-      if( /* 0 &&  */strcmp(id, neoEntry->id) == 0 && !strcmp(currScope, neoEntry->escopo) ) {          
-        printf("[Semantico2] Erro: redeclaracao de %s:%s em l.%d, r.%d\n",
-          currScope, id, neoEntry->local.line, neoEntry->local.col);
+      if( strcmp(id, neoEntry->id) == 0 && !strcmp(currScope, neoEntry->escopo) ) {          
+        if(tag == TYPE_DEF_FUN && neoEntry->tag == TYPE_DECL_FUN) {
+          printf("Caso especial de declaracao previa de %s\n", id);
+        }
+        else
+          printf("[Semantico2] Erro: redeclaracao de %s:%s em l.%d, r.%d\n",
+            currScope, id, neoEntry->local.line, neoEntry->local.col);
         return NULL;
       }
       else {

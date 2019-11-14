@@ -1,4 +1,4 @@
-ahead int main(int a);
-int main(int a){
+ahead int main();
+int main(){
 
 }

@@ -46,6 +46,7 @@ No* No_New(int v) {
   no->tname = NULL; no->tname_alloc = 0;
   no->symEntry = NULL;
   no->nextAux = NULL;
+  no->param = NULL;
   // no->scope = NULL; no->scope_alloc = 0; 
   no->isToken = 0;
   no->hasAux = 0;
@@ -78,7 +79,7 @@ void No_Destroy(No* no) {
   assert(!(no->hasAux == 1 && no->n != NULL));
   no->n = NULL;
   no->child = NULL; no -> childLast = NULL;
-  no->nextAux = NULL;
+  no->nextAux = NULL; no->param = NULL;
   if(no->sval == NULL && no->sval_alloc)
     DESTROY_PTR(no->sval);
   if(no->tname == NULL && no->tname_alloc)
@@ -301,7 +302,6 @@ char* type2string(Type t) {
     case TYPE_IF: return "if";
     case TYPE_PARAM: return "param";
     case TYPE_POINTER: return "pointer";
-
   }
 }
 static char* t2s(Type t) {

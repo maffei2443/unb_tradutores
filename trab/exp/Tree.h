@@ -104,6 +104,7 @@ typedef struct No {
   struct No * childLast;
   struct No * n;
   struct No * nextAux;
+  struct No * param;  // usado apenas por entradas representando FUNCOES
   SymEntry* symEntry;
 
   char* sval;

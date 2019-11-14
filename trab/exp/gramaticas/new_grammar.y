@@ -56,6 +56,7 @@ int decl_fun_rule = 0;
 int def_fun_rule = 0;
 int declared_curr_fun = 0;
 int check_parameters = 0;
+int err = 0;
 %}
 %define parse.error verbose
 %define parse.lac none
@@ -134,26 +135,42 @@ declFun : AHEAD BASE_TYPE ID {
   decl_fun_rule = 1;
   SymEntry* tmp = last_decl(&reshi, $ID);
   if( !tmp ) {
-    SymEntry* neoEntry = add_entry(&reshi, $ID, TYPE_DECL_FUN);
-    neoEntry->tag = $BASE_TYPE;
+    printf("DEVE ADICIONAR %s como declaracao de funcao\n", $ID);
+    add_entry(&reshi, $ID, TYPE_DECL_FUN);
+    err = 0;    
   }
   else {
-    printf("%s nao pode ser definido pois jah foi declarado em l.%d, c.%d\n", tmp->id, tmp->local.line, tmp->local.col);
+    printf("[Semantico] |%s| nao pode ser declarado pois jah o foi em l.%d, c.%d\n", tmp->id, tmp->local.line, tmp->local.col);
   }
   currScope = $ID;
 } '(' paramListVoid ')' {
+  MAKE_NODE(declFun);
   SymEntry* tmp;
   HASH_FIND_STR(reshi, $ID, tmp);
-  tmp->tag = TYPE_DECL_FUN;
-  tmp->type = $BASE_TYPE;
 
-  MAKE_NODE(declFun);
+  if(!tmp) {
+    printf("tmp is NULL\n");
+  }
+  else if(!err) {
+    link_symentry_no(&tmp, &$$);
+    err = 0;
+  }
+  if(tmp) {
+    tmp->tag = TYPE_DECL_FUN;
+    tmp->type = $BASE_TYPE;
+  }
   
   add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
   add_Node_Child_If_Not_Null($$, Token_New(STR(ID), $ID));
-  printf("[%s] foi pre-declarada!\n", $ID);
-  free($ID), $ID = NULL;
+  printf("[%s] pre-declarou-se!\n", $ID);
   add_Node_Child_If_Not_Null($$, $paramListVoid);
+  
+  $$->param = $paramListVoid;
+  link_symentry_no(&tmp, &$declFun);
+  // if ($$->param) {
+  //   printf("primeiro parametro de %s: %s\n", $ID, $$->param->sval);
+  // }
+  free($ID), $ID = NULL;
   currScope = GLOBAL_SCOPE;
   decl_fun_rule = 0;
 }
@@ -176,7 +193,7 @@ typeAndNameSign : BASE_TYPE ID {
   // printf("[typeAndNameSign : BASE_TYPE ID] neoEntry->tag: %s\n", type2string(neoEntry->tag));
   // printf("[typeAndNameSign : BASE_TYPE ID] neoEntry->type: %s\n", type2string(neoEntry->type));
   MAKE_NODE(typeAndNameSign);
-  link_symentry_no(neoEntry, $$);
+  link_symentry_no(&neoEntry, &$$);
   
   add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
@@ -187,7 +204,7 @@ typeAndNameSign : BASE_TYPE ID {
   SymEntry* neoEntry = add_entry(&reshi, $ID, $BASE_TYPE == TYPE_INT ? TYPE_ARRAY_INT : TYPE_ARRAY_FLOAT);
   neoEntry->type = neoEntry->tag;
   MAKE_NODE(typeAndNameSign);
-  link_symentry_no(neoEntry, $$);
+  link_symentry_no(&neoEntry, &$$);
 
   add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
@@ -203,7 +220,7 @@ typeAndNameSign : BASE_TYPE ID {
   SymEntry* neoEntry = add_entry(&reshi, $ID, $BASE_TYPE == TYPE_INT ? TYPE_MAT_INT : TYPE_MAT_FLOAT);
   neoEntry->type = neoEntry->tag;
   MAKE_NODE(typeAndNameSign);
-  link_symentry_no(neoEntry, $$);
+  link_symentry_no(&neoEntry, &$$);
 
   MAKE_NODE(typeAndNameSign);
   add_Node_Child_If_Not_Null($$, Token_New("MAT_TYPE", "mat"));
@@ -254,25 +271,21 @@ paramList : paramList ',' param {
 
 param : BASE_TYPE ID {
   $$ = Token_New(STR(param), $ID);
-  if(decl_fun_rule) {
-    printf("OPA! se a funcao jah foi declarada, nao tem motivo pra mudar.\n");
-  }
-  SymEntry* neoEntry = add_entry(&reshi, $ID, TYPE_PARAM);
-  if(neoEntry) {
-    neoEntry->type =  $BASE_TYPE;
-    $$->type =  $BASE_TYPE;
-    PARAM_RPT_NAME_CHECK(-1, 0);
-    link_symentry_no(neoEntry, $$);
+  SymEntry* funEntry = last_decl(&reshi, $ID);
+  printf("!!! %p, %s: param @@@\n", funEntry, $ID);
+  if(!declared_curr_fun) {
+    SymEntry* neoEntry = add_entry(&reshi, $ID, TYPE_PARAM);
+    if(neoEntry) {
+      neoEntry->type =  $BASE_TYPE;
+      $$->type =  $BASE_TYPE;
+      PARAM_RPT_NAME_CHECK(-1, 0);
+      link_symentry_no(&neoEntry, &$$);
+    }
   }
   else {
-    neoEntry = last_decl(&reshi, $ID);
-    if(neoEntry->type == $BASE_TYPE) {
-      printf("GG, para 1 arg apenas\n");
-    }
-    else {
-      printf(".........\n");
-    }
+    printf("1296 !!!\n");
   }
+  $$->type = $BASE_TYPE;
   free($ID), $ID = NULL;
 }
 | BASE_TYPE ID '[' ']' {
@@ -288,7 +301,7 @@ param : BASE_TYPE ID {
     abort();
   }
   $$->type = $BASE_TYPE;
-  link_symentry_no(neoEntry, $$);
+  link_symentry_no(&neoEntry, &$$);
   free($ID), $ID = NULL;
 }
 
@@ -304,7 +317,8 @@ param : BASE_TYPE ID {
     printf("BASE_TYPE deve ser apenas TYPE_INT ou TYPE_FLOAT\n");
     abort();
   }
-  link_symentry_no(neoEntry, $$);  
+  if(neoEntry)
+    link_symentry_no(&neoEntry, &$$);  
   free($ID), $ID = NULL;
 }
 
@@ -417,19 +431,17 @@ defFun : BASE_TYPE ID '('{
   // NAO PODE SER FEITA AQUI
   printf("lastDecl: (%p)\n", old);
   if(old) {
-    if(old->tag == TYPE_DEF_FUN) {
-      if(old->def_fun){
-        printf("[defFun-Semantico] Funcao %s jah foi definida em l.%d, c.%d\n",
-        old->id, old->local.line, old->local.col);
-      }
-      else {
-        printf("NAO EHRA PRA ENTRAR AUI!\n");
-        // PODE SER QUE FUNCAO TENHA ASSINATURA DIFERENTE!        
-        check_signature = 1;
-      }
+    if(old->def_fun) {
+      printf("[defFun-Semantico] Funcao %s jah foi definida em l.%d, c.%d\n",
+      old->id, old->local.line, old->local.col);
+    }
+    else if(old->tag == TYPE_DECL_FUN) {
+      fprintf(stderr, "Funcao %s foi pre-declarada\n", old->id);
+      check_signature = 1;
+      declared_curr_fun = 1;
     }
     else {
-      fprintf(stderr, "Funcao %s foi pre-declarada\n", old->id);
+      fprintf(stderr,"Jah tem variavel com esse nome :/\n");
     }
   }
   else {
@@ -440,23 +452,23 @@ defFun : BASE_TYPE ID '('{
   }
   currScope = $ID;
 } paramListVoid ')' '{' declList localStmtList '}' {
-  if(check_signature) {  
-    // abort();  
-    printf("ahhhh\n");
+  if(check_signature) {   
+    fprintf(stderr,"Checando assinatura de %s\n", $ID);
     currScope = GLOBAL_SCOPE;
     SymEntry* entry = last_decl(&reshi, $ID);
     // assert(entry != NULL);  // se der NULL, algo deu errado pois a funcao jah era pra estar na symTable
     if(entry) {
-      // Checar se jah foi definida; se sim, erro
       if(entry->def_fun) {
         mensagem_redeclaracao(entry);
         $$ = NULL;
       }
       else {
-        int match = match_paramList(entry->astNode, $paramListVoid);
+        fprintf(stderr,"entry->astNode: %p, $paramListVoid: %p \n", entry->astNode, $paramListVoid);
+        int match = match_paramList(entry->astNode->param, $paramListVoid);
         if(match > 0){
-          SymEntry* neoEntry = add_entry(&reshi, $ID, TYPE_DEF_FUN);
-          neoEntry->type = $BASE_TYPE;      
+          printf("DEFINICAO de %s BATE COM DECLARACAO!\n", $ID);
+          // SymEntry* neoEntry = add_entry(&reshi, $ID, TYPE_DEF_FUN);
+          // neoEntry->type = $BASE_TYPE;
         }
         else {
           printf("Lista de parametros de %s incompativel com sua declaracao!\n", $ID);
@@ -465,7 +477,8 @@ defFun : BASE_TYPE ID '('{
     }
     currScope = GLOBAL_SCOPE;
     check_signature = 0;
-    $$ = NULL;
+    declared_curr_fun = 0;
+    // $$ = NULL;
   }
   
   MAKE_NODE(defFun);
@@ -792,7 +805,7 @@ lvalue : ID {
     else {
       tok->type = entry->type;
       $$->type = entry->type;
-      link_symentry_no(entry, tok);
+      link_symentry_no(&entry, &tok);
     }
   }
   else {
