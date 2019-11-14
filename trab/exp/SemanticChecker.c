@@ -47,6 +47,8 @@ enum _yytokentype
 // UNTIL HERE
 
 
+
+
 //  Retorna TYPE_UNDEFINED nos casos:
 // - left/right ser TYPE_UNDEFINED
 // - left/right ser TYPE_VOID
