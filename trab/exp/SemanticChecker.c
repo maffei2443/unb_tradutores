@@ -9,14 +9,24 @@ int gambs_tam = 0;
 int gambs_qtd = 0;
 
 SymEntry** gambs;
-
+// Retorna 1 se a lista da match.
+// -2 se ambos sao NULL
+// -1 se noh eh NULL
+// TODO: FIX IT
 int match_paramList(SymEntry* sym, No* no) {
-  if(!sym || !no) return -1;
+  if(!sym && !no) return -2;
+  if(!no) return -1;
   No* oldParam = sym->astNode;
   No* param = no;
   while (oldParam && param){
     if(oldParam->type != param->type)
       break;
+    else {
+      free(oldParam->sval);
+      oldParam->sval = calloc(strlen(param->symEntry->id)+1, sizeof(char));
+      memcpy(oldParam->sval, param->symEntry->id, strlen(param->symEntry->id));
+      memcpy(oldParam->sval, param->symEntry->id, strlen(param->symEntry->id));
+    }
     oldParam = oldParam->nextAux;
     param = param->nextAux;
   }

@@ -65,20 +65,20 @@ typedef enum {
   TYPE_ARRAY = 9,
   TYPE_MAT_INT = 16,
   TYPE_MAT_FLOAT = 32,
-  TYPE_MAT = 33
+  TYPE_MAT = 33,
+  TYPE_FUN = 60,
+  TYPE_IF = 61,
+  TYPE_PARAM = 62
 }Type;
 
 // Indica TIPO DA REGRA da entrada de simbolos
-typedef enum {
-  HINT, HFLOAT, HID, HFUN, HPARAM
-} _HASH_TYPES;
 
 typedef struct SymEntry{
   char id[257];
-  _HASH_TYPES tag;
-  Local local;
+  Type tag;
+  Type type;  // nao ideal, MAS fica mais facil...
   char* escopo;
-  Type type;
+  Local local;
   char def_fun;
 
   union {

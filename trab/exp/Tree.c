@@ -239,7 +239,7 @@ int ListSize(No* no) {
 
 // Estava em common
 SymEntry* SymEntry_New(char* id, int tag, char* escopo){
-  SymEntry* neo = (SymEntry*)calloc( sizeof(SymEntry), 1);
+  SymEntry* neo = (SymEntry*)calloc(sizeof(SymEntry), 1);
   
   memcpy(neo->id, id, strlen(id)+1); neo->id[strlen(id)+1] = '\0';
   neo->tag = tag;
@@ -258,7 +258,7 @@ SymEntry* SymEntry_New(char* id, int tag, char* escopo){
 void* SymEntry_Destroy(void* p){
   SymEntry* sym = (SymEntry*)p;
   if(!sym) return NULL;
-  if(sym->tag == HFUN) {
+  if(sym->tag == TYPE_FUN) {
     // trata-se se funcao! liberar portanto
     // a lista de nohs que compoem sua assinatura
     free_Lis(sym->u.func.next); sym->u.func.next = NULL;
@@ -299,25 +299,24 @@ void print_reshi(SymEntry* reshi) {
 }
 
 void show_entry(SymEntry* s) {
-  printf("%10s: ", s->escopo);
+  printf("%10s %d: %p ", s->escopo, s->tag, s);
   switch(s->tag) {
-    case HFLOAT:
+    case TYPE_FLOAT:
       printf("< float, %s >", s->id);
-      printf("\tVal: %f", s->u.fval);
       break;
-    case HINT:
+    case TYPE_INT:
       printf("< int, %s >", s->id);
-      printf("\tVal: %d", s->u.ival);
       break;
-    case HID:
-      printf("< id ,%s >", s->id);
+    case TYPE_FUN:
+      printf("< fun(%s), %s>", type2string(s->type), s->id);
+      break;    
+    case TYPE_PARAM:
+      printf("< param, %s, %s>", s->id, type2string(s->type));
       break;
-    case HFUN:
-      printf("<fun, %s, %s>", s->id, type2string(s->type));
+    case TYPE_MAT_FLOAT: case TYPE_MAT_INT:
+      printf("< mat(float), %s>",  s->id);
       break;
-    case HPARAM:
-      printf("<param, %s, %s>", s->id, type2string(s->type));
-      break;
+    
   }
   printf("\t(%p)l. %d, c. %d\n", s,s->local.line, s->local.col);
 }

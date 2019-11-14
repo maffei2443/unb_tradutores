@@ -25,7 +25,7 @@
   else {\
     neoEntry->type = yyvsp[__baseType].type;\
     yyval.no->type = yyvsp[__baseType].type;\
-    neoEntry->tag = HPARAM;\
+    neoEntry->tag = TYPE_PARAM;\
   }
 
 #include "Tree.h" // importante
@@ -140,7 +140,7 @@ declFun : AHEAD BASE_TYPE ID {
   decl_fun = 1;
   SymEntry* tmp = was_declared(&reshi, $ID);
   if( !tmp ) {
-    SymEntry* neoEntry = add_entry(&reshi, $ID, HFUN);
+    SymEntry* neoEntry = add_entry(&reshi, $ID, TYPE_FUN);
     neoEntry->tag = $BASE_TYPE;
   }
   else {
@@ -150,7 +150,7 @@ declFun : AHEAD BASE_TYPE ID {
 } '(' paramListVoid ')' {
   SymEntry* tmp;
   HASH_FIND_STR(reshi, $ID, tmp);
-  tmp->tag = HFUN;
+  tmp->tag = TYPE_FUN;
   tmp->type = $BASE_TYPE;
 
   MAKE_NODE(declFun);
@@ -166,12 +166,10 @@ declFun : AHEAD BASE_TYPE ID {
 
 typeAndNameSign : BASE_TYPE ID {
   SymEntry* neoEntry = add_entry(&reshi, $ID, $BASE_TYPE);
-
-  // printf("[typeAndNameSign] BASE_TYPE *ID* \n");
+  printf("[typeAndNameSign] %p\n", neoEntry);
+  printf("[typeAndNameSign->tag] %s\n", type2string(neoEntry->tag));
   MAKE_NODE(typeAndNameSign);
-  $$->ival = 0;
-  printf(" >>>>>> %s\n", type2string($BASE_TYPE));
-  printf(" ------ %s\n", $ID);
+  link_symentry_no(neoEntry, $$);
   
   add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
@@ -210,7 +208,7 @@ typeAndNameSign : BASE_TYPE ID {
   add_Node_Child_If_Not_Null($$, $8);  
 }
 
-declOrdeclInitVar : typeAndNameSign ';'
+declOrdeclInitVar : typeAndNameSign ';' {}
 | typeAndNameSign '=' rvalue ';' {
   MAKE_NODE(declOrdeclInitVar);
   add_Node_Child_If_Not_Null($$, $typeAndNameSign);
@@ -241,14 +239,14 @@ paramList : paramList ',' param {
 
 param : BASE_TYPE ID {
   $$ = Token_New(STR(param), $ID);
-  SymEntry* neoEntry = add_entry(&reshi, $ID, HID);
+  SymEntry* neoEntry = add_entry(&reshi, $ID, TYPE_PARAM);
   PARAM_RPT_NAME_CHECK(-1, 0);
   link_symentry_no(neoEntry, $$);
   free($ID), $ID = NULL;
 }
 | BASE_TYPE ID '[' ']' {
   $$ = Token_New(STR(param), $ID);
-  SymEntry* neoEntry = add_entry(&reshi, $ID, HID);
+  SymEntry* neoEntry = add_entry(&reshi, $ID, TYPE_PARAM );
   // SEMANTICO
   PARAM_RPT_NAME_CHECK(-3, -2);
   
@@ -264,7 +262,7 @@ param : BASE_TYPE ID {
 }
 | MAT_TYPE BASE_TYPE ID {
   $param = Token_New(STR(param), $ID);
-  SymEntry* neoEntry = add_entry(&reshi, $ID, HID);
+  SymEntry* neoEntry = add_entry(&reshi, $ID, TYPE_PARAM);
   // Semantico
   PARAM_RPT_NAME_CHECK(-1, 0);
 
@@ -274,7 +272,6 @@ param : BASE_TYPE ID {
     printf("BASE_TYPE deve ser apenas TYPE_INT ou TYPE_FLOAT\n");
     abort();
   }
-  $$->type = neoEntry->type;
   link_symentry_no(neoEntry, $$);  
   free($ID), $ID = NULL;
 }
@@ -381,9 +378,9 @@ defFun : BASE_TYPE ID '('{
   def_fun = 1;
   SymEntry* old = was_declared(&reshi, $ID);
   if(old) {
-    if(old->tag == HFUN) {
+    if(old->tag == TYPE_FUN) {
       if(old->def_fun){
-        printf("[Semantico] Funcao %s jah foi definida em l.%d, c.%d",
+        printf("[Semantico] Funcao %s jah foi definida em l.%d, c.%d\n",
         old->id, old->local.line, old->local.col);
       }
       else {
@@ -391,16 +388,21 @@ defFun : BASE_TYPE ID '('{
         check_signature = 1;
       }
     }
+    else {
+      printf("[Semantico] Identificador %s jah foi definida em l.%d, c.%d como nao-funcao!\n",
+        old->id, old->local.line, old->local.col);
+    }
   }
   else {
-    SymEntry* neoEntry = add_entry(&reshi, $ID, HFUN);
+    SymEntry* neoEntry = add_entry(&reshi, $ID, TYPE_FUN);
     neoEntry->type = $BASE_TYPE;
   }
   currScope = $ID;
 } paramListVoid ')' {
   if(check_signature) {
+    printf("ADD O CAO\n");
     if(match_paramList(was_declared(&reshi, $ID), $paramListVoid) > 0){
-      SymEntry* neoEntry = add_entry(&reshi, $ID, HFUN);
+      SymEntry* neoEntry = add_entry(&reshi, $ID, TYPE_FUN);
       neoEntry->type = $BASE_TYPE;      
     }
     else {
@@ -412,7 +414,7 @@ defFun : BASE_TYPE ID '('{
   
   SymEntry* tmp;
   HASH_FIND_STR(reshi, $ID, tmp);
-  tmp->tag = HFUN;
+  tmp->tag = TYPE_FUN;
   tmp->type = $BASE_TYPE;
   MAKE_NODE(defFun);
   No* _BASE_TYPE = Token_New(STR(BASE_TYPE), type2string($BASE_TYPE));
@@ -625,7 +627,7 @@ call : ID '(' argList ')' {
     printf("Funcao %s, l.%d c.%lu nao declarada!\n", $ID, numlines, currCol - (strlen($ID) + 2));
   }
   else {
-    if(aux->tag != HFUN) {
+    if(aux->tag != TYPE_FUN) {
       printf("%s nao eh uma funcao.\n", aux->id);
     }
   }
@@ -639,7 +641,7 @@ call : ID '(' argList ')' {
     printf("Funcao %s, l.%d c.%lu nao declarada!\n", $ID, numlines, currCol - (strlen($ID) + 2));
   }
   else {
-    if(aux->tag != HFUN) {
+    if(aux->tag != TYPE_FUN) {
       printf("%s nao eh uma funcao.\n", aux->id);
     }
   }
@@ -698,7 +700,7 @@ lvalue : ID {
   // SEMANTICO    
   SymEntry* entry = was_declared(&reshi, $ID);
   if(entry) {
-    if(entry->tag == HFUN ) {
+    if(entry->tag == TYPE_FUN ) {
       printf("Identificador %s, l.%d c.%lu DECLARADO PREVIAMENTE como funcao em l.%d, c.%d!\n",
        $ID, numlines, currCol - (strlen($ID) + 2), entry->local.line, entry->local.col);
     }
