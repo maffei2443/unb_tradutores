@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include "Array.h"
 #include "uthash.h"
+#include <assert.h>
 
 #define ptfi(str, val) printf(str " %d\n",  (val))
 #define DESTROY_PTR(ptr) {free(ptr);ptr = NULL;}
@@ -100,18 +101,18 @@ typedef struct No {
   SymEntry* symEntry;
   // 
   char* sval;
+  int ival;
+  float fval;
   
   //  Indica tipo do no (ex: expr, param, loop...)
   char* tname;        
-  
+  char is_const;
   char sval_alloc;
   char tname_alloc;
   Type type;
   // char* scope; char scope_alloc;
   char isToken;    // nesse modo, usa-se mesmo noh para token e regra
   char hasAux;
-  int ival;
-  float fval;
 } No;
 
 Type Type_Class(Type type);
@@ -152,4 +153,11 @@ void free_All_Child(No * no) ;
 // NAO TESTADO AINDA
 int show_Sub_Tree(No* no, int lvl, Field field);
 int ListSize(No* no);
+
+
+// Should include another header except the default-ones
+// extern int MAT_POW, EQ, NEQ, GE, LE, AND, OR;
+SymEntry* SymEntry_New(char* id, int tag, char*);
+void* SymEntry_Destroy(void*);
+char* type2string(Type t);
 #endif

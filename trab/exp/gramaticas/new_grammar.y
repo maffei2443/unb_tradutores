@@ -1,6 +1,5 @@
 %code requires {
   #include "Tree.h"
-  #include "Common.h"
   No* root;
   struct {
     int ival;
@@ -12,14 +11,14 @@
 
 %{
 
-#define STR(x) #x 
+#define STR(x) #x
 #define INITNODE(x) \
-  yyval.no = No_New(nodeCounter++); \
-  if(!yyval.no) abort(); \
+  yyval.no = No_New(nodeCounter++);\
+  if(!yyval.no) abort();\
   yyval.no->tname =  x  ;
 #define MAKE_NODE(x) INITNODE(STR(x))
 #define  GLOBAL_SCOPE "0global"
-#include "Common.h"
+#include "Tree.h" // importante
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -38,12 +37,13 @@ unsigned nodeCounter;
 
 static int gambs_tam = 0;
 static int gambs_qtd = 0;
+
 SymEntry* reshi;
 SymEntry** gambs;
 char* currScope = NULL;
 void addToDel(SymEntry** p) {
   if(gambs_qtd  >= gambs_tam) {
-    gambs_tam = 2 * (gambs_tam + 1);    
+    gambs_tam = 2 * (gambs_tam + 1);
     gambs = (SymEntry**)realloc(gambs, gambs_tam*sizeof(SymEntry*));
   }
   gambs[gambs_qtd] = *p;
@@ -54,7 +54,7 @@ void addToDel(SymEntry** p) {
 
 void delGambs() {
   printf("QTD : %d\n", gambs_qtd);
-  for(int i = 0; i < gambs_qtd; i++){
+  for(int i = 0;i < gambs_qtd;i++){
     printf("id: %s\n", (gambs[i])->id);
     SymEntry_Destroy(gambs[i]);
     gambs[i] = NULL;
@@ -65,18 +65,17 @@ void delGambs() {
 
 SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
     SymEntry* newEntry = NULL;
-    HASH_FIND_STR((*reshi), id, newEntry);  /* id already in the hash? */
+    HASH_FIND_STR((*reshi), id, newEntry);/* id already in the hash? */
     if (newEntry == NULL) {
       newEntry = SymEntry_New(id, tag, currScope);
       newEntry->local.line = numlines;
       newEntry->local.col = currCol;
-      HASH_ADD_STR( (*reshi), id, newEntry );  /* id: name of key field */
+      HASH_ADD_STR( (*reshi), id, newEntry );/* id: name of key field */
       addToDel(&newEntry);
     }
     else {    // Checar se eh declaracao no msm escopo. Se for, nao adiciona e dah pau (retorna NULL);
       printf("Possivel conflito com %s:%s\n", id, newEntry->escopo);
-      for(; newEntry->next; newEntry = newEntry->next) {
-        continue;  // apenas para testar se encadeamento tah ok
+      for(;newEntry->next;newEntry = newEntry->next) {
         if(strcmp(id, newEntry->id) == 0 && strcmp(currScope, newEntry->escopo)) {
           printf("Erro: redeclaracao de %s:%s em l.%d, r.%d\n",
             currScope, id, newEntry->local.line, newEntry->local.col);
@@ -97,28 +96,27 @@ SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
     return newEntry;
 }
 
-// Retorna NULL caso nao o tenha sido; senao,
+// Retorna NULL caso nao o tenha sido;senao,
 // retorna ponteiro para declracao mais prohxima.
 SymEntry* was_declared(SymEntry** reshi, char* id){
   SymEntry* oldEntry = NULL;
   SymEntry* last_same_id = oldEntry;
   HASH_FIND_STR((*reshi), id, oldEntry);
   while( oldEntry ) {
-    if( strcmp(oldEntry->id, id) != 0 ) {   // Se nao eh mesmo nomve, passa pro proximo.
-      oldEntry = oldEntry->next;
-    }
-    else if(strcmp(oldEntry->escopo, currScope) == 0){  // declaracao sob mesmo escopo
+    printf("old: %p, next: %p\n", oldEntry, oldEntry->next);
+    if(strcmp(oldEntry->escopo, currScope) == 0){  // declaracao sob mesmo escopo
       return oldEntry;
     }
     else if(strcmp(oldEntry->escopo, GLOBAL_SCOPE) == 0){  // mesmo nome e escopo global
       last_same_id = oldEntry;
     }
+    oldEntry = oldEntry->next;
   }
   return last_same_id;
 }
 
 void show_entry(SymEntry* s) {
-  printf("%10s: ", s->escopo);        
+  printf("%10s: ", s->escopo);
   switch(s->tag) {
     case HFLOAT:
       printf("< float, %s >", s->id);
@@ -129,7 +127,7 @@ void show_entry(SymEntry* s) {
       printf("\tVal: %d", s->u.ival);
       break;
     case HID:
-      printf("< id ,%s >", s->id);            
+      printf("< id ,%s >", s->id);
       break;
     case HFUN:
       printf("<fun, %s, %s>", s->id, type2string(s->type));
@@ -142,7 +140,7 @@ void print_reshi(void) {
     SymEntry *s;
     SymEntry *nexti;
     printf(">>>>>> TABELA DE SIMBOLOS <<<<<<<\n");
-    for(s=reshi; s != NULL;s = nexti) {
+    for(s=reshi;s != NULL;s = nexti) {
       nexti = s->hh.next;
       show_entry(s);
       while(s->next) {
@@ -193,7 +191,7 @@ void print_reshi(void) {
 %type<no> globalStmtList globalStmt declFun param declOrdeclInitVar paramListVoid 
 %type<no> paramList localStmtList localStmt flowControl 
 %type<no> loop defFun numListList
-%type<no> numList block declList expr call arglist 
+%type<no> numList block declList expr call argList 
 %type<no> arg rvalue lvalue num typeAndNameSign
 
 %type<_id> ID 
@@ -203,7 +201,7 @@ void print_reshi(void) {
 %type<fval> V_FLOAT
 %%
 
-program: globalStmtList {
+program : globalStmtList {
   $$ = $1;
   root = $$;
   printf("Derivacao foi concluida.\n");
@@ -235,8 +233,13 @@ globalStmt : defFun
 | declOrdeclInitVar
 
 declFun : AHEAD BASE_TYPE ID {
-  SymEntry* neoEntry = add_entry(&reshi, $ID, HFUN);
-  neoEntry->tag = $BASE_TYPE;
+  if(! was_declared(&reshi, $ID) ) {
+    SymEntry* neoEntry = add_entry(&reshi, $ID, HFUN);
+    neoEntry->tag = $BASE_TYPE;
+  }
+  else {
+    // TODO: CHECAR SE EXISTE BATEM OS PARAMETROS!
+  }
   currScope = $ID;
 } '(' paramListVoid ')' {
   SymEntry* tmp;
@@ -251,13 +254,17 @@ declFun : AHEAD BASE_TYPE ID {
   free($ID), $ID = NULL;
   add_Node_Child_If_Not_Null($$, $paramListVoid);
   currScope = GLOBAL_SCOPE;
+  // TODO: checar se funcao foi declarado e a QUANTIDADE DE PARAMETROS!.
+  // E os TIPOS de parametros
+
+
 }
 
 
 typeAndNameSign : BASE_TYPE ID {
   SymEntry* neoEntry = add_entry(&reshi, $ID, $BASE_TYPE);
 
-  printf("[typeAndNameSign] BASE_TYPE ID \n");
+  // printf("[typeAndNameSign] BASE_TYPE *ID* \n");
   MAKE_NODE(typeAndNameSign);
   $$->ival = 0;
   printf(" >>>>>> %s\n", type2string($BASE_TYPE));
@@ -265,27 +272,39 @@ typeAndNameSign : BASE_TYPE ID {
   
   add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
-  free($ID); $ID = NULL;
+  free($ID);$ID = NULL;
 }
-| BASE_TYPE ID '[' V_INT ']' {
+| BASE_TYPE ID '[' num ']' {
   SymEntry* neoEntry = add_entry(&reshi, $ID, $BASE_TYPE);
 
   MAKE_NODE(typeAndNameSign);
   $$->ival = 1;
   add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
-  free($ID); $ID = NULL;
-  $$->childLast->ival = $V_INT;
+  // SEMANTICO!
+  if($num->type == TYPE_FLOAT) {
+    printf("[Semantico] ERRO: Indexacao soh pode ser feita com indices inteiros. (%f encontrado)\n", $num->fval);
+  }
+  add_Node_Child_If_Not_Null($$, $num);
+  free($ID);$ID = NULL;
+  // $$->childLast->ival = $V_INT;
 
 }
-| MAT_TYPE BASE_TYPE ID '[' V_INT ']' '[' V_INT ']'{
+| MAT_TYPE BASE_TYPE ID '[' num ']' '[' num ']'{
   MAKE_NODE(typeAndNameSign);
   $$->ival = 1;
   add_Node_Child_If_Not_Null($$, Token_New("MAT_TYPE", "mat"));
-  $$->childLast->ival = $5;
+  if($5->type == TYPE_FLOAT) {
+    printf("[Semantico] ERRO: Indexacao soh pode ser feita com indices inteiros. (%f encontrado)\n", $5->fval);
+  }
+  if($8->type == TYPE_FLOAT) {
+    printf("[Semantico] ERRO: Indexacao soh pode ser feita com indices inteiros. (%f encontrado)\n", $8->fval);
+  }
+
   add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
-  $$->childLast->ival = $8;
+  add_Node_Child_If_Not_Null($$, $5);
+  add_Node_Child_If_Not_Null($$, $8);  
 }
 
 declOrdeclInitVar : typeAndNameSign ';'
@@ -296,43 +315,44 @@ declOrdeclInitVar : typeAndNameSign ';'
 }
 
 paramListVoid : paramList {
-  No* tmp = $1;
-  while(tmp) {
-    printf("...%p", tmp);fflush(stdout);
-    printf("<!>param-sval: %s\n", tmp->sval);
-    tmp = tmp->nextAux;
-  }
-  printf("gg-easy\n"); fflush(stdout);
+  // Usado como auxiliar para criar a lista na ordem correta.
+  $1->childLast = NULL;
   $$ = $1;
 }
 | %empty {$$ = NULL;}
 
 paramList : paramList ',' param {
-  $3->nextAux = $1;
-  $3->hasAux = 1;
-  $$ = $3;
+  // Para mantes a ordem correta dos parametros
+  if(!$1->hasAux) {
+    $1->hasAux = 1;
+    $1->nextAux = $param;
+    $1->childLast = $param;
+  }
+  else {
+    $1->childLast->nextAux = $param;
+    $1->childLast = $param;
+  }
+  $$ = $1;
 }
 | param {
   $$ = $1;
-  $$->hasAux = 0; 
+  $$->hasAux = 0;
 }
 
 param : BASE_TYPE ID {
   $$ = Token_New(STR(param), $ID);
   SymEntry* neoEntry = add_entry(&reshi, $ID, HID);
   neoEntry->type = $BASE_TYPE;
+  $$->type = $BASE_TYPE;
   $param->symEntry = neoEntry;
-  // $$->ival = 0;  
+  // $$->ival = 0;
   // add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
   // add_Node_Child_If_Not_Null($$, Token_New("ID",$ID));
+  
   if(was_declared(&reshi, $ID))
     printf("%s foi declarado\n", $ID);
   else
     printf("%s NAO FOI declarado\n", $ID);
-  if(was_declared(&reshi, "m"))
-    printf("%s foi declarado\n", "m");
-  else
-    printf("%s NAO FOI declarado\n", "m");
   
   free($ID), $ID = NULL;
 
@@ -351,6 +371,7 @@ param : BASE_TYPE ID {
     printf("BASE_TYPE deve ser apenas TYPE_INT ou TYPE_FLOAT\n");
     abort();
   }
+  $$->type = $BASE_TYPE;
   $param->symEntry = neoEntry;
   free($ID), $ID = NULL;
 }
@@ -367,6 +388,7 @@ param : BASE_TYPE ID {
     printf("BASE_TYPE deve ser apenas TYPE_INT ou TYPE_FLOAT\n");
     abort();
   }
+  $$->type = neoEntry->type;
   $param->symEntry = neoEntry;
   free($ID), $ID = NULL;
 }
@@ -481,7 +503,7 @@ defFun : BASE_TYPE ID '('{
   MAKE_NODE(defFun);
   No* _BASE_TYPE = Token_New(STR(BASE_TYPE), type2string($BASE_TYPE));
   No* _ID = Token_New(STR(ID), $ID);
-  free($ID); $ID = NULL;
+  free($ID);$ID = NULL;
   add_Node_Child_If_Not_Null($$, _BASE_TYPE);
   add_Node_Child_If_Not_Null($$, _ID);
   if($paramListVoid)
@@ -528,7 +550,7 @@ declList : declList declOrdeclInitVar {
 }
 
 expr : expr '+' expr {
-  MAKE_NODE(expr); 
+  MAKE_NODE(expr);
   $$->ival = '+';
   
   add_Node_Child_If_Not_Null($$, $1);
@@ -537,115 +559,115 @@ expr : expr '+' expr {
   $$->type = bin_expr_type( $1->type, $3->type, '+');
 }
 | expr '-' expr {
-  MAKE_NODE(expr); 
-  $$->ival = '-'; 
-  add_Node_Child_If_Not_Null($$, $1); 
-  add_Node_Child_If_Not_Null($$, $3);  
+  MAKE_NODE(expr);
+  $$->ival = '-';
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
   // SEMANTICO
   $$->type = bin_expr_type( $1->type, $3->type, '-');
 }
 | expr '*' expr {
-  MAKE_NODE(expr); 
-  $$->ival = '*'; 
-  add_Node_Child_If_Not_Null($$, $1); 
-  add_Node_Child_If_Not_Null($$, $3);  
+  MAKE_NODE(expr);
+  $$->ival = '*';
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
   // SEMANTICO
   $$->type = bin_expr_type( $1->type, $3->type, '*');
 
 }
 | expr '/' expr {
-  MAKE_NODE(expr); 
-  $$->ival = '/'; 
-  add_Node_Child_If_Not_Null($$, $1); 
-  add_Node_Child_If_Not_Null($$, $3);  
+  MAKE_NODE(expr);
+  $$->ival = '/';
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
   // SEMANTICO
   $$->type = bin_expr_type( $1->type, $3->type, '/');
 }
 | expr '%' expr {
-  MAKE_NODE(expr); 
-  $$->ival = '%'; 
-  add_Node_Child_If_Not_Null($$, $1); 
-  add_Node_Child_If_Not_Null($$, $3);    
+  MAKE_NODE(expr);
+  $$->ival = '%';
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
   // SEMANTICO
   $$->type = bin_expr_type( $1->type, $3->type, '%');
 }
 | expr '@' expr {
-  MAKE_NODE(expr); 
-  $$->ival = '@'; 
-  add_Node_Child_If_Not_Null($$, $1); 
-  add_Node_Child_If_Not_Null($$, $3);    
+  MAKE_NODE(expr);
+  $$->ival = '@';
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
   // SEMANTICO
   $$->type = bin_expr_type( $1->type, $3->type, '@');
 }
 | expr MAT_POW expr {
-  MAKE_NODE(expr); 
-  $$->ival = MAT_POW; 
-  add_Node_Child_If_Not_Null($$, $1); 
-  add_Node_Child_If_Not_Null($$, $3);    
+  MAKE_NODE(expr);
+  $$->ival = MAT_POW;
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
   // SEMANTICO
   $$->type = bin_expr_type( $1->type, $3->type, MAT_POW);
 }
 | expr EQ expr {
-  MAKE_NODE(expr); 
-  $$->ival = EQ; 
-  add_Node_Child_If_Not_Null($$, $1); 
-  add_Node_Child_If_Not_Null($$, $3);  
+  MAKE_NODE(expr);
+  $$->ival = EQ;
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
   // SEMANTICO
   $$->type = bin_expr_type( $1->type, $3->type, EQ);
 }
 | expr NEQ expr {
-  MAKE_NODE(expr); 
-  $$->ival = NEQ; 
-  add_Node_Child_If_Not_Null($$, $1); 
-  add_Node_Child_If_Not_Null($$, $3);  
+  MAKE_NODE(expr);
+  $$->ival = NEQ;
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
   // SEMANTICO
   $$->type = bin_expr_type( $1->type, $3->type, NEQ);
 }
 | expr GE expr {
-  MAKE_NODE(expr); 
-  $$->ival = GE; 
-  add_Node_Child_If_Not_Null($$, $1); 
-  add_Node_Child_If_Not_Null($$, $3);  
+  MAKE_NODE(expr);
+  $$->ival = GE;
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
   // SEMANTICO
   $$->type = bin_expr_type( $1->type, $3->type, GE);
 }
 | expr LE expr {
-  MAKE_NODE(expr); 
-  $$->ival = LE; 
-  add_Node_Child_If_Not_Null($$, $1); 
-  add_Node_Child_If_Not_Null($$, $3);  
+  MAKE_NODE(expr);
+  $$->ival = LE;
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
   // SEMANTICO
   $$->type = bin_expr_type( $1->type, $3->type, LE);
 }
 | expr '>' expr {
-  MAKE_NODE(expr); 
-  $$->ival = '>'; 
-  add_Node_Child_If_Not_Null($$, $1); 
-  add_Node_Child_If_Not_Null($$, $3);    
+  MAKE_NODE(expr);
+  $$->ival = '>';
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
   // SEMANTICO
   $$->type = bin_expr_type( $1->type, $3->type, '>');
 }
 | expr '<' expr {
-  MAKE_NODE(expr); 
-  $$->ival = '<'; 
-  add_Node_Child_If_Not_Null($$, $1); 
-  add_Node_Child_If_Not_Null($$, $3);    
+  MAKE_NODE(expr);
+  $$->ival = '<';
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
   // SEMANTICO
   $$->type = bin_expr_type( $1->type, $3->type, '<');
 }
 | expr AND expr {
-  MAKE_NODE(expr); 
-  $$->ival = AND; 
-  add_Node_Child_If_Not_Null($$, $1); 
-  add_Node_Child_If_Not_Null($$, $3);  
+  MAKE_NODE(expr);
+  $$->ival = AND;
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
   // SEMANTICO
   $$->type = bin_expr_type( $1->type, $3->type, AND);
 }
 | expr OR expr {
-  MAKE_NODE(expr); 
-  $$->ival = OR; 
-  add_Node_Child_If_Not_Null($$, $1); 
-  add_Node_Child_If_Not_Null($$, $3);  
+  MAKE_NODE(expr);
+  $$->ival = OR;
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
   // SEMANTICO
   $$->type = bin_expr_type( $1->type, $3->type, OR);
 }
@@ -677,14 +699,13 @@ expr : expr '+' expr {
 | call 
 | num 
 
-call : ID '(' arglist ')' {
+call : ID '(' argList ')' {
   MAKE_NODE(call);
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
-  add_Node_Child_If_Not_Null($$, $arglist);
+  add_Node_Child_If_Not_Null($$, $argList);
   // SEMANTICO  
-  // OBS: nao eh muito robusto, pois pode haver um monte de blanks entre os parenteses.
+  // TODO: checar se ID eh mesmo funcao. Depois, checar os PARAMETROS, ver se os tipos batem
   SymEntry* aux = was_declared(&reshi, $ID);
-  
   if(!aux){
     printf("Funcao %s, l.%d c.%lu nao declarada!\n", $ID, numlines, currCol - (strlen($ID) + 2));
   }
@@ -698,7 +719,6 @@ call : ID '(' arglist ')' {
   MAKE_NODE(call);
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
   // SEMANTICO  
-  // OBS: nao eh muito robusto, pois pode haver um monte de blanks entre os parenteses.
   SymEntry* aux = was_declared(&reshi, $ID);
   if(!aux){
     printf("Funcao %s, l.%d c.%lu nao declarada!\n", $ID, numlines, currCol - (strlen($ID) + 2));
@@ -708,18 +728,22 @@ call : ID '(' arglist ')' {
       printf("%s nao eh uma funcao.\n", aux->id);
     }
   }
-
 }
 
-arglist : arglist ',' arg {
-  MAKE_NODE(arglist);
-  add_Node_Child_If_Not_Null($$, $1);
-  add_Node_Child_If_Not_Null($$, $3);
+argList : argList ',' arg {
+  // Mesmo esquema da lista de parametros
+  if(!$1->hasAux) {
+    $1->hasAux = 1;
+    $1->nextAux = $arg;
+    $1->childLast = $arg;
+  }
+  else {
+    $1->childLast->nextAux = $arg;
+    $1->childLast = $arg;
+  }
+  $$ = $1;
 }
-| arg {
-  MAKE_NODE(arglist);
-  add_Node_Child_If_Not_Null($$, $1);
-}
+| arg 
 
 arg : lvalue {
   MAKE_NODE(arg);
@@ -730,33 +754,42 @@ arg : lvalue {
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
   add_Node_Child_If_Not_Null($$, $3);
   add_Node_Child_If_Not_Null($$, $6);
-  // SEMANTICO  
-  // OBS: nao eh muito robusto, pois pode haver um monte de blanks entre os parenteses.
+  // SEMANTICO    
   if(!was_declared(&reshi, $ID)){printf("Variavel %s, l.%d\n", $ID, numlines);}
 
 }
 
-num: V_INT {
+num : V_INT {
   MAKE_NODE(num);
   $$->ival = $V_INT;
   // SEMANTICO
+  $$->is_const = 1;
   $$->type = TYPE_INT;
 }
 | V_FLOAT {
   MAKE_NODE(num);
   $$->fval = $V_FLOAT;
   // SEMANTICO
+  $$->is_const = 1;
   $$->type = TYPE_FLOAT;
 }
 
 
-lvalue: ID {
+lvalue : ID {
   // MAKE_NODE(lvalue);
   // add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
   $$ = Token_New("ID", $ID);
-  // SEMANTICO  
-  // OBS: nao eh muito robusto, pois pode haver um monte de blanks entre os parenteses.
-  if(!was_declared(&reshi, $ID)){printf("Funcao %s, l.%d c.%lu nao declarada!\n", $ID, numlines, currCol - (strlen($ID) + 2));}
+  // SEMANTICO    
+  SymEntry* entry = was_declared(&reshi, $ID);
+  if(entry) {
+    if(entry->tag == HFUN ) {
+      printf("Identificador %s, l.%d c.%lu DECLARADO PREVIAMENTE como funcao em l.%d, c.%d!\n",
+       $ID, numlines, currCol - (strlen($ID) + 2), entry->local.line, entry->local.col);
+    }
+  }
+  else {
+    printf("Variavel %s, l.%d c.%lu nao declarada!\n", $ID, numlines, currCol - (strlen($ID) + 2));
+  }
 
   free($ID), $ID = NULL;
 }
@@ -764,18 +797,16 @@ lvalue: ID {
   MAKE_NODE(lvalue);
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
   add_Node_Child_If_Not_Null($$, $expr);
-  // SEMANTICO  
-  // OBS: nao eh muito robusto, pois pode haver um monte de blanks entre os parenteses.
-  if(!was_declared(&reshi, $ID)){printf("Funcao %s, l.%d nao declarada!\n", $ID, numlines);}
+  // SEMANTICO    
+  if(!was_declared(&reshi, $ID)){printf("Variavel %s, l.%d nao declarada!\n", $ID, numlines);}
 }
 | ID '[' expr ']' '[' expr ']' {
   MAKE_NODE(lvalue);
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
   add_Node_Child_If_Not_Null($$, $3);
   add_Node_Child_If_Not_Null($$, $6);
-  // SEMANTICO  
-  // OBS: nao eh muito robusto, pois pode haver um monte de blanks entre os parenteses.
-  if(!was_declared(&reshi, $ID)){printf("Funcao %s, l.%d nao declarada!\n", $ID, numlines);}
+  // SEMANTICO    
+  if(!was_declared(&reshi, $ID)){printf("Variavel %s, l.%d nao declarada!\n", $ID, numlines);}
 }
 
 rvalue : expr
@@ -783,7 +814,7 @@ rvalue : expr
 | '[' numListList ']' {$$ = $2;}
 
 %%
-// Retorna TYPE_UNDEFINED nos casos:
+//  Retorna TYPE_UNDEFINED nos casos:
 // - left/right ser TYPE_UNDEFINED
 // - left/right ser TYPE_VOID
 // - left/right ser TYPE_ARRAY
@@ -792,16 +823,16 @@ rvalue : expr
 Type bin_expr_type(Type left, Type right, int op) {
   Type leftClass = Type_Class(left);
   Type rightClass = Type_Class(right);
-  if(left == TYPE_UNDEFINED || right == TYPE_UNDEFINED) return TYPE_UNDEFINED;  // erro de inicializacao...
-  else if(left == TYPE_VOID || right == TYPE_VOID ) return TYPE_VOID;  // tentando usar retorno de funcao VOID
-  else if(leftClass == TYPE_ARRAY || rightClass == TYPE_ARRAY) return TYPE_UNDEFINED; 
+  if(left == TYPE_UNDEFINED || right == TYPE_UNDEFINED) return TYPE_UNDEFINED;// erro de inicializacao...
+  else if(left == TYPE_VOID || right == TYPE_VOID ) return TYPE_VOID;// tentando usar retorno de funcao VOID
+  else if(leftClass == TYPE_ARRAY || rightClass == TYPE_ARRAY) return TYPE_UNDEFINED;
   // NAO SE PODE OPERAR SOBRE ARRAYS.
  
   switch (op)  {
     case '+': case '-':
       if(leftClass == rightClass) max(left, right);
       else if(left == TYPE_MAT && right == TYPE_SCALAR) return left;
-      else return TYPE_UNDEFINED;  
+      else return TYPE_UNDEFINED;
     case '*':
       if(leftClass == rightClass) max(left, right);
       else if(left == TYPE_SCALAR && right == TYPE_MAT) return left;
@@ -811,7 +842,7 @@ Type bin_expr_type(Type left, Type right, int op) {
       else if(left == TYPE_MAT && right ==  TYPE_SCALAR ) return left;
       else return TYPE_UNDEFINED;
     case '@':
-      if(leftClass == TYPE_MAT && rightClass == TYPE_MAT) return max(left, right);    
+      if(leftClass == TYPE_MAT && rightClass == TYPE_MAT) return max(left, right);
       else return TYPE_UNDEFINED;
       /* code */
     case MAT_POW:
@@ -854,7 +885,7 @@ int main(){
   print_reshi();
   yylex_destroy();
   // delGambs();
-  free(gambs); gambs = NULL;
+  free(gambs);gambs = NULL;
   free_All_Child(root);
   free_Lis(root);
 }

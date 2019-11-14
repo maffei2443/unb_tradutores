@@ -50,6 +50,7 @@ No* No_New(int v) {
   no->hasAux = 0;
   no->ival = v;
   no->fval = 0.0;
+  no->is_const = 0;
   return no;
 }
 
@@ -183,13 +184,20 @@ void show_Lis(No* head, Field field) {
   while(head) {
     // for(int a = 0; a < i; a++) printf(" ");
     i++;
-    if(head->hasAux) {
+    if(head->hasAux) {  //   por enquanto, soh eh usado para PARAMETRO
       n_child--;    // para nao contar duas vezes o primeiro parametro ;)
       No* aux = head;
       while(aux) {
         auxCount++;
-        printf("<%s> ", aux->tname);
+        printf("<%s, %s> ", aux->sval, type2string(aux->type));
         aux = aux->nextAux;
+      }
+    }
+    else if(head->is_const) {
+      switch (head->type) {
+        case TYPE_INT: printf("%d ", /* head->tname, */ head->ival); break;
+        case TYPE_FLOAT: printf("%f ", /* head->tname, */ head->fval); break;
+        // case TYPE_INT: printf("< %s, %d>", head->tname, ); break;
       }
     }
     else if(head->isToken) {
@@ -229,4 +237,48 @@ int ListSize(No* no) {
   int c = 0;
   for(; no; no = no->n, c++);
   return c;
+}
+
+// Estava em common
+SymEntry* SymEntry_New(char* id, int tag, char* escopo){
+  SymEntry* neo = (SymEntry*)calloc( sizeof(SymEntry), 1);
+  
+  memcpy(neo->id, id, strlen(id)+1); neo->id[strlen(id)+1] = '\0';
+  neo->tag = tag;
+  size_t t = strlen(escopo);
+  neo->escopo = malloc( t );
+  memcpy(neo->escopo, escopo, t);
+  neo->escopo[t] = '\0';
+  neo->u.ival = 0; neo->u.func.next = 0;
+  neo->local.line = neo->local.col = -1;
+  neo->type = TYPE_UNDEFINED;
+}
+// Destroi entrada da TS e todas suas TS aninhadas 
+// (valido apenas p/ declaracao de funcao)
+void* SymEntry_Destroy(void* p){
+  SymEntry* sym = (SymEntry*)p;
+  if(!sym) return NULL;
+  if(sym->tag == HFUN) {
+    // trata-se se funcao! liberar portanto
+    // a lista de nohs que compoem sua assinatura
+    free_Lis(sym->u.func.next); sym->u.func.next = NULL;
+    SymEntry_Destroy(sym->u.func.nestedSym); sym->u.func.nestedSym = NULL;
+    sym->u.func.upperSym = NULL;  // nao tentar dar free no pai; ciclo
+  }
+  free(sym);
+  sym = NULL;
+  return NULL;
+}
+
+char* type2string(Type t) {
+  switch (t) {
+    case TYPE_VOID: return "void";
+    case TYPE_UNDEFINED: return "undefined";
+    case TYPE_INT: return "int";
+    case TYPE_FLOAT: return "float";
+    case TYPE_ARRAY_INT: return "array(int)";
+    case TYPE_ARRAY_FLOAT: return "array(float)";
+    case TYPE_MAT_INT: return "mat(int)";
+    case TYPE_MAT_FLOAT: return "mat(float)";
+  }
 }

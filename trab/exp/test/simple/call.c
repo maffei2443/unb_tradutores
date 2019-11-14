@@ -1,4 +1,4 @@
 int main() {
 	call();
-	  cau();
+	  cau(test);
 }

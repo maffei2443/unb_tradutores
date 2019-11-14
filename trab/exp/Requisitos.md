@@ -1,4 +1,7 @@
 - [] Verificação de tipos
+  - [] declarar 2x mesma função só funciona se *nomes E tipos do parametros forem os mesmos*
+  - [] função só pode ser definida 1 vez (add flag *isDef* para noh)
+
 - [x] Verificação de escopo
   - [x] usar variavel soh se foi declarada
   - [x] erro ao declarar 2+ vezes variavel de mesmo nome sob mesmo escopo

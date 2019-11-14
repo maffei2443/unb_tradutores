@@ -5,7 +5,7 @@
 #include "Array.h"
 // #include "Colorfy.h"
 
-#include "Common.h"
+#include "Tree.h"
 #include "Prints.h"
 #include "uthash.h"
 int numlines = 1, currCol = 1;
@@ -89,6 +89,7 @@ achar '([a-zA-Z0-9_]?)'
   }
 <BL_COMMENT>"*/"    {
     // showBlockComment();
+    ;
     currCol += 2;
     Array_Delete(&currString);
     BEGIN (INITIAL);  
@@ -364,7 +365,7 @@ achar '([a-zA-Z0-9_]?)'
   ;
 }
 {INT}      {
-  showIntVal();
+  // showIntVal();
   currCol += yyleng;
   yylval.ival = atoi(yytext);
   return V_INT;
@@ -383,7 +384,7 @@ achar '([a-zA-Z0-9_]?)'
 }
 \t+ currCol += yyleng;
 = {
-  showAttrOp();
+  // showAttrOp();
   currCol++;
   return '=';
   ;

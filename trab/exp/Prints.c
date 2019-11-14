@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "Common.h"
+#include "Tree.h"
 #include "Prints.h"
 extern char * yytext;
 extern int yyleng;
