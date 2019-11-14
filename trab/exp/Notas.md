@@ -9,3 +9,6 @@ entre aspas.
 + lista de parametros e de argumentos sao encadeadas pelo ponteiro *nextAux*
 
 + comparações booleanas apenas entre coisas de MESMO TIPO
+
++ em caso de redeclaracao de variavel/funcao, mantem-se na symTable a antiga
+(além de dar erro)

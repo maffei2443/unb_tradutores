@@ -57,6 +57,7 @@ int def_fun_rule = 0;
 int declared_curr_fun = 0;
 int check_parameters = 0;
 int err = 0;
+int aborta = 0;
 %}
 %define parse.error verbose
 %define parse.lac none
@@ -441,7 +442,8 @@ defFun : BASE_TYPE ID '('{
       declared_curr_fun = 1;
     }
     else {
-      fprintf(stderr,"Jah tem variavel com esse nome :/\n");
+      fprintf(stderr,"Jah tem variavel com esse (%s) nome :/\n", old->id);
+      aborta = 1;
     }
   }
   else {
@@ -488,15 +490,18 @@ defFun : BASE_TYPE ID '('{
   if(!tmp) {
     printf("FDP\n"); fflush(stdout);
   }
-  tmp->tag = TYPE_DEF_FUN;
-  tmp->type = $BASE_TYPE;
+  if (!aborta) {  // nao modificar a entrada jah existente da tabela de simbolos
+    tmp->tag = TYPE_DEF_FUN;
+    tmp->type = $BASE_TYPE;
+  }
+  else
+    aborta = 0;
   No* _BASE_TYPE = Token_New(STR(BASE_TYPE), type2string($BASE_TYPE));
   No* _ID = Token_New(STR(ID), $ID);
   free($ID);$ID = NULL;
   add_Node_Child_If_Not_Null($$, _BASE_TYPE);
   add_Node_Child_If_Not_Null($$, _ID);
   add_Node_Child_If_Not_Null($$, $paramListVoid);
-
   add_Node_Child_If_Not_Null($$, $declList);
   add_Node_Child_If_Not_Null($$, $localStmtList);  
   def_fun_rule = 0;
@@ -745,6 +750,9 @@ call : ID '(' argList ')' {
     $$->type = aux->type;
     if(is_fun (aux->tag)) {
       printf("%s eh uma funcao!.\n", aux->id);
+      printf("\t astNode: %p!.\n", aux->astNode);
+      // Ver se assinatura bate com a declaracao!
+      int match = match_paramList(aux->astNode->param, NULL);
     }
     else {
       printf("%s nao eh funcao para ser chamada\n", aux->id);
