@@ -1,5 +1,5 @@
 int a;
-// float b;
+float b;
 mat int m[3][3];
 int main() {
 	a = a % 0;

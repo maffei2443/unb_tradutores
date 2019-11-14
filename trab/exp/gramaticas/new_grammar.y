@@ -168,15 +168,20 @@ declFun : AHEAD BASE_TYPE ID {
 
 typeAndNameSign : BASE_TYPE ID {
   SymEntry* oldEntry = was_defined(&reshi, $ID);
-
+  printf("Recuperado da tabela de simbolos: %p\n", oldEntry);
   if(oldEntry) {
     if( !strcmp(oldEntry->escopo, currScope) ) {
       printf("[Semantico]\n");
+    }
+    else {
+      printf("\tDeclaracoes sob escopos distintos.\n");
     }
   }
 
   SymEntry* neoEntry = add_entry(&reshi, $ID, $BASE_TYPE);
   neoEntry->type = neoEntry->tag;
+  // printf("[typeAndNameSign : BASE_TYPE ID] neoEntry->tag: %s\n", type2string(neoEntry->tag));
+  // printf("[typeAndNameSign : BASE_TYPE ID] neoEntry->type: %s\n", type2string(neoEntry->type));
   MAKE_NODE(typeAndNameSign);
   link_symentry_no(neoEntry, $$);
   
@@ -184,6 +189,7 @@ typeAndNameSign : BASE_TYPE ID {
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
   free($ID);$ID = NULL;
 }
+
 | BASE_TYPE ID '[' num ']' {
   SymEntry* neoEntry = add_entry(&reshi, $ID, $BASE_TYPE == TYPE_INT ? TYPE_ARRAY_INT : TYPE_ARRAY_FLOAT);
   neoEntry->type = neoEntry->tag;
@@ -326,6 +332,10 @@ localStmt : call ';' {
 }
 | lvalue '=' rvalue ';'  {
   MAKE_NODE(localStmt);
+  if($lvalue->type != $rvalue->type ||
+    $lvalue->type == $rvalue->type && $lvalue->type == TYPE_UNDEFINED) {
+    printf("[Semantico] Erro de tipo em atribuicao: <%s> = <%s>\n", type2string($lvalue->type), type2string($rvalue->type));
+  }
   add_Node_Child_If_Not_Null($$, $lvalue);
   add_Node_Child_If_Not_Null($$, $rvalue);
 }
@@ -427,7 +437,7 @@ defFun : BASE_TYPE ID '('{
     }
   }
   else {
-    printf("VAI ADD ENTRY NA DEFFUN\n");
+    // printf("VAI ADD ENTRY NA DEFFUN\n");
     SymEntry* neoEntry = add_entry(&reshi, $ID, TYPE_DEF_FUN);
     neoEntry->type = $BASE_TYPE;
   }
@@ -760,6 +770,7 @@ lvalue : ID {
   add_Node_Child_If_Not_Null($$, tok);
   // SEMANTICO    
   SymEntry* entry = was_defined(&reshi, $ID);
+  printf("[ID: %s]entry->type: %s\n", $ID, type2string(entry->type));
   if(entry) {
     if(is_fun(entry->tag)) {
       printf("Identificador %s, l.%d c.%lu DECLARADO PREVIAMENTE como funcao em l.%d, c.%d!\n",
@@ -775,7 +786,7 @@ lvalue : ID {
     $$->type = TYPE_UNDEFINED;
     printf("Variavel %s, l.%d c.%lu nao declarada!\n", $ID, numlines, currCol - (strlen($ID) + 2));
   }
-  printf("lvalue->type=%s \n", type2string( $$->type ));
+  // printf("lvalue->type=%s \n", type2string( $$->type ));
   free($ID), $ID = NULL;
 }
 | ID '[' expr ']' {

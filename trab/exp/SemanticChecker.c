@@ -90,8 +90,10 @@ Type bin_expr_type(Type left, Type right, int op) {
     case GE:  case LE:
     case '<':  case '>':
     case AND:  case OR:
-      return TYPE_INT;
-    default: 
+      return left == right ? TYPE_INT : TYPE_UNDEFINED;
+    default:
+      printf("[Semantico] Expressao com tipos %s, %s e operacao %c sem tipo definido!",
+        type2string(left), type2string(right), op); 
       return TYPE_UNDEFINED;
   }
 }
@@ -100,11 +102,13 @@ Type bin_expr_type(Type left, Type right, int op) {
 // Retorna NULL caso nao o tenha sido;senao,
 // retorna ponteiro para declracao mais prohxima.
 SymEntry* was_defined(SymEntry** reshi, char* id){
+  // fprintf(stderr, "[was_defined] para %s", id);
   SymEntry* oldEntry = NULL;
   SymEntry* last_same_id = oldEntry;
   HASH_FIND_STR((*reshi), id, oldEntry);
   while( oldEntry ) {
     if(strcmp(oldEntry->escopo, currScope) == 0){  // declaracao sob mesmo escopo
+      // fprintf(stderr," retornou (%p, %s)\n", oldEntry, oldEntry->id);
       return oldEntry;
     }
     else if(strcmp(oldEntry->escopo, GLOBAL_SCOPE) == 0){  // mesmo nome e escopo global
@@ -112,6 +116,7 @@ SymEntry* was_defined(SymEntry** reshi, char* id){
     }
     oldEntry = oldEntry->next;
   }
+  // fprintf(stderr, " retornou [outWhile] (%p, %s)\n", last_same_id, last_same_id->id);
   return last_same_id;
 }
 // TODO: diferenciar da funcao de cima!
@@ -133,36 +138,39 @@ SymEntry* was_declared(SymEntry** reshi, char* id){
 }
 
 SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
-    SymEntry* newEntry = NULL;
-    HASH_FIND_STR((*reshi), id, newEntry);/* id already in the hash? */
-    if (newEntry == NULL) {
-      newEntry = SymEntry_New(id, tag, currScope);
-      newEntry->local.line = numlines;
-      newEntry->local.col = currCol;
-      HASH_ADD_STR( (*reshi), id, newEntry );/* id: name of key field */
-      addToDel(&newEntry);
+    SymEntry* neoEntry = NULL;
+    HASH_FIND_STR((*reshi), id, neoEntry);/* id already in the hash? */
+    if (neoEntry == NULL) {
+      neoEntry = SymEntry_New(id, tag, currScope);
+      printf("<<<<<< add (%p) id, tag: %s, %s\n", neoEntry, id, type2string(tag));
+      neoEntry->local.line = numlines;
+      neoEntry->local.col = currCol;
+      HASH_ADD_STR( (*reshi), id, neoEntry );/* id: name of key field */
+      addToDel(&neoEntry);
     }
     else {    // Checar se eh declaracao no msm escopo. Se for, nao adiciona e dah pau (retorna NULL);
-      printf("Possivel conflito com %s:%s\n", id, newEntry->escopo);
-      for(;newEntry->next;newEntry = newEntry->next) {
-        if(strcmp(id, newEntry->id) == 0 && strcmp(currScope, newEntry->escopo)) {
+      printf("Possivel conflito com %s:%s\n", id, neoEntry->escopo);
+      for(;neoEntry->next;neoEntry = neoEntry->next) {
+        if(strcmp(id, neoEntry->id) == 0 && strcmp(currScope, neoEntry->escopo)) {
           printf("Erro: redeclaracao de %s:%s em l.%d, r.%d\n",
-            currScope, id, newEntry->local.line, newEntry->local.col);
+            currScope, id, neoEntry->local.line, neoEntry->local.col);
           return NULL;
         }
       }
-      if( /* 0 &&  */strcmp(id, newEntry->id) == 0 && !strcmp(currScope, newEntry->escopo) ) {          
+      if( /* 0 &&  */strcmp(id, neoEntry->id) == 0 && !strcmp(currScope, neoEntry->escopo) ) {          
         printf("Erro: redeclaracao de %s:%s em l.%d, r.%d\n",
-          currScope, id, newEntry->local.line, newEntry->local.col);
+          currScope, id, neoEntry->local.line, neoEntry->local.col);
         return NULL;
       }
       else {
-        newEntry->next = SymEntry_New(id, tag, currScope);
-        newEntry->next->local.line = numlines;
-        newEntry->next->local.col = currCol;
+        neoEntry->next = SymEntry_New(id, tag, currScope);
+        printf(">>>>> add (%p) id, tag: %s, %s\n", neoEntry->next, id, type2string(tag));
+        neoEntry->next->local.line = numlines;
+        neoEntry->next->local.col = currCol;
+        return neoEntry->next;
       }
     }
-    return newEntry;
+    return neoEntry;
 }
 
 int id_has_type(SymEntry** reshi, char* id, Type type) {
