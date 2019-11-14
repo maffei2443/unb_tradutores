@@ -160,4 +160,8 @@ int ListSize(No* no);
 SymEntry* SymEntry_New(char* id, int tag, char*);
 void* SymEntry_Destroy(void*);
 char* type2string(Type t);
+
+void print_reshi(SymEntry*);
+void show_entry(SymEntry*);
+
 #endif

@@ -23,7 +23,6 @@ Type Type_Class(Type type) {
   }
 }
 
-
 void show_Spaces(int qtd){
   char*  p = malloc(sizeof(char) * qtd+1);
   memset(p, ' ', qtd);
@@ -31,7 +30,6 @@ void show_Spaces(int qtd){
   printf("%s", p);
   free(p);  p = NULL;
 }
-
 
 // Ok.
 No* No_New(int v) {
@@ -281,4 +279,39 @@ char* type2string(Type t) {
     case TYPE_MAT_INT: return "mat(int)";
     case TYPE_MAT_FLOAT: return "mat(float)";
   }
+}
+
+void print_reshi(SymEntry* reshi) {
+    SymEntry *s;
+    SymEntry *nexti;
+    printf(">>>>>> TABELA DE SIMBOLOS <<<<<<<\n");
+    for(s=reshi;s != NULL;s = nexti) {
+      nexti = s->hh.next;
+      show_entry(s);
+      while(s->next) {
+        show_entry(s->next);
+        s = s->next;
+      }      
+    }
+  printf("---------------------------\n");
+}
+
+void show_entry(SymEntry* s) {
+  printf("%10s: ", s->escopo);
+  switch(s->tag) {
+    case HFLOAT:
+      printf("< float, %s >", s->id);
+      printf("\tVal: %f", s->u.fval);
+      break;
+    case HINT:
+      printf("< int, %s >", s->id);
+      printf("\tVal: %d", s->u.ival);
+      break;
+    case HID:
+      printf("< id ,%s >", s->id);
+      break;
+    case HFUN:
+      printf("<fun, %s, %s>", s->id, type2string(s->type));
+  }
+  printf("\t(%p)l. %d, c. %d\n", s,s->local.line, s->local.col);
 }

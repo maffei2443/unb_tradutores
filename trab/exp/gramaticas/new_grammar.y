@@ -28,11 +28,9 @@ extern int numlines;
 extern int yyleng;
 extern int yylex();
 void yyerror (char const *s);
-void print_reshi();
+
 extern void yylex_destroy();
-extern SymEntry* SymEntry_New(char*, int, char*);
 // 
-Type bin_expr_type(Type left, Type right, int op);
 unsigned nodeCounter;
 
 extern int gambs_tam;
@@ -42,42 +40,6 @@ char* GLOBAL_SCOPE = "0global";
 SymEntry* reshi;
 
 char* currScope = NULL;
-
-void show_entry(SymEntry* s) {
-  printf("%10s: ", s->escopo);
-  switch(s->tag) {
-    case HFLOAT:
-      printf("< float, %s >", s->id);
-      printf("\tVal: %f", s->u.fval);
-      break;
-    case HINT:
-      printf("< int, %s >", s->id);
-      printf("\tVal: %d", s->u.ival);
-      break;
-    case HID:
-      printf("< id ,%s >", s->id);
-      break;
-    case HFUN:
-      printf("<fun, %s, %s>", s->id, type2string(s->type));
-  }
-  printf("\t(%p)l. %d, c. %d\n", s,s->local.line, s->local.col);
-
-}
-
-void print_reshi(void) {
-    SymEntry *s;
-    SymEntry *nexti;
-    printf(">>>>>> TABELA DE SIMBOLOS <<<<<<<\n");
-    for(s=reshi;s != NULL;s = nexti) {
-      nexti = s->hh.next;
-      show_entry(s);
-      while(s->next) {
-        show_entry(s->next);
-        s = s->next;
-      }      
-    }
-  printf("---------------------------\n");
-}
 
 %}
 %define parse.error verbose
@@ -742,54 +704,6 @@ rvalue : expr
 | '[' numListList ']' {$$ = $2;}
 
 %%
-//  Retorna TYPE_UNDEFINED nos casos:
-// - left/right ser TYPE_UNDEFINED
-// - left/right ser TYPE_VOID
-// - left/right ser TYPE_ARRAY
-// - expressão mal formada como por exemplo divisão de 
-// escalar por matriz
-Type bin_expr_type(Type left, Type right, int op) {
-  Type leftClass = Type_Class(left);
-  Type rightClass = Type_Class(right);
-  if(left == TYPE_UNDEFINED || right == TYPE_UNDEFINED) return TYPE_UNDEFINED;// erro de inicializacao...
-  else if(left == TYPE_VOID || right == TYPE_VOID ) return TYPE_VOID;// tentando usar retorno de funcao VOID
-  else if(leftClass == TYPE_ARRAY || rightClass == TYPE_ARRAY) return TYPE_UNDEFINED;
-  // NAO SE PODE OPERAR SOBRE ARRAYS.
- 
-  switch (op)  {
-    case '+': case '-':
-      if(leftClass == rightClass) max(left, right);
-      else if(left == TYPE_MAT && right == TYPE_SCALAR) return left;
-      else return TYPE_UNDEFINED;
-    case '*':
-      if(leftClass == rightClass) max(left, right);
-      else if(left == TYPE_SCALAR && right == TYPE_MAT) return left;
-      else return TYPE_UNDEFINED;
-    case '/':
-      if(leftClass == rightClass) max(left, right);
-      else if(left == TYPE_MAT && right ==  TYPE_SCALAR ) return left;
-      else return TYPE_UNDEFINED;
-    case '@':
-      if(leftClass == TYPE_MAT && rightClass == TYPE_MAT) return max(left, right);
-      else return TYPE_UNDEFINED;
-      /* code */
-    case MAT_POW:
-      if((left == TYPE_MAT_INT || left == TYPE_MAT_FLOAT)
-        && (right == TYPE_INT || right == TYPE_FLOAT)) {
-        return left == TYPE_MAT_INT ? TYPE_MAT_INT : TYPE_MAT_FLOAT;
-      }
-      else
-        return TYPE_UNDEFINED;
-
-    case EQ:  case NEQ:
-    case GE:  case LE:
-    case '<':  case '>':
-    case AND:  case OR:
-      return TYPE_INT;
-    default: 
-      return TYPE_UNDEFINED;
-  }
-}
 
 
 void yyerror (char const *s) {
@@ -810,7 +724,7 @@ int main(){
     show_Sub_Tree(root, 1, SVAL);
     show_Lis(root,SVAL);
   }
-  print_reshi();
+  print_reshi(reshi);
   yylex_destroy();
   
   free_All_Child(root);

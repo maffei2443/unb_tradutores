@@ -5,10 +5,98 @@ extern char* GLOBAL_SCOPE;
 extern int numlines;
 extern int currCol;
 
+extern int MAT_POW, EQ, NEQ, GE, LE, AND, OR;
+
 int gambs_tam = 0;
 int gambs_qtd = 0;
 
 SymEntry** gambs;
+
+// enum gerada pelo bison; gambs feita automaticamente por
+// script python
+
+// REPLACE FROM HERE
+enum _yytokentype
+  {
+    _EQ = 258,
+    _NEQ = 259,
+    _GE = 260,
+    _LE = 261,
+    _AND = 262,
+    _OR = 263,
+    _MAT_POW = 264,
+    _AHEAD = 265,
+    _BASE_TYPE = 266,
+    _WHILE = 267,
+    _V_INT = 268,
+    _V_FLOAT = 269,
+    _V_ASCII = 270,
+    _MAT_TYPE = 271,
+    _IF = 272,
+    _ID = 273,
+    _ICAST = 274,
+    _FCAST = 275,
+    _ELSE = 276,
+    _RETURN = 277,
+    _PRINT = 278,
+    _IREAD = 279,
+    _FREAD = 280,
+    _COPY = 281,
+    _ERRU = 282
+  };
+// UNTIL HERE
+
+
+//  Retorna TYPE_UNDEFINED nos casos:
+// - left/right ser TYPE_UNDEFINED
+// - left/right ser TYPE_VOID
+// - left/right ser TYPE_ARRAY
+// - expressão mal formada como por exemplo divisão de 
+// escalar por matriz
+Type bin_expr_type(Type left, Type right, int op) {
+  Type leftClass = Type_Class(left);
+  Type rightClass = Type_Class(right);
+  if(left == TYPE_UNDEFINED || right == TYPE_UNDEFINED) return TYPE_UNDEFINED;// erro de inicializacao...
+  else if(left == TYPE_VOID || right == TYPE_VOID ) return TYPE_VOID;// tentando usar retorno de funcao VOID
+  else if(leftClass == TYPE_ARRAY || rightClass == TYPE_ARRAY) return TYPE_UNDEFINED;
+  // NAO SE PODE OPERAR SOBRE ARRAYS.
+ 
+  switch (op)  {
+    case '+': case '-':
+      if(leftClass == rightClass) max(left, right);
+      else if(left == TYPE_MAT && right == TYPE_SCALAR) return left;
+      else return TYPE_UNDEFINED;
+    case '*':
+      if(leftClass == rightClass) max(left, right);
+      else if(left == TYPE_SCALAR && right == TYPE_MAT) return left;
+      else return TYPE_UNDEFINED;
+    case '/':
+      if(leftClass == rightClass) max(left, right);
+      else if(left == TYPE_MAT && right ==  TYPE_SCALAR ) return left;
+      else return TYPE_UNDEFINED;
+    case '@':
+      if(leftClass == TYPE_MAT && rightClass == TYPE_MAT) return max(left, right);
+      else return TYPE_UNDEFINED;
+      /* code */
+    case _MAT_POW:
+      if((left == TYPE_MAT_INT || left == TYPE_MAT_FLOAT)
+        && (right == TYPE_INT || right == TYPE_FLOAT)) {
+        return left == TYPE_MAT_INT ? TYPE_MAT_INT : TYPE_MAT_FLOAT;
+      }
+      else
+        return TYPE_UNDEFINED;
+
+    case _EQ:  case _NEQ:
+    case _GE:  case _LE:
+    case '<':  case '>':
+    case _AND:  case _OR:
+      return TYPE_INT;
+    default: 
+      return TYPE_UNDEFINED;
+  }
+}
+
+
 // Retorna NULL caso nao o tenha sido;senao,
 // retorna ponteiro para declracao mais prohxima.
 SymEntry* was_declared(SymEntry** reshi, char* id){

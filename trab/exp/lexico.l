@@ -396,7 +396,6 @@ void delete(void** p) {
   *p = NULL;
 }
 
-extern void print_reshi(void);
 int _main(int argc, char** argv) {
   Array_Init(&currString, 20);
   Array_Delete(&currString);
@@ -425,7 +424,6 @@ int _main(int argc, char** argv) {
     BoldGreen();
     fprintf(stdout, "Congrats! The code is in the language.\n");
   }
-  print_reshi();
   Reset();
   yylex_destroy();
 }

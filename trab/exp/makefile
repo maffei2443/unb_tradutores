@@ -16,6 +16,7 @@ lexico: lexico.l print.o new_grammar.y
 all: Tree.o lexico.l new_grammar.y Prints.o Prints.c Colorfy.o Array.o SymEntry.o SemanticChecker.o
 	gcc -c Tree.c
 	gcc -c Prints.c
+	gcc -c SemanticChecker.c
 	bison $(BFLAGS) new_grammar.y
 	flex lexico.l
 	gcc $(FLAGS) -o $@ lex.yy.c new_grammar.tab.c Tree.o Prints.o Colorfy.o Array.o SemanticChecker.o
@@ -39,6 +40,7 @@ Array.o: Array.h Array.c
 	gcc -c Array.c
 
 SemanticChecker.o: SemanticChecker.h SemanticChecker.c
+	python semantico_aux.py
 	gcc -c SemanticChecker.c
 
 clean:
