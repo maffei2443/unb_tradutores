@@ -276,10 +276,17 @@ char* type2string(Type t) {
     case TYPE_UNDEFINED: return "undefined";
     case TYPE_INT: return "int";
     case TYPE_FLOAT: return "float";
+    case TYPE_SCALAR: return "scalar";
     case TYPE_ARRAY_INT: return "array(int)";
     case TYPE_ARRAY_FLOAT: return "array(float)";
+    case TYPE_ARRAY: return "array(int|float)";
     case TYPE_MAT_INT: return "mat(int)";
     case TYPE_MAT_FLOAT: return "mat(float)";
+    case TYPE_MAT: return "mat(int|float)";
+    case TYPE_FUN: return "fun";
+    case TYPE_IF: return "if";
+    case TYPE_PARAM: return "param";
+
   }
 }
 
@@ -313,9 +320,9 @@ void show_entry(SymEntry* s) {
     case TYPE_PARAM:
       printf("< param, %s, %s>", s->id, type2string(s->type));
       break;
-    case TYPE_MAT_FLOAT: case TYPE_MAT_INT:
-      printf("< mat(float), %s>",  s->id);
-      break;
+    // case TYPE_MAT_FLOAT: case TYPE_MAT_INT:
+    //   printf("< mat(float), %s>",  s->id);
+    //   break;
     
   }
   printf("\t(%p)l. %d, c. %d\n", s,s->local.line, s->local.col);
