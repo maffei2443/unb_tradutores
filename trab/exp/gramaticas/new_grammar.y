@@ -19,7 +19,7 @@
 #define MAKE_NODE(x) INITNODE(STR(x))
 #define PARAM_RPT_NAME_CHECK(__baseType, __id) \
   if(!neoEntry) {\
-    neoEntry = was_defined(&reshi, yyvsp[__id]._id);    \
+    neoEntry = last_decl(&reshi, yyvsp[__id]._id);    \
     printf("[Semantico] Parametros de mesmo nome! Arvore vai ficar inconsistente..\n");\
   }\
   else {\
@@ -124,13 +124,6 @@ globalStmtList : %empty {
   }
   else
     $$ = $globalStmt;
-  // if($1){
-  //   $$ = $1;
-  //   add_Node_Child_If_Not_Null($$, $globalStmt);
-  // }
-  // else {
-  //   $$ = $globalStmt;
-  // }
 }
 
 globalStmt : defFun 
@@ -139,7 +132,7 @@ globalStmt : defFun
 
 declFun : AHEAD BASE_TYPE ID {
   decl_fun_rule = 1;
-  SymEntry* tmp = was_defined(&reshi, $ID);
+  SymEntry* tmp = last_decl(&reshi, $ID);
   if( !tmp ) {
     SymEntry* neoEntry = add_entry(&reshi, $ID, TYPE_DECL_FUN);
     neoEntry->tag = $BASE_TYPE;
@@ -167,7 +160,7 @@ declFun : AHEAD BASE_TYPE ID {
 
 
 typeAndNameSign : BASE_TYPE ID {
-  SymEntry* oldEntry = was_defined(&reshi, $ID);
+  SymEntry* oldEntry = last_decl(&reshi, $ID);
   printf("Recuperado da tabela de simbolos: %p\n", oldEntry);
   if(oldEntry) {
     if( !strcmp(oldEntry->escopo, currScope) ) {
@@ -272,7 +265,7 @@ param : BASE_TYPE ID {
     link_symentry_no(neoEntry, $$);
   }
   else {
-    neoEntry = was_defined(&reshi, $ID);
+    neoEntry = last_decl(&reshi, $ID);
     if(neoEntry->type == $BASE_TYPE) {
       printf("GG, para 1 arg apenas\n");
     }
@@ -419,50 +412,71 @@ loop : WHILE '(' expr ')' block {
 
 defFun : BASE_TYPE ID '('{
   def_fun_rule = 1;
-  SymEntry* old = was_defined(&reshi, $ID);
-  declared_curr_fun = old ? old->type == TYPE_DECL_FUN || old->type == TYPE_DEF_FUN : 0;
+  SymEntry* old = last_decl(&reshi, $ID);
+  // CHECAGEM DE REDECLARACAO FEITA AQUI. CHECAGEM DE PARAMETROS,
+  // NAO PODE SER FEITA AQUI
+  printf("lastDecl: (%p)\n", old);
   if(old) {
     if(old->tag == TYPE_DEF_FUN) {
       if(old->def_fun){
-        printf("[Semantico] Funcao %s jah foi definida em l.%d, c.%d\n",
+        printf("[defFun-Semantico] Funcao %s jah foi definida em l.%d, c.%d\n",
         old->id, old->local.line, old->local.col);
       }
       else {
+        printf("NAO EHRA PRA ENTRAR AUI!\n");
         // PODE SER QUE FUNCAO TENHA ASSINATURA DIFERENTE!        
         check_signature = 1;
       }
     }
     else {
-      mensagem_redeclaracao(old);
+      fprintf(stderr, "Funcao %s foi pre-declarada\n", old->id);
     }
   }
   else {
-    // printf("VAI ADD ENTRY NA DEFFUN\n");
+    printf("definindo funcao %s\n", $ID); fflush(stdout);
     SymEntry* neoEntry = add_entry(&reshi, $ID, TYPE_DEF_FUN);
     neoEntry->type = $BASE_TYPE;
+    neoEntry->def_fun = 1;
   }
   currScope = $ID;
 } paramListVoid ')' '{' declList localStmtList '}' {
-  if(check_signature) {
-    printf("ADD O CAO\n");
-    printf("$paramListVoid: %p\n", $paramListVoid); fflush(stdout);
-    printf("$paramListVoid->type: %s\n", type2string($paramListVoid->type)); fflush(stdout);
-
-    if(match_paramList(was_defined(&reshi, $ID), $paramListVoid) > 0){
-      SymEntry* neoEntry = add_entry(&reshi, $ID, TYPE_DEF_FUN);
-      neoEntry->type = $BASE_TYPE;      
+  if(check_signature) {  
+    // abort();  
+    printf("ahhhh\n");
+    currScope = GLOBAL_SCOPE;
+    SymEntry* entry = last_decl(&reshi, $ID);
+    // assert(entry != NULL);  // se der NULL, algo deu errado pois a funcao jah era pra estar na symTable
+    if(entry) {
+      // Checar se jah foi definida; se sim, erro
+      if(entry->def_fun) {
+        mensagem_redeclaracao(entry);
+        $$ = NULL;
+      }
+      else {
+        int match = match_paramList(entry->astNode, $paramListVoid);
+        if(match > 0){
+          SymEntry* neoEntry = add_entry(&reshi, $ID, TYPE_DEF_FUN);
+          neoEntry->type = $BASE_TYPE;      
+        }
+        else {
+          printf("Lista de parametros de %s incompativel com sua declaracao!\n", $ID);
+        }
+      }
     }
-    else {
-      printf("Lista de parametros de %s incompativel com sua declaracao!\n", $ID);
-    }
+    currScope = GLOBAL_SCOPE;
     check_signature = 0;
+    $$ = NULL;
   }
   
+  MAKE_NODE(defFun);
+
   SymEntry* tmp;
   HASH_FIND_STR(reshi, $ID, tmp);
+  if(!tmp) {
+    printf("FDP\n"); fflush(stdout);
+  }
   tmp->tag = TYPE_DEF_FUN;
   tmp->type = $BASE_TYPE;
-  MAKE_NODE(defFun);
   No* _BASE_TYPE = Token_New(STR(BASE_TYPE), type2string($BASE_TYPE));
   No* _ID = Token_New(STR(ID), $ID);
   free($ID);$ID = NULL;
@@ -472,8 +486,7 @@ defFun : BASE_TYPE ID '('{
     add_Node_Child_If_Not_Null($$, $paramListVoid);
 
   add_Node_Child_If_Not_Null($$, $declList);
-  add_Node_Child_If_Not_Null($$, $localStmtList);
-  currScope = GLOBAL_SCOPE;
+  add_Node_Child_If_Not_Null($$, $localStmtList);  
   def_fun_rule = 0;
 }
 
@@ -693,7 +706,7 @@ call : ID '(' argList ')' {
   add_Node_Child_If_Not_Null($$, $argList);
   // SEMANTICO  
   // TODO: checar se ID eh mesmo funcao. Depois, checar os PARAMETROS, ver se os tipos batem
-  SymEntry* aux = was_defined(&reshi, $ID);
+  SymEntry* aux = last_decl(&reshi, $ID);
   if(!aux){
     printf("Funcao %s, l.%d c.%lu nao declarada!\n", $ID, numlines, currCol - (strlen($ID) + 2));
   }
@@ -707,7 +720,7 @@ call : ID '(' argList ')' {
   MAKE_NODE(call);
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
   // SEMANTICO  
-  SymEntry* aux = was_defined(&reshi, $ID);
+  SymEntry* aux = last_decl(&reshi, $ID);
   if(!aux){
     printf("Funcao %s, l.%d c.%lu nao declarada!\n", $ID, numlines, currCol - (strlen($ID) + 2));
   }
@@ -744,7 +757,7 @@ arg : lvalue {
   add_Node_Child_If_Not_Null($$, $3);
   add_Node_Child_If_Not_Null($$, $6);
   // SEMANTICO    
-  if(!was_defined(&reshi, $ID)){printf("Variavel %s, l.%d\n", $ID, numlines);}
+  if(!last_decl(&reshi, $ID)){printf("Variavel %s, l.%d\n", $ID, numlines);}
 
 }
 
@@ -769,7 +782,7 @@ lvalue : ID {
   No* tok = Token_New("ID", $ID);
   add_Node_Child_If_Not_Null($$, tok);
   // SEMANTICO    
-  SymEntry* entry = was_defined(&reshi, $ID);
+  SymEntry* entry = last_decl(&reshi, $ID);
   printf("[ID: %s]entry->type: %s\n", $ID, type2string(entry->type));
   if(entry) {
     if(is_fun(entry->tag)) {
@@ -794,7 +807,7 @@ lvalue : ID {
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
   add_Node_Child_If_Not_Null($$, $expr);
   // SEMANTICO    
-  if(!was_defined(&reshi, $ID)){printf("Variavel %s, l.%d nao declarada!\n", $ID, numlines);}
+  if(!last_decl(&reshi, $ID)){printf("Variavel %s, l.%d nao declarada!\n", $ID, numlines);}
 }
 | ID '[' expr ']' '[' expr ']' {
   MAKE_NODE(lvalue);
@@ -802,7 +815,7 @@ lvalue : ID {
   add_Node_Child_If_Not_Null($$, $3);
   add_Node_Child_If_Not_Null($$, $6);
   // SEMANTICO    
-  if(!was_defined(&reshi, $ID)){printf("Variavel %s, l.%d nao declarada!\n", $ID, numlines);}
+  if(!last_decl(&reshi, $ID)){printf("Variavel %s, l.%d nao declarada!\n", $ID, numlines);}
 }
 
 rvalue : expr

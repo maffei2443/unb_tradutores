@@ -13,14 +13,12 @@ SymEntry** gambs;
 // -2 se ambos sao NULL
 // -1 se noh eh NULL
 // TODO: FIX IT
-int match_paramList(SymEntry* sym, No* no) {
+int match_paramList(No* oldParam, No* param) {
   // printf("sym: %p vs no: %p\n", sym, no);
-  if(!sym && !no) return -2;
-  if(!no) return -1;
-  // printf("sym: %p vs no: %p\n", sym, no);
-  // printf("sym: %s vs no: %s OK\n", type2string(sym->type), type2string(no->type));
-  No* oldParam = sym->astNode;
-  No* param = no;
+  if(!oldParam && !param) return 1;   // ambas funcoes sem argumento
+  if(!oldParam || !param) return 0;   // apenas 1 eh sem argumento
+  // printf("oldParam: %p vs param: %p\n", oldParam, param);
+  // printf("oldParam: %s vs param: %s OK\n", type2string(oldParam->type), type2string(no->type));
   printf("%s vs %s\n", type2string(oldParam->type), type2string(param->type));
   while (oldParam && param){
     if(oldParam->type != param->type)
@@ -34,7 +32,7 @@ int match_paramList(SymEntry* sym, No* no) {
     oldParam = oldParam->nextAux;
     param = param->nextAux;
   }
-  return !oldParam && !sym;
+  return !oldParam && !param;
 }
 
 
@@ -98,11 +96,10 @@ Type bin_expr_type(Type left, Type right, int op) {
   }
 }
 
-
 // Retorna NULL caso nao o tenha sido;senao,
 // retorna ponteiro para declracao mais prohxima.
-SymEntry* was_defined(SymEntry** reshi, char* id){
-  // fprintf(stderr, "[was_defined] para %s", id);
+SymEntry* last_decl(SymEntry** reshi, char* id){
+  // fprintf(stderr, "[last_decl] para %s", id);
   SymEntry* oldEntry = NULL;
   SymEntry* last_same_id = oldEntry;
   HASH_FIND_STR((*reshi), id, oldEntry);
@@ -152,13 +149,13 @@ SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
       printf("Possivel conflito com %s:%s\n", id, neoEntry->escopo);
       for(;neoEntry->next;neoEntry = neoEntry->next) {
         if(strcmp(id, neoEntry->id) == 0 && strcmp(currScope, neoEntry->escopo)) {
-          printf("Erro: redeclaracao de %s:%s em l.%d, r.%d\n",
+          printf("[Semantico1] Erro: redeclaracao de %s:%s em l.%d, r.%d\n",
             currScope, id, neoEntry->local.line, neoEntry->local.col);
           return NULL;
         }
       }
       if( /* 0 &&  */strcmp(id, neoEntry->id) == 0 && !strcmp(currScope, neoEntry->escopo) ) {          
-        printf("Erro: redeclaracao de %s:%s em l.%d, r.%d\n",
+        printf("[Semantico2] Erro: redeclaracao de %s:%s em l.%d, r.%d\n",
           currScope, id, neoEntry->local.line, neoEntry->local.col);
         return NULL;
       }

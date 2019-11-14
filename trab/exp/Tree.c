@@ -110,12 +110,16 @@ void add_Child(No* no, int v) {
 }
 // TODO: testar
 void add_Node_Child_If_Not_Null(No* no, No * newNo) {
+  // fprintf(stderr,"[add_Node_Child_If_Not_Null] \n"); fflush(stdout);
   if(!no) {
-    printf("Erro: %p aponsta pra NULO.\n", no);
-    printf("Nao foi possivel adicionar um filho.\n");
+    // printf("Erro: %p aponsta pra NULO.\n", no);
+    // printf("Nao foi possivel adicionar um filho.\n");
     return;
   }
-  else if (!newNo) {printf("Nao adiciona noh nulo como next!\n");return;}
+  else if (!newNo) {
+    // fprintf(stderr, "Nao adiciona noh nulo como next!\n");
+    return;
+  }
   if( (no)->childLast != NULL ) {
     (no)->childLast->n = newNo;
     (no)->childLast = newNo;
