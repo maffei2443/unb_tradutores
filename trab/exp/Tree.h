@@ -68,8 +68,9 @@ typedef enum {
   TYPE_MAT = 33
 }Type;
 
+// Indica TIPO DA REGRA da entrada de simbolos
 typedef enum {
-  HINT, HFLOAT, HID, HFUN
+  HINT, HFLOAT, HID, HFUN, HPARAM
 } _HASH_TYPES;
 
 typedef struct SymEntry{
@@ -88,6 +89,7 @@ typedef struct SymEntry{
       struct SymEntry** nestedSym;
     } func;
   } u;
+  struct No* astNode;
   struct SymEntry* next; // encadeamento para caso de conflito
   UT_hash_handle hh;
 } SymEntry;
@@ -99,7 +101,7 @@ typedef struct No {
   struct No * n;
   struct No * nextAux;
   SymEntry* symEntry;
-  // 
+
   char* sval;
   int ival;
   float fval;
@@ -110,7 +112,6 @@ typedef struct No {
   char sval_alloc;
   char tname_alloc;
   Type type;
-  // char* scope; char scope_alloc;
   char isToken;    // nesse modo, usa-se mesmo noh para token e regra
   char hasAux;
 } No;

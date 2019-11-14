@@ -13,10 +13,21 @@
 
 #define STR(x) #x
 #define INITNODE(x) \
-  yyval.no = No_New(nodeCounter++);\
+  {yyval.no = No_New(nodeCounter++);\
   if(!yyval.no) abort();\
-  yyval.no->tname =  x  ;
+  yyval.no->tname =  x  ;}
 #define MAKE_NODE(x) INITNODE(STR(x))
+#define PARAM_CHECK(__baseType, __id) \
+  if(!neoEntry) {\
+    neoEntry = was_declared(&reshi, yyvsp[__id]._id);    \
+    printf("[Semantico] Parametros de mesmo nome! Arvore vai ficar inconsistente..\n");\
+  }\
+  else {\
+    neoEntry->type = yyvsp[__baseType].type;\
+    yyval.no->type = yyvsp[__baseType].type;\
+    neoEntry->tag = HPARAM;\
+  }
+
 #include "Tree.h" // importante
 #include "SemanticChecker.h"
 #include <stdio.h>
@@ -123,7 +134,7 @@ globalStmt : defFun
 | declOrdeclInitVar
 
 declFun : AHEAD BASE_TYPE ID {
-  if(! was_declared(&reshi, $ID) ) {
+  if(!was_declared(&reshi, $ID) ) {
     SymEntry* neoEntry = add_entry(&reshi, $ID, HFUN);
     neoEntry->tag = $BASE_TYPE;
   }
@@ -205,7 +216,7 @@ declOrdeclInitVar : typeAndNameSign ';'
 }
 
 paramListVoid : paramList {
-  // Usado como auxiliar para criar a lista na ordem correta.
+  // childLast eh usado como auxiliar para criar a lista na ordem correta ;)
   $1->childLast = NULL;
   $$ = $1;
 }
@@ -224,62 +235,45 @@ paramList : paramList ',' param {
   }
   $$ = $1;
 }
-| param {
-  $$ = $1;
-  $$->hasAux = 0;
-}
+| param 
 
 param : BASE_TYPE ID {
   $$ = Token_New(STR(param), $ID);
   SymEntry* neoEntry = add_entry(&reshi, $ID, HID);
-  neoEntry->type = $BASE_TYPE;
-  $$->type = $BASE_TYPE;
-  $param->symEntry = neoEntry;
-  // $$->ival = 0;
-  // add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
-  // add_Node_Child_If_Not_Null($$, Token_New("ID",$ID));
-  
-  if(was_declared(&reshi, $ID))
-    printf("%s foi declarado\n", $ID);
-  else
-    printf("%s NAO FOI declarado\n", $ID);
-  
+  PARAM_CHECK(-1, 0);
+  link_symentry_no(neoEntry, $$);
   free($ID), $ID = NULL;
-
 }
 | BASE_TYPE ID '[' ']' {
   $$ = Token_New(STR(param), $ID);
   SymEntry* neoEntry = add_entry(&reshi, $ID, HID);
-  if($BASE_TYPE == TYPE_INT) {
-    neoEntry->type = TYPE_ARRAY_INT;
-  }
-  else if ($BASE_TYPE == TYPE_FLOAT) {
-    neoEntry->type = TYPE_ARRAY_FLOAT;
-  }
+  // SEMANTICO
+  PARAM_CHECK(-3, -2);
+  
+  if($BASE_TYPE == TYPE_INT)    neoEntry->type = TYPE_ARRAY_INT;
+  else if ($BASE_TYPE == TYPE_FLOAT) neoEntry->type = TYPE_ARRAY_FLOAT;
   else {
-    // Nao deve entrar aqui.
     printf("BASE_TYPE deve ser apenas TYPE_INT ou TYPE_FLOAT\n");
     abort();
   }
   $$->type = $BASE_TYPE;
-  $param->symEntry = neoEntry;
+  link_symentry_no(neoEntry, $$);
   free($ID), $ID = NULL;
 }
 | MAT_TYPE BASE_TYPE ID {
   $param = Token_New(STR(param), $ID);
   SymEntry* neoEntry = add_entry(&reshi, $ID, HID);
-  if($BASE_TYPE == TYPE_INT) {
-    neoEntry->type = TYPE_MAT_INT;
-  }
-  else if ($BASE_TYPE == TYPE_FLOAT) {
-    neoEntry->type = TYPE_MAT_FLOAT;
-  }
+  // Semantico
+  PARAM_CHECK(-1, 0);
+
+  if($BASE_TYPE == TYPE_INT) neoEntry->type = TYPE_MAT_INT;  
+  else if ($BASE_TYPE == TYPE_FLOAT) neoEntry->type = TYPE_MAT_FLOAT;
   else {
     printf("BASE_TYPE deve ser apenas TYPE_INT ou TYPE_FLOAT\n");
     abort();
   }
   $$->type = neoEntry->type;
-  $param->symEntry = neoEntry;
+  link_symentry_no(neoEntry, $$);  
   free($ID), $ID = NULL;
 }
 
@@ -636,8 +630,9 @@ argList : argList ',' arg {
 | arg 
 
 arg : lvalue {
-  MAKE_NODE(arg);
-  add_Node_Child_If_Not_Null($$, $lvalue);
+  $$ = $1;
+  // MAKE_NODE(arg);
+  // add_Node_Child_If_Not_Null($$, $lvalue);
 }
 | ID '(' expr ')' '(' expr ')' {
   MAKE_NODE(arg);

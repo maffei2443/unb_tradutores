@@ -5,6 +5,7 @@
 - [x] Verificação de escopo
   - [x] usar variavel soh se foi declarada
   - [x] erro ao declarar 2+ vezes variavel de mesmo nome sob mesmo escopo
+    - [x] trata caso de parametros de mesmo nome
   - [x] mesmo nome de variavel permitido quando:
     - [x] faz "shallow" sobre variavel de escopo superior
     - [x] nao hah variavel de tal nome declarada em seu escopo nem no superior

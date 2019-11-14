@@ -10,14 +10,10 @@ int gambs_qtd = 0;
 
 SymEntry** gambs;
 
-// enum gerada pelo bison; gambs feita automaticamente por
-// script python
-
-// REPLACE FROM HERE
-// UNTIL HERE
-
-
-
+void link_symentry_no(SymEntry* sym, No* no) {
+  sym->astNode = no;
+  no->symEntry = sym;
+}
 
 //  Retorna TYPE_UNDEFINED nos casos:
 // - left/right ser TYPE_UNDEFINED
@@ -119,6 +115,18 @@ SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
       }
     }
     return newEntry;
+}
+
+int id_has_type(SymEntry** reshi, char* id, Type type) {
+  SymEntry* sym = was_declared(reshi, id);
+  if(!sym) return -1;
+  assert(sym->type == sym->astNode->type);
+  return sym->type == type;
+}
+
+// Retorna 1 de t1 pode ser promovido a t2, e 0 caso contrario
+int can_cast(Type t1, Type t2) {
+  
 }
 
 void addToDel(SymEntry** p) {
