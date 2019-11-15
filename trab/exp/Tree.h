@@ -87,11 +87,11 @@ typedef struct SymEntry{
     int ival;
     char cval;
     float fval;
-    struct {
-      struct No* next;
-      struct SymEntry* upperSym;
-      struct SymEntry** nestedSym;
-    } func;
+    // struct {
+    //   struct No* next;
+    //   struct SymEntry* upperSym;
+    //   struct SymEntry** nestedSym;
+    // } func;
   } u;
   struct No* astNode;
   struct SymEntry* next; // encadeamento para caso de conflito

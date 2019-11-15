@@ -39,7 +39,7 @@ int match_paramList(No* oldParam, No* param) {
 void link_symentry_no(SymEntry** sym, No** no) {
   (*sym)->astNode = *no;
   (*no)->symEntry = *sym;
-  fprintf(stderr, "\t[link_symentry_no]\t %p %p\n", *sym, *no);
+  // fprintf(stderr, "\t[link_symentry_no]\t %p %p\n", *sym, *no);
 }
 
 //  Retorna TYPE_UNDEFINED nos casos:
@@ -137,7 +137,7 @@ SymEntry* was_declared(SymEntry** reshi, char* id){
 
 SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
     SymEntry* neoEntry = NULL;
-    fprintf(stderr,"tegi: %s\n", type2string(tag));
+    // fprintf(stderr,"tegi: %s\n", type2string(tag));
     HASH_FIND_STR((*reshi), id, neoEntry);/* id already in the hash? */
     if (neoEntry == NULL) {
       neoEntry = SymEntry_New(id, tag, currScope);

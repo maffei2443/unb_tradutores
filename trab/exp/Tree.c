@@ -27,7 +27,7 @@ Type Type_Class(Type type) {
 }
 
 void show_Spaces(int qtd){
-  char*  p = malloc(sizeof(char) * qtd+1);
+  char*  p = calloc(qtd+2, sizeof(char));
   memset(p, ' ', qtd);
   p[qtd] = '\0';  
   printf("%s", p);
@@ -36,7 +36,7 @@ void show_Spaces(int qtd){
 
 // Ok.
 No* No_New(int v) {
-  No* no = (No*)malloc(sizeof(No));
+  No* no = (No*)calloc(1,sizeof(No));
   no->child = NULL;
   no->childLast = NULL;
   no->n = NULL;
@@ -59,8 +59,11 @@ No* No_New(int v) {
 No* Token_New(char* tname, char* sval) {
   No* token = No_New(-1);
   token->isToken = 1;
-  token->tname_alloc = 1;  token->tname = calloc(strlen(tname) + 1, sizeof(char));
-  token->sval_alloc = 1;  token->sval = calloc(strlen(sval) + 1, sizeof(char));
+  token->tname_alloc = 1;
+  token->tname = calloc(strlen(tname) + 1, sizeof(char));
+  token->sval_alloc = 1;
+  token->sval = calloc(strlen(sval) + 1, sizeof(char));
+
   if(!token->tname) abort();
   if(!token->sval ) abort();
   memcpy(token->tname, tname, strlen(tname));
@@ -253,15 +256,17 @@ int ListSize(No* no) {
 
 // Estava em common
 SymEntry* SymEntry_New(char* id, int tag, char* escopo){
-  SymEntry* neo = (SymEntry*)calloc(sizeof(SymEntry), 1);
+  SymEntry* neo = (SymEntry*)calloc(1, sizeof(SymEntry));
   
-  memcpy(neo->id, id, strlen(id)+1); neo->id[strlen(id)+1] = '\0';
+  memcpy(neo->id, id, strlen(id));
+  neo->id[strlen(id)] = '\0';
   neo->tag = tag;
-  size_t t = strlen(escopo);
-  neo->escopo = malloc( t );
+  size_t t = strlen(escopo) + 1;
+  neo->escopo = calloc( 1, t );
   memcpy(neo->escopo, escopo, t);
   neo->escopo[t] = '\0';
-  neo->u.ival = 0; neo->u.func.next = 0;
+  neo->u.ival = 0;
+  // neo->u.func.next = 0;
   neo->local.line = neo->local.col = -1;
   neo->type = TYPE_UNDEFINED;
   neo->astNode = NULL; // NAO MEXER NA ARVORE ABSTRATA!
@@ -273,11 +278,18 @@ void* SymEntry_Destroy(void* p){
   SymEntry* sym = (SymEntry*)p;
   if(!sym) return NULL;
   if(sym->tag == TYPE_DEF_FUN || sym->tag == TYPE_DECL_FUN) {
+    No* tmp = sym->astNode->param;
+    No* tmp2; 
+    while(tmp) {
+      tmp2 = tmp->nextAux;
+      free(tmp);
+      tmp = tmp2;
+    }
     // trata-se se funcao! liberar portanto
     // a lista de nohs que compoem sua assinatura
-    free_Lis(sym->u.func.next); sym->u.func.next = NULL;
-    SymEntry_Destroy(sym->u.func.nestedSym); sym->u.func.nestedSym = NULL;
-    sym->u.func.upperSym = NULL;  // nao tentar dar free no pai; ciclo
+    // free_Lis(sym->u.func.next); sym->u.func.next = NULL;
+    // SymEntry_Destroy(sym->u.func.nestedSym); sym->u.func.nestedSym = NULL;
+    // sym->u.func.upperSym = NULL;  // nao tentar dar free no pai; ciclo
   }
   free(sym);
   sym = NULL;

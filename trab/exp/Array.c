@@ -1,7 +1,7 @@
 #include "Array.h"
 
 void Array_Init(Array * a, size_t initSize) {
-  a->array = (char*)malloc(initSize * sizeof(char));
+  a->array = (char*)calloc(initSize, sizeof(char));
   a->used = 0; a->size = initSize;
 }
 

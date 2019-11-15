@@ -294,7 +294,7 @@ achar '([a-zA-Z0-9_]?)'
 
 {ID} {              
     // showID();
-    yylval._id = malloc(yyleng + 1);
+    yylval._id = calloc(1, yyleng + 2);
     memcpy(yylval._id, yytext, yyleng+1);
     currCol += yyleng;
     return ID;

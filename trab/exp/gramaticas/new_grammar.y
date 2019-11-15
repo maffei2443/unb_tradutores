@@ -131,6 +131,7 @@ globalStmtList : %empty {
 globalStmt : defFun 
 | declFun ';' 
 | declOrdeclInitVar
+| declFun error
 
 declFun : AHEAD BASE_TYPE ID {
   decl_fun_rule = 1;
@@ -191,7 +192,8 @@ typeAndNameSign : BASE_TYPE ID {
   }
 
   SymEntry* neoEntry = add_entry(&reshi, $ID, $BASE_TYPE);
-  neoEntry->type = neoEntry->tag;
+  if(neoEntry)  //TODO: trtar esse caso
+    neoEntry->type = neoEntry->tag;
   // printf("[typeAndNameSign : BASE_TYPE ID] neoEntry->tag: %s\n", type2string(neoEntry->tag));
   // printf("[typeAndNameSign : BASE_TYPE ID] neoEntry->type: %s\n", type2string(neoEntry->type));
   MAKE_NODE(typeAndNameSign);
@@ -204,7 +206,11 @@ typeAndNameSign : BASE_TYPE ID {
 
 | BASE_TYPE ID '[' num ']' {
   SymEntry* neoEntry = add_entry(&reshi, $ID, $BASE_TYPE == TYPE_INT ? TYPE_ARRAY_INT : TYPE_ARRAY_FLOAT);
-  neoEntry->type = neoEntry->tag;
+  if(neoEntry)
+    neoEntry->type = neoEntry->tag;
+  else 
+    printf("[Semantico] %s nao foi declarado!\n", $ID);
+  
   MAKE_NODE(typeAndNameSign);
   link_symentry_no(&neoEntry, &$$);
 
@@ -220,7 +226,10 @@ typeAndNameSign : BASE_TYPE ID {
 }
 | MAT_TYPE BASE_TYPE ID '[' num ']' '[' num ']' {
   SymEntry* neoEntry = add_entry(&reshi, $ID, $BASE_TYPE == TYPE_INT ? TYPE_MAT_INT : TYPE_MAT_FLOAT);
-  neoEntry->type = neoEntry->tag;
+  if(neoEntry)
+    neoEntry->type = neoEntry->tag;
+  else 
+    printf("[Semantico] %s nao foi declarado!\n", $ID);
   MAKE_NODE(typeAndNameSign);
   link_symentry_no(&neoEntry, &$$);
 
@@ -236,7 +245,8 @@ typeAndNameSign : BASE_TYPE ID {
   add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
   add_Node_Child_If_Not_Null($$, $5);
-  add_Node_Child_If_Not_Null($$, $8);  
+  add_Node_Child_If_Not_Null($$, $8);
+  free($ID); $ID = NULL;
 }
 
 declOrdeclInitVar : typeAndNameSign ';' {}
@@ -245,6 +255,7 @@ declOrdeclInitVar : typeAndNameSign ';' {}
   add_Node_Child_If_Not_Null($$, $typeAndNameSign);
   add_Node_Child_If_Not_Null($$, $rvalue);
 }
+| typeAndNameSign '=' rvalue error
 
 paramListVoid : paramList {
   // childLast eh usado como auxiliar para criar a lista na ordem correta ;)
@@ -285,7 +296,7 @@ param : BASE_TYPE ID {
     }
   }
   else {
-    printf("1296 !!!\n");
+    // printf("1296 !!!\n");
   }
   $$->type = $BASE_TYPE;
   free($ID), $ID = NULL;
@@ -361,6 +372,7 @@ localStmt : call ';' {
   add_Node_Child_If_Not_Null($$, Token_New("RETURN", "return"));
   add_Node_Child_If_Not_Null($$, $expr);
 }
+| RETURN expr error{$$=NULL;}
 | IREAD '(' lvalue ')' ';' {
   MAKE_NODE(localStmt);
   No* iread_no = Token_New("IREAD","IREAD");
@@ -424,6 +436,21 @@ flowControl : IF '(' expr ')' block ELSE flowControl {
   add_Node_Child_If_Not_Null($$, $expr);
   add_Node_Child_If_Not_Null($$, $block);
 }
+| IF '(' expr error block ELSE block {
+  printf("Erro : IF ( expr error block ELSE block\n");
+  printf("Falta FECHAR parentese\n");  
+  $$ = NULL;
+}
+| IF error expr ')' block ELSE block {
+  printf("Erro : IF ( expr error block ELSE block\n");
+  printf("Falta ABRIR parentese\n");  
+  $$ = NULL;  
+}
+| IF '(' error ')' block {
+  printf("Erro : IF ( error ) block ELSE block\n");
+  printf("Expressao mal formada\n");  
+  $$ = NULL;  
+}
 
 loop : WHILE '(' expr ')' block {
   MAKE_NODE(loop);
@@ -456,8 +483,13 @@ defFun : BASE_TYPE ID '('{
   else {
     printf("definindo funcao %s\n", $ID); fflush(stdout);
     SymEntry* neoEntry = add_entry(&reshi, $ID, TYPE_DEF_FUN);
-    neoEntry->type = $BASE_TYPE;
-    neoEntry->def_fun = 1;
+    if(!neoEntry) {
+      printf("Erro na definicao de funcao %s [bug]\n", $ID);
+    }
+    else {
+      neoEntry->type = $BASE_TYPE;
+      neoEntry->def_fun = 1;
+    }
   }
   currScope = $ID;
 } paramListVoid ')' '{' declList localStmtList '}' {
@@ -507,7 +539,6 @@ defFun : BASE_TYPE ID '('{
     aborta = 0;
   No* _BASE_TYPE = Token_New(STR(BASE_TYPE), type2string($BASE_TYPE));
   No* _ID = Token_New(STR(ID), $ID);
-  free($ID);$ID = NULL;
   add_Node_Child_If_Not_Null($$, _BASE_TYPE);
   add_Node_Child_If_Not_Null($$, _ID);
   add_Node_Child_If_Not_Null($$, $paramListVoid);
@@ -515,6 +546,7 @@ defFun : BASE_TYPE ID '('{
   add_Node_Child_If_Not_Null($$, $localStmtList);  
   def_fun_rule = 0;
   currScope = GLOBAL_SCOPE;
+  free($ID);$ID = NULL;
 }
 
 numListList :  numListList '{' numList '}' {
@@ -760,7 +792,8 @@ call : ID '(' argList ')' {
     else {
       printf("%s nao eh funcao para ser chamada\n", aux->id);
     }    
-  }  
+  }
+  free($ID); $ID = NULL;
 }
 | ID '('  ')' {
   MAKE_NODE(call);
@@ -786,7 +819,8 @@ call : ID '(' argList ')' {
     else {
       printf("%s nao eh funcao para ser chamada\n", aux->id);
     }    
-  }  
+  }
+  free($ID); $ID = NULL;
 }
 
 argList : argList ',' arg {
@@ -828,6 +862,7 @@ arg : lvalue
       // TODO: checar dimensoes, mas isso eh em tempo de excucao
     }
   }
+  free($ID); $ID = NULL;
 }
 
 num : V_INT {
@@ -853,7 +888,7 @@ lvalue : ID {
   // SEMANTICO
   SymEntry* entry = last_decl(&reshi, $ID);
   // CHECK FOR NULL (== nao declarado)
-  printf("[ID: %s]entry->type: %s\n", $ID, type2string(entry->type));
+  // printf("[ID: %s]entry->type: %s\n", $ID, type2string(entry->type));
   if(entry) {
     if(is_fun(entry->tag)) {
       printf("Identificador %s, l.%d c.%lu DECLARADO PREVIAMENTE como funcao em l.%d, c.%d!\n",
@@ -878,6 +913,7 @@ lvalue : ID {
   add_Node_Child_If_Not_Null($$, $expr);
   // SEMANTICO    
   if(!last_decl(&reshi, $ID)){printf("Variavel %s, l.%d nao declarada!\n", $ID, numlines);}
+  free($ID); $ID = NULL;
 }
 | ID '[' expr ']' '[' expr ']' {
   MAKE_NODE(lvalue);
@@ -886,6 +922,7 @@ lvalue : ID {
   add_Node_Child_If_Not_Null($$, $6);
   // SEMANTICO    
   if(!last_decl(&reshi, $ID)){printf("Variavel %s, l.%d nao declarada!\n", $ID, numlines);}
+  free($ID); $ID = NULL;
 }
 
 rvalue : expr
@@ -920,4 +957,5 @@ int main(){
   
   free_All_Child(root);
   free_Lis(root);
+  delGambs();
 }
