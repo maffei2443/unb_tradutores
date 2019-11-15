@@ -875,7 +875,9 @@ lvalue : ID {
 }
 
 rvalue : expr
-| '{' numList '}' {$$ = $2;}
+| '{' numList '}' {
+  $$ = $2;
+}
 | '[' numListList ']' {$$ = $2;}
 
 %%

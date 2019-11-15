@@ -54,7 +54,7 @@ typedef enum {
 } Field;
 
 typedef enum {
-  TYPE_INVALID = -1,
+  TYPE_INVALID = -2,
   TYPE_VOID = -1,
   TYPE_UNDEFINED = 0, 
   TYPE_INT = 1,

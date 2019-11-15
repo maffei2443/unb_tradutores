@@ -12,7 +12,7 @@ int is_fun(Type t) {
 Type Type_Class(Type type) {
   switch (type)  {
     case TYPE_VOID:
-      return  TYPE_VOID;
+      return TYPE_VOID;
     case TYPE_UNDEFINED:
       return TYPE_UNDEFINED;
     case TYPE_INT:
@@ -302,6 +302,7 @@ char* type2string(Type t) {
     case TYPE_IF: return "if";
     case TYPE_PARAM: return "param";
     case TYPE_POINTER: return "pointer";
+    case TYPE_INVALID: return "invalid";
   }
 }
 static char* t2s(Type t) {
@@ -323,29 +324,33 @@ void print_reshi(SymEntry* reshi) {
 }
 
 void show_entry(SymEntry* s) {
-  printf("%10s %d: %p ", s->escopo, s->tag, s);
-  int classType = Type_Class(s->tag); 
+  printf("%10s: ", s->escopo);
+  int classType = Type_Class(s->tag);
   if(classType == TYPE_MAT) {
     printf("< %s, %s >", 
       t2s(s->tag == TYPE_INT ? TYPE_MAT_INT : TYPE_MAT_FLOAT) ,s->id);
   }
+  else if (classType == TYPE_ARRAY) {
+    printf("< %s, %s >", 
+      t2s(s->tag == TYPE_INT ? TYPE_ARRAY_INT : TYPE_ARRAY_FLOAT) ,s->id);
+  }
   else {
     switch(s->tag) {
-      case TYPE_FLOAT:
-        printf("< float, %s >", s->id);
-        break;
+      case TYPE_ARRAY_INT:
+      case TYPE_ARRAY_FLOAT:
       case TYPE_INT:
-        printf("< int, %s >", s->id);
-        break;
+      case TYPE_FLOAT:
+        printf("< %s, %s>", type2string(s->tag), s->id);
+        break;    
       case TYPE_DECL_FUN: case TYPE_DEF_FUN:
         printf("< fun(%s), %s>", type2string(s->type), s->id);
-        break;    
+        break;
       case TYPE_PARAM:
         printf("< param, %s, %s>", s->id, type2string(s->type));
+        break;      
+      case TYPE_MAT_FLOAT: case TYPE_MAT_INT:
+        printf("< mat(%s), %s>", t2s(s->type), s->id);
         break;
-      // case TYPE_MAT_FLOAT: case TYPE_MAT_INT:
-      //   printf("< mat(float), %s>",  s->id);
-      //   break;
       
     }
   }
