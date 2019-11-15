@@ -343,7 +343,7 @@ localStmt : call ';' {
   MAKE_NODE(localStmt);
   if($lvalue->type != $rvalue->type ||
     $lvalue->type == $rvalue->type && $lvalue->type == TYPE_UNDEFINED) {
-    printf("[Semantico] Erro de tipo em atribuicao: <%s> = <%s>\n", type2string($lvalue->type), type2string($rvalue->type));
+    printf("[Semantico] Warning de tipo em atribuicao: <%s> = <%s>\n", type2string($lvalue->type), type2string($rvalue->type));
   }
   add_Node_Child_If_Not_Null($$, $lvalue);
   add_Node_Child_If_Not_Null($$, $rvalue);
@@ -366,12 +366,18 @@ localStmt : call ';' {
   No* iread_no = Token_New("IREAD","IREAD");
   add_Node_Child_If_Not_Null($$, iread_no);
   add_Node_Child_If_Not_Null($$, $lvalue);
+  if($lvalue->type != TYPE_INT) {
+    printf("[Semantico] Erro: Leitura de inteiro sobre tipo |%s|\n", type2string($lvalue->type));
+  }
 }
 | FREAD '(' lvalue ')' ';' {
   MAKE_NODE(localStmt);
   No* fread_no = Token_New("FREAD","FREAD");
   add_Node_Child_If_Not_Null($$, fread_no);
   add_Node_Child_If_Not_Null($$, $lvalue);
+  if($lvalue->type != TYPE_FLOAT) {
+    printf("[Semantico] Erro: Leitura de inteiro sobre tipo |%s|\n", type2string($lvalue->type));
+  }  
 }
 | PRINT '(' rvalue ')' ';' {
   MAKE_NODE(localStmt);
@@ -696,7 +702,7 @@ expr : expr '+' expr {
   MAKE_NODE(expr);
   // CHECAR SE EH LVAL; SE NAO FOR, TEM QUE DAR ERRO
   if(strcmp($2->tname, "lvalue")) {
-    printf("[Semantico] Erro: operando de & deve se lvalue.\n");
+    printf("[Semantico] Erro: operando de & deve ser lvalue.\n");
   }
   $$->type = TYPE_POINTER;
   $$->ival = '&';
@@ -709,6 +715,10 @@ expr : expr '+' expr {
   $$->type = TYPE_INT;
   add_Node_Child_If_Not_Null($$, Token_New("ICAST", "ICAST"));
   add_Node_Child_If_Not_Null($$, $3);
+  if(Type_Class($3->type) != TYPE_SCALAR) {
+    printf("[Semantico] Erro: nao pode converter nao-escalar (e.g %s) para inteiro.\n",
+      type2string($3->type));
+  }
 }
 | FCAST '(' expr ')' {
   MAKE_NODE(expr);
@@ -716,6 +726,10 @@ expr : expr '+' expr {
   $$->type = TYPE_FLOAT;  
   add_Node_Child_If_Not_Null($$, Token_New("FCAST", "FCAST"));
   add_Node_Child_If_Not_Null($$, $3);
+  if(Type_Class($3->type) != TYPE_SCALAR) {
+    printf("[Semantico] Erro: nao pode converter nao-escalar (e.g %s) para inteiro.\n",
+      type2string($3->type));
+  }  
 }
 | lvalue
 | call 
