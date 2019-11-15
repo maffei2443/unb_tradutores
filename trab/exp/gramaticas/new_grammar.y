@@ -167,7 +167,8 @@ declFun : AHEAD BASE_TYPE ID {
   add_Node_Child_If_Not_Null($$, $paramListVoid);
   
   $$->param = $paramListVoid;
-  link_symentry_no(&tmp, &$declFun);
+  link_symentry_no(&tmp, &$$);
+  
   // if ($$->param) {
   //   printf("primeiro parametro de %s: %s\n", $ID, $$->param->sval);
   // }
@@ -493,6 +494,8 @@ defFun : BASE_TYPE ID '('{
   if (!aborta) {  // nao modificar a entrada jah existente da tabela de simbolos
     tmp->tag = TYPE_DEF_FUN;
     tmp->type = $BASE_TYPE;
+    $$->param = $paramListVoid;
+    link_symentry_no(&tmp, &$$);
   }
   else
     aborta = 0;
@@ -728,15 +731,22 @@ call : ID '(' argList ')' {
   if(!aux){
     printf("Funcao %s, l.%d c.%lu nao declarada!\n", $ID, numlines, currCol - (strlen($ID) + 2));
   }
-  else {
+  else{
     $$->type = aux->type;
-    if(aux->tag != TYPE_DEF_FUN && aux->tag != TYPE_DECL_FUN ) {
-      printf("[Semantico] %s nao eh funcao pra ser chamada.\n", aux->id);
+    if(is_fun (aux->tag)) {
+      printf("%s eh uma funcao!.\n", aux->id);
+      printf("\t astNode: %p!.\n", aux->astNode);
+      // Ver se assinatura bate com a declaracao!
+      int match = match_paramList(aux->astNode->param, $argList);
+      if(match > 0) 
+        printf("[++++Semantico++++] Argumentos de %s corretos\n", $ID);
+      else
+        printf("[----Semantico----] Uso indevido de %s\n", $ID); 
     }
     else {
-      // Checar lista de argumentos e vre se dah certo
-    }
-  }
+      printf("%s nao eh funcao para ser chamada\n", aux->id);
+    }    
+  }  
 }
 | ID '('  ')' {
   MAKE_NODE(call);
@@ -753,6 +763,11 @@ call : ID '(' argList ')' {
       printf("\t astNode: %p!.\n", aux->astNode);
       // Ver se assinatura bate com a declaracao!
       int match = match_paramList(aux->astNode->param, NULL);
+      if(match > 0) 
+        printf("[++++Semantico++++] Argumentos de %s corretos\n", $ID);
+      else
+        printf("[----Semantico----] Uso indevido de %s\n", $ID);
+      
     }
     else {
       printf("%s nao eh funcao para ser chamada\n", aux->id);
@@ -821,8 +836,9 @@ lvalue : ID {
   MAKE_NODE(lvalue);
   No* tok = Token_New("ID", $ID);
   add_Node_Child_If_Not_Null($$, tok);
-  // SEMANTICO    
+  // SEMANTICO
   SymEntry* entry = last_decl(&reshi, $ID);
+  // CHECK FOR NULL (== nao declarado)
   printf("[ID: %s]entry->type: %s\n", $ID, type2string(entry->type));
   if(entry) {
     if(is_fun(entry->tag)) {
