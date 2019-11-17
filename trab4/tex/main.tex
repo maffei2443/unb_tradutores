@@ -223,9 +223,9 @@ Leonardo Maffei da Silva\thanks{leoitu22hotmail.com@gmail.com. \url{https://www.
 
 % resumo em português
 \begin{resumoumacoluna}
- Este documento atende os fins de documentação da terceira
+ Este documento atende os fins de documentação da quarta
  parte do projeto final da disciplina \textit{Tradutores},
- ministrada pela professora Dr.a Cláudia Nalon, no segundo semestre de 2019, na Universidade de Brasília. Tal artefato descreve um pouco da implementação do analisador semântico, bem como dificuldades encontradas durante tal processo. Para esta fase novamente, refez-se a gramática a fim de reduzir a quantidade de regras e tratar alguns \it{bugs} presentes na antiga.
+ ministrada pela professora Dr.a Cláudia Nalon, no segundo semestre de 2019, na Universidade de Brasília. Tal artefato descreve um pouco da implementação do analisador semântico, bem como dificuldades encontradas durante tal processo. Para esta fase novamente refez-se a gramática, a fim de reduzir a quantidade de regras e tratar alguns \it{bugs} presentes na antiga, e aproveitando o fato de que seria necessário a reimplementação completa do analisador sintático.
  \vspace{\onelineskip}
  
  \noindent
@@ -259,7 +259,7 @@ Durante a realização do curso de Cálculo Numérico, o grupo do autor notou a 
 
 Para esta fase, a diferença mais marcante na gramática está na especificação de precedência de operadores não mais inerente à gramática (conforme fora feito nos trabalhos anteriores), mas sim por meio das diretivas \it{\%left} e \it{\%right} do \it{bison}. Além disso, novas \it{features} foram adicionadas à gramática, a saber:
 \begin{itemize}
-	\item declaração com inicialização
+	\item declaração e inicialização de variáveis em apenas um \it{statement}
 	\item não utilização da palavra reservada \bf{void} quando se define ou chama função sem parâmetros
 	\item pode-se ter \bf{;} como \it{statement} local (desse modo, mais de um ponto e vírgula não causa erro)	
 \end{itemize}
@@ -269,7 +269,8 @@ Foram também retiradas algumas coisas, quais sejam:
 	\item remoção de regras que serviam como "demultiplexadoras dummy" de operadores
 	\item declaração de variáveis deve vir antes dos demais \it{statements} de uma função
 \end{itemize}
-Além das adições/remoções enumeradas, foi adicionada uma regra específica para declaração de variáveis, separada da declaração de parâmetros, além da possibilidade de explicitar que um parâmetro é um vetor.
+O tipo \bf{char} foi removido pois sua única função reside em servir de parâmetro à declaração \bf{PRINT}. Agora, existe mais esse tipo de dado, mas é possível a criação de \it{statements} utilizando diretamente o caractere desejado; por exemplo, \bf{PRINT('a')}.
+Além das adições / remoções enumeradas, foi adicionada uma regra específica para declaração de variáveis, separada da declaração de parâmetros, além da possibilidade de explicitar que um parâmetro é um vetor.
 A seguir, a especificação da nova gramática:
 %% BEGIN GRAMÁTICA
 	\subfile{grammar.tex}
@@ -281,7 +282,7 @@ As palavras reservadas da linguagem aparecem em \bf{negrito} na gramática, os o
 	\item matrizes são sempre bidimensionais
 	\item vetores são unidimensionais e suportam apenas os tipos \bf{int} e \bf{float}
 \end{itemize}
-Essas limitações tem por objetivo simplificar a implementação do tradutor dado o período de apenas um semestre e são todas implementadas na gramática da linguagem.
+Essas limitações tem por objetivo simplificar a implementação do tradutor dado o período de apenas um semestre e são todas garantidas pela gramática da linguagem.
 % ----------------------------------------------------------
 % Introdução
 % ----------------------------------------------------------
@@ -297,13 +298,12 @@ Essas limitações tem por objetivo simplificar a implementação do tradutor da
 \section{Semântica}
 A principal mudança nessa nova fase do projeto está na impossibilidade de indexação de variáveis que não são vetores nem matrizes (ideia inicial do projeto). De resto, não houve grandes alterações. A semântica é em grande parte idêntica à da linguagem C, em especial nos pontos que possuem em comum (operações de adição, subtração, etc) e nos tipos básicos \it{int} e \it{float}. 
 
-Construtos de controle de fluxo se comportam de maneira idêntica à de C, embora seja necessário que todo \it{statement} \it{if/else} seja seguido por um bloco de código. O construto \it{while} tem funcionamento idêntico em ambas as linguagens; operações de \it{cast} devem ser feitas por meio dos operadores \it{ICAST} e \it{FCAST}, mas caso não sejam utilizados e conversão ainda é feita, embora com uma mensagem de aviso ao usuário.
+Construtos de controle de fluxo se comportam de maneira idêntica à de C, embora seja necessário que todo \it{statement} \it{if}/\it{else} seja seguido por um bloco de código. O construto \it{while} tem funcionamento idêntico em ambas as linguagens; operações de \it{cast} devem ser feitas por meio dos operadores \it{ICAST} e \it{FCAST}, mas caso não sejam utilizados e conversão ainda pode ser feita, embora seja emitido mensagem de aviso ao usuário.
 
 Só é possível a realização de \it{cast} entre escalares (\bf{int} e \bf{float}); outras tentativas de conversão são caracterizadas como erros. C-mat possui apenas dois escopos: global e local. Caso uma variável utilizada dentro de uma função não tenha sido declarada, esta é buscada no escopo global. Caso não seja encontrada, é reportado erro. Não foi implementado o escopo de bloco com o
-único intuito de facilitar a implementação da análise semântica, dado o débito relativo ao analisador sintático que para ser quitado
-requeriu, conforme citado em \ref{difSintatico}, o que tomou uma quantia significativa de tempo.
+único intuito de facilitar a implementação da análise semântica. Um dos motivos foio débito relativo ao analisador sintático que para ser quitado requeriu, conforme citado em \ref{difSintatico}, o que tomou uma quantia significativa de tempo.
 
-Operadores binários são e maneira geral associativos à esquerda, com exceção para o operador de potenciação de matriz \bf{@@}, visto que a operação de potenciação é associativa à direita na matemática usual. Há operadores para as seguintes operações:
+Operadores binários são e maneira geral associativos à esquerda, com exceção para o operador de potenciação de matriz \bf{@@}, visto que a operação de potenciação é associativa à direita tal qual na matemática usual. Há operadores para as seguintes operações:
 \begin{itemize}
 	\item adição/subtração
 	\item multiplicação/divisão
@@ -316,11 +316,17 @@ Operadores binários são e maneira geral associativos à esquerda, com exceçã
 	\item exponenciação de matrizes
 \end{itemize}
 
-Todas as operações acima, a menos das relacionadas a matrizes, podem ser aplicadas a dois escalares quaisquer, embora caso esses operandos não sejam de mesmo tipo será mostrada mensagem de aviso ao usuário. Em caso de conversão de tipos, inteiros são convertidos para ponto flutuante na maioria dos casos, exceto quando trata-se do operador de resto da divisão, situação na qual o contrário ocorre. Operadores relacionais são um caso especial; quando aparecem, o resultado da operação é sempre um \bf{inteiro}: 0 ou 1. O operador \bf{!} nada mais faz do que troca o valor de seu operando 0 para 1 ou de qualquer outro valor para 1. Em caso de o valor não ser um inteiro, a conversão para inteiro é feita, caso se trate de um ponto flutuante. Em qualquer outro caso, considera-se que houve um erro.
+Todas as operações acima, a menos das relacionadas a matrizes, podem ser aplicadas a dois escalares quaisquer, embora caso esses operandos não sejam de mesmo tipo será mostrada mensagem de aviso ao usuário. Em caso de operação entre tipos distintos, feita a conversão de tipos: inteiros são convertidos para ponto flutuante na maioria dos casos, exceto quando trata-se do operador de resto da divisão, situação na qual o contrário ocorre. Operadores relacionais são um caso especial; quando aparecem, o resultado da operação é sempre um \bf{inteiro}: 0 ou 1. O operador \bf{!} nada mais faz do que troca o valor de seu operando 0 para 1 ou de qualquer outro valor para 1. Em caso de o valor ser um ponto flutuante, a conversão para inteiro é feita, e então seu efeito é aplicado ao valor convertido. Em qualquer outro caso, considera-se que houve um erro.
 
 É possível definir a assinatura de uma função antes de sua definição por meio da estrutura \bf{ahead} BASE\_TYPE ID. Desse modo, pode-se efetuar checagem de tipo e de parâmetros de funções sem que seja necessário percorrer a árvore abstrata mais de uma vez, e portanto é possível a implementação em C-mat de recursão indireta.
 
-Conforme entregas passadas, há vetor como tipo de dados composto; porém, não é possível ter vetores multidimensionais e só é possível a instanciação de vetores de escalares. Matrizes podem ser contruídas enquanto tipos nativos da linguagem, em notação similar ao que seria um vetor bidimensional. Contudo, novamente por conta de possíveis problemas na hora da tradução, C-mat implementa apenas \it{matrizes 2D}. Ainda assim, acredita-se que grande parte dos problemas encontrados pelo usuário a que se destina C-mat não lidam com matrizes com mais de duas dimensões e, portanto, essa limitação não deve ser um problema de maneira geral.
+Conforme entregas passadas, há vetor como tipo de dados composto; porém, não é possível ter vetores multidimensionais e só é possível a instanciação de vetores de escalares. Matrizes podem ser contruídas
+enquanto tipos nativos da linguagem, em notação similar ao que seria um vetor bidimensional, porém com o
+adicional de ser te informar qual o tipo escalar que a matriz armazena. Contudo, novamente por conta de
+possíveis problemas na hora da tradução, C-mat implementa apenas \it{matrizes 2D}. Ainda assim,
+acredita-se que grande parte dos problemas encontrados pelo usuário a que se destina C-mat não lidam com
+matrizes com mais de duas dimensões e, portanto, essa limitação não deve ser um problema de maneira
+geral.
 
 
 \iffalse
