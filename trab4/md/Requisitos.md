@@ -1,6 +1,5 @@
 - [] Verificação de tipos
-  - [] declarar 2x mesma função só funciona se *nomes E tipos do parametros forem os mesmos*
-  - [] função só pode ser definida 1 vez (add flag *def_fun* para SymEntry)
+  - [] função só pode ser definida e declarada 1 vez (add flag *def_fun* para SymEntry)
 
 - [x] Verificação de escopo
   - [x] usar variavel soh se foi declarada
@@ -9,5 +8,5 @@
   - [x] mesmo nome de variavel permitido quando:
     - [x] faz "shallow" sobre variavel de escopo superior
     - [x] nao hah variavel de tal nome declarada em seu escopo nem no superior
-- [] Determinação do tipo de expressões
+- [x] Determinação do tipo de expressões
 - [x] apenas função pode ser chamada

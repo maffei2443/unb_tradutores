@@ -266,23 +266,27 @@ Para esta fase, a diferença mais marcante na gramática está na especificaçã
 Foram também retiradas algumas coisas, quais sejam:
 \begin{itemize}
 	\item remoção dos tipo \bf{char} e \bf{void}
-	\item remoção de regras que serviam como "demultiplexadoras dummy" de operadores
+	\item remoção de regras que serviam como "demultiplexadoras dummy"  de operadores
 	\item declaração de variáveis deve vir antes dos demais \it{statements} de uma função
 \end{itemize}
-O tipo \bf{char} foi removido pois sua única função reside em servir de parâmetro à declaração \bf{PRINT}. Agora, existe mais esse tipo de dado, mas é possível a criação de \it{statements} utilizando diretamente o caractere desejado; por exemplo, \bf{PRINT('a')}.
+O tipo \bf{char} foi removido pois sua única função reside em servir de parâmetro ao comando \bf{PRINT}. Agora, não existe mais esse tipo de dado, mas é possível a criação de \it{statements} utilizando diretamente o caractere desejado (apenas letras e números da tabela \it{ascii}); por exemplo, \bf{PRINT('a')}. Vale ressaltar que para a impressão de quebra de linha, deve-se invocar o comando \bf{PRINT} passando-lhe como "argumento"  o "caractere vazio"; ou seja, deve-se 
+ter \bf{PRINT('')}.
+
 Além das adições / remoções enumeradas, foi adicionada uma regra específica para declaração de variáveis, separada da declaração de parâmetros, além da possibilidade de explicitar que um parâmetro é um vetor.
 A seguir, a especificação da nova gramática:
 %% BEGIN GRAMÁTICA
 	\subfile{grammar.tex}
 %% END GRMÁTICA
 
-As palavras reservadas da linguagem aparecem em \bf{negrito} na gramática, os outros \it{tokens} estão em letras maiúsculas e as regras de produção estão em letras minúsculas. Além As principais limitações de C-mat são listadas abaixo:
+As palavras reservadas da linguagem aparecem em \bf{negrito} na gramática, os outros \it{tokens} estão em letras maiúsculas e as regras de produção estão em letras minúsculas (com eventuais letras maiúsculas entre as demais para facilitar a legibilidade).
+
+As principais limitações impostas pela gramática de C-mat são listadas abaixo:
 \begin{itemize}
-	\item declaração de variáveis apenas no escopo local ou no início de funções
+	\item declaração de variáveis apenas no escopo global ou no início de funções
 	\item matrizes são sempre bidimensionais
 	\item vetores são unidimensionais e suportam apenas os tipos \bf{int} e \bf{float}
 \end{itemize}
-Essas limitações tem por objetivo simplificar a implementação do tradutor dado o período de apenas um semestre e são todas garantidas pela gramática da linguagem.
+Essas limitações tem por objetivo simplificar a implementação do tradutor dado o período de apenas um semestre e por serem garantidas pela gramática não requerem análise semântica para sua implementação.
 % ----------------------------------------------------------
 % Introdução
 % ----------------------------------------------------------
@@ -301,14 +305,14 @@ A principal mudança nessa nova fase do projeto está na impossibilidade de inde
 Construtos de controle de fluxo se comportam de maneira idêntica à de C, embora seja necessário que todo \it{statement} \it{if}/\it{else} seja seguido por um bloco de código. O construto \it{while} tem funcionamento idêntico em ambas as linguagens; operações de \it{cast} devem ser feitas por meio dos operadores \it{ICAST} e \it{FCAST}, mas caso não sejam utilizados e conversão ainda pode ser feita, embora seja emitido mensagem de aviso ao usuário.
 
 Só é possível a realização de \it{cast} entre escalares (\bf{int} e \bf{float}); outras tentativas de conversão são caracterizadas como erros. C-mat possui apenas dois escopos: global e local. Caso uma variável utilizada dentro de uma função não tenha sido declarada, esta é buscada no escopo global. Caso não seja encontrada, é reportado erro. Não foi implementado o escopo de bloco com o
-único intuito de facilitar a implementação da análise semântica. Um dos motivos foio débito relativo ao analisador sintático que para ser quitado requeriu, conforme citado em \ref{difSintatico}, o que tomou uma quantia significativa de tempo.
+único intuito de facilitar a implementação da análise semântica. Um dos motivos foi o débito relativo ao analisador sintático que para ser quitado requeriu, conforme citado em \ref{difSintatico}, quantia significativa de tempo.
 
-Operadores binários são e maneira geral associativos à esquerda, com exceção para o operador de potenciação de matriz \bf{@@}, visto que a operação de potenciação é associativa à direita tal qual na matemática usual. Há operadores para as seguintes operações:
+Operadores binários são de maneira geral associativos à esquerda, com exceção para o operador de potenciação de matriz \bf{@@}, visto que a operação de potenciação é associativa à direita tal qual na matemática usual. Há operadores para as seguintes operações:
 \begin{itemize}
 	\item adição/subtração
 	\item multiplicação/divisão
 	\item resto da divisão
-	\item comparação (maior que, menor que, maior ou igual a, menor ou igual a, igual e não igual)
+	\item comparação (maior que, menor que, maior ou igual a, menor ou igual a, igual a e não igual a)
 	\item AND e OR lógicos
 	\item NOT lógico
 	\item operador endereço (\&)
@@ -316,13 +320,13 @@ Operadores binários são e maneira geral associativos à esquerda, com exceçã
 	\item exponenciação de matrizes
 \end{itemize}
 
-Todas as operações acima, a menos das relacionadas a matrizes, podem ser aplicadas a dois escalares quaisquer, embora caso esses operandos não sejam de mesmo tipo será mostrada mensagem de aviso ao usuário. Em caso de operação entre tipos distintos, feita a conversão de tipos: inteiros são convertidos para ponto flutuante na maioria dos casos, exceto quando trata-se do operador de resto da divisão, situação na qual o contrário ocorre. Operadores relacionais são um caso especial; quando aparecem, o resultado da operação é sempre um \bf{inteiro}: 0 ou 1. O operador \bf{!} nada mais faz do que troca o valor de seu operando 0 para 1 ou de qualquer outro valor para 1. Em caso de o valor ser um ponto flutuante, a conversão para inteiro é feita, e então seu efeito é aplicado ao valor convertido. Em qualquer outro caso, considera-se que houve um erro.
+Todas as operações acima, a menos das relacionadas a matrizes e do operador \bf{\%}, podem ser aplicadas a dois escalares quaisquer, embora caso esses operandos não sejam de mesmo tipo será mostrada mensagem de aviso ao usuário. Em caso de operação entre tipos distintos, é feita a conversão de tipos: inteiros são convertidos para ponto flutuante na maioria dos casos. Operadores relacionais são um caso especial; quando aparecem, o resultado da operação é sempre um \bf{inteiro}: 0 ou 1. O operador \bf{!} nada mais faz do que troca o valor de seu operando 0 para 1 ou de qualquer outro valor para 1. Em caso de o valor ser um ponto flutuante, a conversão para inteiro é feita, e então seu efeito é aplicado ao valor convertido. Em qualquer outro caso, considera-se que houve um erro.
 
-É possível definir a assinatura de uma função antes de sua definição por meio da estrutura \bf{ahead} BASE\_TYPE ID; contudo, isso só pode ser feito uma vez para cada nome de função (limitação que não limita o poder da funcionalidade, porém facilitou a implementação). Desse modo, pode-se efetuar checagem de tipo e de parâmetros de funções sem que seja necessário percorrer a árvore abstrata mais de uma vez, e portanto é possível a implementação em C-mat de recursão indireta.
+É possível definir a assinatura de uma função antes de sua definição por meio da estrutura \bf{ahead} BASE\_TYPE ID; contudo, isso só pode ser feito uma vez para cada nome de função (limitação que não limita o poder da funcionalidade, porém facilitou a implementação). Desse modo, pode-se efetuar checagem de tipo e de parâmetros de funções sem que seja necessário percorrer a árvore abstrata mais de uma vez, e portanto é possível a implementação de recursão indireta em C-mat .
 
 Conforme entregas passadas, há vetor como tipo de dados composto; porém, não é possível ter vetores multidimensionais e só é possível a instanciação de vetores de escalares. Matrizes podem ser contruídas
 enquanto tipos nativos da linguagem, em notação similar ao que seria um vetor bidimensional, porém com o
-adicional de ser te informar qual o tipo escalar que a matriz armazena. Contudo, novamente por conta de
+adicional de see ner necessário informar qual o tipo escalar que a matriz armazena. Contudo, novamente por conta de
 possíveis problemas na hora da tradução, C-mat implementa apenas \it{matrizes 2D}. Ainda assim,
 acredita-se que grande parte dos problemas encontrados pelo usuário a que se destina C-mat não lidam com
 matrizes com mais de duas dimensões e, portanto, essa limitação não deve ser um problema de maneira
@@ -350,9 +354,17 @@ READ(a);
 \section{Implementação}
 \label{implementacao}
 
-Nesta fase houve pouca alteração no analisador léxico, pois o conjunto de tokens manteve-se praticamente o mesmo. A gramática por sua vez, bem como o analisador sintático, foram refeitos do zero, 
+Nesta fase houve pouca alteração no analisador léxico, pois o conjunto de tokens manteve-se praticamente o mesmo. As principais mudanças foram:
+\begin{itemize}
+	\item remoção das funções de impressão
+	\item total desconhecimento da tabela de símbolos: toda sua manipulação é realizada durante a análise semântica
+	\item remoção das palavras reservadas \bf{void} e \bf{char}
+	\item adição da palavra reservada \bf{ahead}
+\end{itemize}
+
+Já a gramática, bem como o analisador sintático, foram refeitos do zero, 
 embora se tivesse em mente que a linguagem gerada pela gramática deveria ser bastante similar à que era gerada pela antiga. O analisador sintático teve de ser refeito pois a estrutura adotada 
-anteriormente não era escalável, de difícil manutenção e número bastante alto de estruturas de dados \it{dummy}.
+anteriormente não era escalável, de difícil manutenção e possuia número bastante alto de estruturas de dados \it{dummy}.
 
 A nova implementação trata cada nó da árvore abstrata como uma estrutura de dados que é comum a todos eles, diferenciando-se pelo nome do token e outros atributos, sendo o principal sua entrada na tabela de símbolos (cada nó da AST correspondente a algum identificador possui um 
 ponteiro para a entrada na tabela de símbolos que contém informações sobre si).
@@ -361,49 +373,63 @@ A estrutura de árvore é obtida fazendo-se cada nó relativo a uma cabeça de p
 são encontradas na regras de declaração e definição de função bem como na regra que gera chamada de função, ações essas que setam a variável cujo valor é o escopo atual ou verificam se um
 identificador representa mesmo uma função.
 
-A análise semântica é realizada juntamente com a montagem da árvore abstrata, sem necessidade de percorrê-la mais de uma vez (exceção para a checagem de assinatura de chamada e definição de função). Logo, é feita em \it{apenas uma passada}. Tal decisão foi tomada pois previu-se que a análise em mais de um passada seria bastante trabalhosa e não traria benefícios significativos (o principal
+Toda a análise semântica é realizada juntamente com a montagem da árvore abstrata por meio de \it{ações semânticas}, sem necessidade de percorrê-la mais de uma vez (exceção para a checagem de assinatura de chamada e definição de função, que não exatamente percorre a árvore mais de uma vez, mas apenas a lista de parâmetros ou argumentos). Logo, é feita em \it{apenas uma passada}. Tal decisão foi tomada pois previu-se que a análise em mais de um passada seria bastante trabalhosa e não traria benefícios significativos (o principal
 benefício seria a possibilidade de recursão indireta; porém, para resolução desse problema, C-mat permite a declaração de função antes de sua utilização).
+
+\subsection{Funcionalidades}
+Relata-se a seguir, por meio de enumeração, quais funcionalidades da análise semântica foram implementadas (total ou parcialmente):
+\begin{itemize}
+	\item verificação de tipos
+	\item verificação de escopo:
+		\begin{itemize}
+			\item utilização de variável se e somente se já foi declarada
+			\item declaração de variável de mesmo nome sob mesmo escopo acusa erro (parâmetros são incluídos nesse caso)
+		\end{itemize}
+	\item determinação do tipo de expressões
+	\item verifica se chamada de função usar identificador de função de fato, e acusa erro caso seja nome de variável
+\end{itemize}
+
 
 \subsubsection{Limitações}
 
-Primeiramenre, ressalte-se que boa parte da análise semântica foi realizada com sucesso; contudo, há algumas algumas regras cujas ações semânticas estão faltantes (por exemplo, em dois dos três corpos da regra de produção \bf{typeAndNameSign}, não é feita a checagem de declaração prévia de identificador. Entretanto, essa checagem a ser feita é \it{exatamente} a mesma realizada no primeiro corpo de \bf{typeAndNameSign}).
+Primeiramenre, ressalte-se que boa parte da análise semântica foi realizada com sucesso; contudo, há algumas algumas regras cujas ações semânticas estão faltantes (por exemplo, em dois dos três corpos das regras de produção cuja cabeça é \bf{typeAndNameSign}, não é feita a checagem de compatibilidade de tipo da declaração prévia do identificador. Entretanto, essa checagem a ser feita é análoga à realizada no primeiro corpo de \bf{typeAndNameSign}).
 
-Em segundo lugar, não estava sendo feita a checagem por ponteiro nulo em todos os locais possíveis. Inclusive, é por este motivo que declarações de variável de mesmo nome causam o \it{crash} da versão entregue do programa. Ao longo da confecção deste relatório, este bug foi corrigido, bem como outros como a ausência de ação semântica na para a regra \bf{declOrdeclInitVar : typeAndNameSign ;}.
+Em segundo lugar, não estava sendo feita a checagem por ponteiro nulo em todos os locais possíveis. Inclusive, é por este motivo que declarações de variável de mesmo nome causam o \it{crash} da versão entregue do programa. Ao longo da confecção deste relatório, este bug foi corrigido, bem como outros como a ausência de ação semântica na para a regra \bf{declOrdeclInitVar : typeAndNameSign ;} .
 
 Também não foi possível consertar os vazamentos de memória da entrega passada, pois o analisador foi reimplementado. Quanto aos vazamentos de memória do novo analisador, estes não foram resolvidos a tempo. A memória relativa à árvore gerada pelo \it{bison} é em grande parte liberada, mas há vazamentos.
 
-Como último \it{bug} detectado nessa fase do projeto, a dedução de tipo de expressão para o caso do operador de potenciação de matrizes está errada. O problema estava na função \bf{bin\_expr\_type} e será corrigido antes da próxima entrega.
+Como último \it{bug} detectado nessa fase do projeto, a dedução do tipo de expressão para o caso do operador de potenciação de matrizes está errada. O problema estava na função \bf{bin\_expr\_type} e foi corrigido durante a produção deste documento.
 
 \subsection{Novas funções}
 
-Conforme dito na seção \ref{implementacao}, muito teve de ser refeito. Esta subseção apresenta as principais funções tanto do novo analisador sintático quanto das do analisador semântico. As funções utilizadas pelo analisador sintático são primariamente as disponíveis na biblioteca \it{Tree}, a qual implementa o tipo \it{No}, utilizado extensivamente pelo sintático para montagem da árvore. Tais funções são:
+Conforme dito na seção \ref{implementacao}, muito teve de ser refeito. Esta subseção apresenta as principais funções tanto do novo analisador sintático quanto do analisador semântico. As funções utilizadas pelo analisador sintático são primariamente as disponíveis na biblioteca \it{Tree}, a qual implementa o tipo \it{No}, utilizado extensivamente pelo sintático para montagem da árvore. Tais funções são:
 \begin{itemize}
 	\item \it{No*} No\_New/\it{No*} Token\_New: funções utilizadas para criação dos nós da AST
-	\item \it{void} add\_Node\_Child\_If\_Not\_Null: função para adicionar novos nós como filhos de um outro
-	\item \it{void} free\_Lis/free\_all\_child: funções responsáveis por liberar a memória alocada para a contrução da AST
+	\item \it{void} add\_Node\_Child\_If\_Not\_Null: função para adicionar nós como filhos de um outro nó
+	\item \it{void} free\_Lis/\it{void} free\_all\_child: funções responsáveis por liberar a memória alocada  durante a contrução da AST
 	\item \it{void} print\_reshi: mostra as entradas da tabela de símbolos
-	\item \it{void} show\_Sub\_Tree/\it{void}\}show\_Lis: mostra a árvore produzida durante a análise sintática
+	\item \it{void} show\_Sub\_Tree/ \it{void} show\_Lis: mostra a árvore produzida durante a análise sintática
 \end{itemize}
 
-Na entrega passada, algumas funções relativas à análise semântica, especificamente a inserção de identificadores na tabela de símbolos, eram realizados por funções antes presentes no mesmo arquivo que contém o código fonte do analisado sintático. Para essa entrega, removeu-se a definição de tais funções e as colocou em um cabeçalho específico para funções de interesse para a fase de análise semântica. Portanto, reduziu-se o tamanho do arquivo fonte do sintático nesse aspecto. Tais funções agora encontram-se implementadas no arquivo \it{SemanticChecker.c}, arquivo cujo \it{header }é agora incluído pelo sintático.
+Na entrega passada, algumas funções relativas à análise semântica, especificamente a inserção de identificadores na tabela de símbolos, eram realizados por funções antes presentes no mesmo arquivo que contém o código fonte do analisador sintático. Nesta entrega, as definições de tais funções foram movidas para uma biblioteca específica de funções a serem utilizadas na análise semântica. Desse modo, reduziu-se um pouco o tamanho do arquivo fonte do ASS. Tais funções encontram-se agora implementadas no arquivo \it{SemanticChecker.c}, cujo \it{header} é incluído pelo ASS.
 
 Tais funções utilizadas para essa fase de análise semântica são, principalmente:
 
 \begin{itemize}
-	\item \it{int} match\_paramList: função responsável por checar se parâmetros de uma função batem com sua chamada, ou com sua declaração prévia, caso seja o caso
+	\item \it{int} match\_paramList: função responsável por checar se parâmetros de uma função batem com sua chamada ou com sua declaração prévia
 	\item \it{void} link\_symentry\_no: função responsável por fazer uma entrada da tabela de símbolos apontar para um nó da AST e vice-versa
 	\item \it{Type} bin\_expr\_type: retorna qual o tipo de uma expressão binária
-	\item \it{SymEntry*} add\_entry: adiciona novo nome de identificador na tabela de símbolos, caso não exista resgistro prévio no escopo em questão. Caso contrário, mostra erro semântico e retorna \it{NULL}
+	\item \it{SymEntry*} add\_entry: adiciona novo nome de identificador na tabela de símbolos, caso não exista registro prévio no escopo em questão. Caso contrário, acusa erro semântico e retorna \it{NULL}
 	\item \it{SymEntry*} last\_decl: retorna ponteiro para a última declaração do identificador (declaração mais próxima). Útil para checar se identificador é usado incorretamente; por exemplo, chamada de função usando nome de variável.
   \item	\it{SymEntry*} was\_declared: não mais usada. Renomeada para \bf{last\_decl}. Motivo foi dar mais semântica ao que a função faz.
 	\item \it{void} addToDel: função utilizada para fazer o \it{tracking} das posições de memória utilizadas para alocação das entradas da tabela de símbolos
 \end{itemize}
 
-As funções recém listadas são usadas, ao menos uma delas, em basicamente todo local que aparece um identificador, seja para checar por sua existência da tabela de símbolos ou ainda, no caso de funções, se os tipos dos parâmetros estão corretos.
+As funções recém listadas são usadas, ao menos uma delas, em basicamente todo local que aparece um identificador, seja para checar por sua existência da tabela de símbolos ou ainda, no caso de funções, se os tipos e ordem dos parâmetros estão corretos.
 
 \subsection{Funcionamento do programa}
 
-A figura \ref{esquema} ilustra o fluxo básico de informações entre os módulos principais (\it{scanner} e analisador \it{sintático}/\it{semântico}).
+A figura \ref{esquema} ilustra o fluxo básico de informações entre os módulos principais (\it{scanner} e analisador \it{sintático}/\it{semântico} (ASS)).
 
 \begin{figure}[hbt!]
 	\caption{Esquema de funcionamento das análises léxica, sintática e semântica}
@@ -412,12 +438,11 @@ A figura \ref{esquema} ilustra o fluxo básico de informações entre os módulo
 	\includegraphics[scale=0.8]{img/diagrama-tradutores.png}
 \end{figure}
 
-O programa começa pela execução do módulo de análise, o qual imediatamente chama o scanner como co-rotina, e este retorna um \it{token} para o analisador. O analisador por sua vez vez decide entre
+O programa começa pela execução do módulo de análise, o qual imediatamente chama o \it{scanner} como co-rotina, e este retorna um \it{token} para o ASS. Este por sua vez vez decide entre
 imediatamente pedir outro token, executar alguma redução ou realizar ações semânticas. É neste módulo que os identificadores são inseridos na tabela
-de símbolos e realizada a ligação entre os nós da árvore correspondentes a identificadores e suas respectivas entradas da tabela de símbolos. Este
-ciclo se repete até que o scanner atinja fim de arquivo ou ocorra algum erro durante montagem da árvore sintática por conta do recebimento de
-token inesperado. Caso o arquivo seja sintaticamente correto, ao final do programa é exibida a árvore abstrata relativa ao código fonte. Caso
-haja erros/"imprecisões" semânticas (imprecisão seria por exemplo uma atribuição cujos tipos não batem), mensagens são exibidas também na saída padrão do console. Vale ressaltar que erros semânticos \bf{não impedem a geração da árvore abstrata}, mas podem gerar \bf{inconsistências} nela e na tabela de símbolos.
+de símbolos e realizada a ligação entre os nós da árvore correspondentes a identificadores e suas respectivas entradas da tabela de símbolos. Este ciclo se repete até que o analisador atinja fim de arquivo
+ou ocorra algum erro durante montagem da árvore sintática por conta do recebimento de
+token inesperado. Caso o arquivo seja sintaticamente correto, ao final do programa é exibida a árvore abstrata relativa ao código fonte. Caso haja erros/"imprecisões" semânticas (imprecisão seria por exemplo uma atribuição cujos tipos não batem), mensagens são exibidas também na saída padrão do console. Vale ressaltar que erros semânticos \bf{não impedem a geração da árvore abstrata}, mas podem gerar \bf{inconsistências} nela e na tabela de símbolos.
 
 Ao final da execução do programa, são exibidas a árvore abstrata produzida e em seguida a tabela de símbolos.
 
@@ -428,46 +453,54 @@ O analisador produzido reporta alguns erros comuns, quais sejam:
 
 \begin{itemize}{
 		\item não inserção de ponto e vírgula após o valor a ser retornado pelo \IT{return} e o não fechamento de parêntese 
-		\item expressão vazia (não são permitidas expressões lugal algum)
+		\item expressão vazia como condição do construto \it{while}
 		\item não inserção de parêntese direito relativo à condição do \IT{if}
 	}
 \end{itemize}
-Em caso de outros erros, a análise simplesmente é abortada. Em caso dos erros acima, a árvore sintática é montada naturalmente pelo \IT{bison}, embora fique inconsistente.
+Em caso de outros erros, a análise simplesmente é abortada. Em caso de erro acima, a árvore sintática é montada naturalmente pelo \IT{bison}, embora fique inconsistente.
 
 \subsection {Dificuldades Encontradas}
 
 \subsubsection{Sintático}
 \label{difSintatico}
-Embora esta fase seja relativa ao analisador semântico, faz-se necessário um relato das dificuldades encontradas no desenvolvimento do analisador sintático pois, conforme dito em \ref{implementacao},
-o analisador foi completamente refeito. Nesta nova implementação, as dificuldades principais, não houve muitas dificuldades, pois que já se sabia como lidar com a maioria as que surgiram. Um dos obstáculos encontrados foi quanto à decisão sobre quais tokens  ou cabeças de regras deveriam possuir seus próprios nós na árvore, visto que algumas produções são \it{dummy} e identificadores certamente requerem um nó para cada, além claro de uma conexão com sua respectiva entrada na tabela de símbolos. Foi também encontrada dificuldade a respeito de quais campos deveriam estar presente na estrutura de dados que forma cada nó da árvore abstrata e sobre quais regras podiam de fato ser tratadas como \it{dummy}.
+Embora esta fase seja relativa ao analisador semântico, faz-se necessário breve relato das dificuldades encontradas no desenvolvimento do analisador sintático pois, conforme dito em \ref{implementacao},
+este foi completamente refeito. Nesta nova implementação não houve muitas dificuldades, pois já se sabia como lidar com a maioria dos problemas surgidos.
 
-Não houve problemas acerca da montagem da árvore de maneira geral, a menos do encadeamento da lista de parâmetros; durante certa etapa do desenvolvimento, houve dúvidas sobre como proceder no encadeamento da lista de parâmetros. Ao final, optou-se por cada parâmetro fazer parte de uma lista encadeada simples cujos elementos eram todos do mesmo tipo (tipo \it{No}), porém não diretamente faziam parte da árvore.
+Um dos obstáculos encontrados foi quanto à decisão sobre quais tokens ou cabeças de regras deveriam possuir seus próprios nós na árvore, visto que algumas produções são \it{dummy} e identificadores certamente requerem um nó para cada, além claro de uma conexão com sua respectiva entrada na tabela de símbolos. Foi
+também encontrada dificuldade a respeito de quais campos deveriam estar presente na estrutura de dados que forma cada nó da árvore abstrata e sobre quais regras podiam de fato ser tratadas como \it{dummy}.
+
+Não houve problemas acerca da montagem da árvore de maneira geral, a menos do encadeamento da lista de parâmetros; durante certa etapa do desenvolvimento, houve dúvidas sobre como proceder no encadeamento da lista de parâmetros. Ao final, optou-se por cada parâmetro fazer parte de uma lista encadeada simples cujos elementos eram todos do mesmo tipo de dados da árvore, porém não faziam parte da estrutura da árvore como os outros.
 
 \subsubsection{Semântico}
 \label{semantico}
 
-Certamente a maior dificuldade enfrentada nessa fase foi a não percepção de todos os possíveis erros semânticos passíveis de ocorrência. Essa situação causou a imprevisibilidade do tempo necessário à conclusão do projeto, bem como consecutivos tropeços por não ter implementado a estrutura \it{No} com isso em mente. Dito isto, algumas das dificuldades superadas ao longo da realização desta fase foram:
+Certamente a maior dificuldade enfrentada nessa fase foi a não percepção de todos os possíveis erros semânticos passíveis de ocorrência. Essa situação causou a imprevisibilidade do tempo necessário à conclusão do projeto, bem como consecutivos tropeços por não ter implementado a estrutura \it{No} com isso em mente. Dito isso, algumas das dificuldades superadas ao longo da realização desta fase foram:
 \begin{itemize}
-	\item resolução de escopo: como assegurar que parâmetros tinham como contexto a função à que pertenciam 
-	\item lista de parâmetros/argumentos: qual a melhor maneira de encadeá-los
-	\item lista de argumentos: como saber se uma função é chamada com argumentos cujos tipos batem com a assinatura da função
-	\item resolução de escopo: melhor forma de diferenciar os escopos (em termos de eficiência, uma função \it{hash} seria a melhor opção; porém, a fim de simplificar a implementação, é feito por meio da comparação de caracteres)
+	\item resolução de escopo:
+		\begin{itemize}
+			\item como assegurar que parâmetros tinham como contexto a função à que pertenciam?
+			\item diferenciação de escopos (em termos de eficiência, uma função \it{hash} seria a melhor opção; porém, a fim de simplificar a implementação, é feito por meio da comparação de caracteres)
+		\end{itemize}	 
+	\item lista de parâmetros / argumentos: qual a melhor maneira de encadeá-los?
+	\item lista de argumentos: como saber se uma função é chamada com argumentos cujos tipos batem com a assinatura da função?	
 \end{itemize}
-Além dessas dificuldades relacionadas especificamente à análise semântica, registre-se que a maior parte do prazo de três semanas e 3 dias para esta entrega foi gasto refazendo a gramática, entendendo melhor o funcionamento do \it{bison} e criando as estruturas de dados a serem usadas na contrução da AST de modo a minimizar os \it{leaks} de memória. Também, fatores externos à disciplina (entregas de outras disciplinas) influenciaram bastante negativamente a qualidade da entrega.
 
-Não foi possível implementar \it{tudo} que a análise semântica deveria fazer; isso deve ser feito para a próxima entrega e relatado juntamente com ela.
+Além dessas dificuldades relacionadas especificamente à análise semântica, registre-se que a maior parte do prazo de três semanas e 3 dias para esta entrega foi gasto refazendo a gramática, entendendo melhor o funcionamento do \it{bison} e criando as estruturas de dados a serem usadas na contrução da AST. Também,
+fatores externos à disciplina (entregas de outras disciplinas) influenciaram bastante negativamente a
+qualidade da entrega.
+
+Não foi possível implementar \it{tudo} que a análise semântica deveria fazer; isso deve ser feito para a próxima entrega e relatado posteriormente.
 
 \subsection{Arquivos de teste}
-Os arquivos de teste encontram-se na nos subdiretórios da pasta \href{https://github.com/maffei2443/unb_tradutores/tree/new_master/trab4/test}{\IT{test}} . Cada subdiretório contém os arquivos de teste relativos à cada fase do trabalho (léxico, sintático e semântico). A seguir, lista-se as pastas e descreve-se as peculiaridades de organização de cada uma:
+Os arquivos de teste encontram-se nos subdiretórios da pasta \href{https://github.com/maffei2443/unb_tradutores/tree/new_master/trab4/test}{\IT{test}}. Cada subdiretório contém os arquivos de teste relativos a cada fase do trabalho (léxico, sintático e semântico). A seguir listam-se as pastas, seguidas de suas descrições:
 \begin{itemize}
-	\item léxico: contém arquivos com prefixo \it{c} ou \it{e}, os quais estão respectivamente corretos ou errados para o léxico, respectivamente
-	\item sintático: organização idêntica à do léxico
-	\item semântico: 
+	\item lexico: contém arquivos com prefixo \it{c} ou \it{e}, os quais estão respectivamente corretos ou errados para o léxico
+	\item sintatico: organização idêntica à pasta \it{lexico}
+	\item semantico: contém as subpastas \it{certos} e \it{erro}, as quais contêm os arquivos que estão corretos e errados, respectivamente, segundo a análise semântica
 \end{itemize}
 
 \section{Referências}
-Foram utilizados basicamente os manuais do flex \cite{flex} e do bison \cite{bison}, além da documentação do cabeçalho \it{uthash} \cite{uthash}
-Tais fontes não são de fácil compreensão, o que demandou esforços consideráveis em algumas situações.
+Foram utilizados basicamente os manuais do flex \cite{flex} e do bison \cite{bison}, além da documentação do cabeçalho \it{uthash} \cite{uthash}. Tais fontes não são de fácil compreensão (a menos da última), o que demandou esforços consideráveis em algumas situações.
 % ---
 % Finaliza a parte no bookmark do PDF, para que se inicie o bookmark na raiz
 % ---
