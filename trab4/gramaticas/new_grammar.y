@@ -182,26 +182,36 @@ declFun : AHEAD BASE_TYPE ID {
 typeAndNameSign : BASE_TYPE ID {
   SymEntry* oldEntry = last_decl(&reshi, $ID);
   printf("Recuperado da tabela de simbolos: %p\n", oldEntry);
+  char err = 0;
   if(oldEntry) {
     if( !strcmp(oldEntry->escopo, currScope) ) {
-      printf("[Semantico]\n");
+      printf("[Semantico] Erro: Redeclaracao de %s:%s!\n", oldEntry->escopo, oldEntry->id);
+      err = 1;
     }
     else {
       printf("\tDeclaracoes sob escopos distintos.\n");
     }
   }
 
-  SymEntry* neoEntry = add_entry(&reshi, $ID, $BASE_TYPE);
-  if(neoEntry)  //TODO: trtar esse caso
-    neoEntry->type = neoEntry->tag;
-  // printf("[typeAndNameSign : BASE_TYPE ID] neoEntry->tag: %s\n", type2string(neoEntry->tag));
-  // printf("[typeAndNameSign : BASE_TYPE ID] neoEntry->type: %s\n", type2string(neoEntry->type));
-  MAKE_NODE(typeAndNameSign);
-  link_symentry_no(&neoEntry, &$$);
-  
-  add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
-  add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
-  free($ID);$ID = NULL;
+  if (!err) {
+    SymEntry* neoEntry = add_entry(&reshi, $ID, $BASE_TYPE);
+    if(neoEntry) {  //TODO: trtar esse caso
+      neoEntry->type = neoEntry->tag;
+      // printf("[typeAndNameSign : BASE_TYPE ID] neoEntry->tag: %s\n", type2string(neoEntry->tag));
+      // printf("[typeAndNameSign : BASE_TYPE ID] neoEntry->type: %s\n", type2string(neoEntry->type));
+      MAKE_NODE(typeAndNameSign);
+      link_symentry_no(&neoEntry, &$$);      
+      add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
+      add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
+      free($ID);$ID = NULL;  
+    }
+    else {
+      printf("ERRO LOGICO: NAO DEVERIA ENTRAR AQUI! %s:%s ...\n", neoEntry->escopo, $ID);
+    }
+  }
+  else {
+    $$ = NULL;
+  }
 }
 
 | BASE_TYPE ID '[' num ']' {
