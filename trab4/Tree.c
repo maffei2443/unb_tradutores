@@ -340,7 +340,7 @@ void show_entry(SymEntry* s) {
   int classType = Type_Class(s->tag);
   if(classType == TYPE_MAT) {
     printf("< %s, %s >", 
-      t2s(s->tag == TYPE_INT ? TYPE_MAT_INT : TYPE_MAT_FLOAT) ,s->id);
+      t2s(s->tag) ,s->id);
   }
   else if (classType == TYPE_ARRAY) {
     printf("< %s, %s >", 

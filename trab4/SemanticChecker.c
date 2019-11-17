@@ -118,21 +118,20 @@ SymEntry* last_decl(SymEntry** reshi, char* id){
   return last_same_id;
 }
 // TODO: diferenciar da funcao de cima!
-SymEntry* was_declared(SymEntry** reshi, char* id){
+int was_declared(SymEntry** reshi, char* id){
   SymEntry* oldEntry = NULL;
   SymEntry* last_same_id = oldEntry;
   HASH_FIND_STR((*reshi), id, oldEntry);
   while( oldEntry ) {
-    printf("old: %p, next: %p\n", oldEntry, oldEntry->next);
     if(strcmp(oldEntry->escopo, currScope) == 0){  // declaracao sob mesmo escopo
-      return oldEntry;
+      return !!oldEntry;
     }
     else if(strcmp(oldEntry->escopo, GLOBAL_SCOPE) == 0){  // mesmo nome e escopo global
       last_same_id = oldEntry;
     }
     oldEntry = oldEntry->next;
   }
-  return last_same_id;
+  return !!last_same_id;
 }
 
 SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
@@ -177,7 +176,7 @@ SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
 }
 
 int id_has_type(SymEntry** reshi, char* id, Type type) {
-  SymEntry* sym = was_declared(reshi, id);
+  SymEntry* sym = last_decl(reshi, id);
   if(!sym) return -1;
   assert(sym->type == sym->astNode->type);
   return sym->type == type;
