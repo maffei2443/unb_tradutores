@@ -249,7 +249,7 @@ typeAndNameSign : BASE_TYPE ID {
   free($ID); $ID = NULL;
 }
 
-declOrdeclInitVar : typeAndNameSign ';' {}
+declOrdeclInitVar : typeAndNameSign ';'
 | typeAndNameSign '=' rvalue ';' {
   MAKE_NODE(declOrdeclInitVar);
   add_Node_Child_If_Not_Null($$, $typeAndNameSign);
@@ -929,7 +929,7 @@ rvalue : expr
 | '{' numList '}' {
   $$ = $2;
 }
-| '[' numListList ']' {$$ = $2;}
+| '{' numListList '}' {$$ = $2;}
 
 %%
 
