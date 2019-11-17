@@ -344,43 +344,7 @@ mat int m[3][3] = [
 	, 0, 1}
 ];
 READ(a);
-}'a'; '\n'; '\r'; '\\';
 \end{lstlisting}
-
-\begin{lstlisting}[style=CStyle]
-float main;
-{1,2,3};
-"Pode ir, tudo bem..."
-/* Lucero mto bom */
-print('h');
-print('e');
-print('l');
-print('l');
-\end{lstlisting}
-
-\section{Exemplo de programa não pertencentes à linguagem}
-
-\begin{lstlisting}[style=CStyle]
-" string sem dim!
-
-int main() $$ {
-;;;
-}
-\end{lstlisting}
-
-\begin{lstlisting}[style=CStyle]
-float chr(void);
-'\\\\';
-/*
-int main() {
-
-}
-print("e agora, joseh?")
-Obs: a exemplo do tratamento proporcionado pelo gcc,
-nao eh feito nenhuma tentativa de recuperacao para
-erros de comentarios sem fechamento ;)
-\end{lstlisting}
-
 \fi
 
 \section{Implementação}
@@ -399,6 +363,16 @@ identificador representa mesmo uma função.
 
 A análise semântica é realizada juntamente com a montagem da árvore abstrata, sem necessidade de percorrê-la mais de uma vez (exceção para a checagem de assinatura de chamada e definição de função). Logo, é feita em \it{apenas uma passada}. Tal decisão foi tomada pois previu-se que a análise em mais de um passada seria bastante trabalhosa e não traria benefícios significativos (o principal
 benefício seria a possibilidade de recursão indireta; porém, para resolução desse problema, C-mat permite a declaração de função antes de sua utilização).
+
+\subsubsection{Limitações}
+
+Primeiramenre, ressalte-se que boa parte da análise semântica foi realizada com sucesso; contudo, há algumas algumas regras cujas ações semânticas estão faltantes (por exemplo, em dois dos três corpos da regra de produção \bf{typeAndNameSign}, não é feita a checagem de declaração prévia de identificador. Entretanto, essa checagem a ser feita é \it{exatamente} a mesma realizada no primeiro corpo de \bf{typeAndNameSign}).
+
+Em segundo lugar, não estava sendo feita a checagem por ponteiro nulo em todos os locais possíveis. Inclusive, é por este motivo que declarações de variável de mesmo nome causam o \it{crash} da versão entregue do programa. Ao longo da confecção deste relatório, este bug foi corrigido, bem como outros como a ausência de ação semântica na para a regra \bf{declOrdeclInitVar : typeAndNameSign ;}.
+
+Também não foi possível consertar os vazamentos de memória da entrega passada, pois o analisador foi reimplementado. Quanto aos vazamentos de memória do novo analisador, estes não foram resolvidos a tempo. A memória relativa à árvore gerada pelo \it{bison} é em grande parte liberada, mas há vazamentos.
+
+Como último \it{bug} detectado nessa fase do projeto, a dedução de tipo de expressão para o caso do operador de potenciação de matrizes está errada. O problema estava na função \bf{bin\_expr\_type} e será corrigido antes da próxima entrega.
 
 \subsection{Novas funções}
 
@@ -484,7 +458,12 @@ Além dessas dificuldades relacionadas especificamente à análise semântica, r
 Não foi possível implementar \it{tudo} que a análise semântica deveria fazer; isso deve ser feito para a próxima entrega e relatado juntamente com ela.
 
 \subsection{Arquivos de teste}
-Os arquivos de teste encontram-se na pasta \IT{test}. Os arquivos cujo texto pertence (ou deveria pertencer) à linguagem gerada pela gramática estão prefixados pela letra \BF{c} e os que não pertencem à ela são prefixados pela letra \BF{e}. Há também arquivos de cujo nome é prefixado com a letra \BF{t}, os quais representam sequências não pertencentes à linguagem porém cuja análise sintática foi bem sucedida graças às políticas de tratamento de erros implementada.
+Os arquivos de teste encontram-se na nos subdiretórios da pasta \href{https://github.com/maffei2443/unb_tradutores/tree/new_master/trab4/test}{\IT{test}} . Cada subdiretório contém os arquivos de teste relativos à cada fase do trabalho (léxico, sintático e semântico). A seguir, lista-se as pastas e descreve-se as peculiaridades de organização de cada uma:
+\begin{itemize}
+	\item léxico: contém arquivos com prefixo \it{c} ou \it{e}, os quais estão respectivamente corretos ou errados para o léxico, respectivamente
+	\item sintático: organização idêntica à do léxico
+	\item semântico: 
+\end{itemize}
 
 \section{Referências}
 Foram utilizados basicamente os manuais do flex \cite{flex} e do bison \cite{bison}, além da documentação do cabeçalho \it{uthash} \cite{uthash}

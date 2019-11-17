@@ -81,7 +81,7 @@ Type bin_expr_type(Type left, Type right, int op) {
       /* code */
     case MAT_POW:
       if(leftClass == TYPE_MAT && rightClass == TYPE_SCALAR) {
-        return right;
+        return left;
       }
       else
         return TYPE_UNDEFINED;
