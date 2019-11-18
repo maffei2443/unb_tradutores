@@ -225,7 +225,7 @@ Leonardo Maffei da Silva\thanks{leoitu22hotmail.com@gmail.com. \url{https://www.
 \begin{resumoumacoluna}
  Este documento atende os fins de documentação da quarta
  parte do projeto final da disciplina \textit{Tradutores},
- ministrada pela professora Dr.a Cláudia Nalon, no segundo semestre de 2019, na Universidade de Brasília. Tal artefato descreve um pouco da implementação do analisador semântico, bem como dificuldades encontradas durante tal processo. Para esta fase novamente refez-se a gramática, a fim de reduzir a quantidade de regras e tratar alguns \it{bugs} presentes na antiga, e aproveitando o fato de que seria necessário a reimplementação completa do analisador sintático.
+ ministrada pela professora Dr.a Cláudia Nalon, no segundo semestre de 2019, na Universidade de Brasília. Tal artefato descreve um pouco da implementação do analisador semântico, bem como dificuldades encontradas durante tal processo. Para esta fase novamente refez-se a gramática, a fim de reduzir a quantidade de regras e tratar alguns \it{bugs} presentes na antiga, aproveitando o fato de que seria necessário a reimplementação completa do analisador sintático.
  \vspace{\onelineskip}
  
  \noindent
@@ -245,13 +245,13 @@ Leonardo Maffei da Silva\thanks{leoitu22hotmail.com@gmail.com. \url{https://www.
 %\setlength{\grammarindent}{12em} % increase separation between LHS/RHS 
 
 \section{Introdução}
-Implementar-se-á, até a versão final deste artigo, um compilador para a linguagem proposta. Para sua realização, serão utilizados os conhecimentos adquiridos na disciplina \textit{Tradutores}, ministrada pela professora \hyperref{http://lattes.cnpq.br/7793795625581127}{}{}{Cláudia Nalon}.
+Implementar-se-á, até a versão final deste artigo, um compilador para a linguagem C-mat, a qual consiste essencialmente de uma \it{extensão para um subconjunto da linguagem C}. C-mat permite a utilização de matrizes 2-D enquanto tipos de dados nativos da linguagem, sendo possível a realização de operações comumente realizadas quando são feitas operações entre matrizes (multiplicação, adição, subtração, adição de escalar, potenciação, etc). Para a implementação, serão utilizados os conhecimentos adquiridos na disciplina \textit{Tradutores}, ministrada pela professora \hyperref{http://lattes.cnpq.br/7793795625581127}{}{}{Cláudia Nalon}.
 
 \section{Usuário característico}
-Destina-se ao estudante de álgebra linear, o qual pode usar a linguagem para, por exmeplo, confirmar se sua resolução de um sisema linear encontra-se correta, tudo isso de maneira rápida e eficiente.
+Destina-se ao estudante de álgebra linear, o qual pode usar a linguagem para, por exemplo, confirmar se sua resolução de um sistema linear encontra-se correta, tudo isso de maneira rápida e eficiente.
 
 \section{Motivação}
-Durante a realização do curso de Cálculo Numérico, o grupo do autor notou a ausência dessa \it{feature} na linguagem C. Desse modo, foi necessária a simulação desse tipo de dados, à época implementada por meio de inúmeras funções. Se houvese um tipo nativo para matriz bem como operações elementares sobre seus elementos, teria sido de grande auxílio à codificação dos diversos métodos numéricos requeridos pela disciplina.
+Durante a realização do curso de Cálculo Numérico, o grupo do autor notou a ausência dessa funcionalidade na linguagem C. Desse modo, foi necessária a simulação desse tipo de dados, à época implementada por meio de inúmeras funções. Se houvese um tipo nativo para matriz bem como operações elementares sobre seus elementos, teria sido de grande auxílio à codificação dos diversos métodos numéricos requeridos pela disciplina.
 \par
 
 
@@ -286,7 +286,7 @@ As principais limitações impostas pela gramática de C-mat são listadas abaix
 	\item matrizes são sempre bidimensionais
 	\item vetores são unidimensionais e suportam apenas os tipos \bf{int} e \bf{float}
 \end{itemize}
-Essas limitações tem por objetivo simplificar a implementação do tradutor dado o período de apenas um semestre e por serem garantidas pela gramática não requerem análise semântica para sua implementação.
+Essas limitações tem por objetivo simplificar a implementação do tradutor dado o período de apenas um semestre e, por serem garantidas pela gramática, não requerem análise semântica.
 % ----------------------------------------------------------
 % Introdução
 % ----------------------------------------------------------
@@ -322,7 +322,7 @@ Operadores binários são de maneira geral associativos à esquerda, com exceç�
 
 Todas as operações acima, a menos das relacionadas a matrizes e do operador \bf{\%}, podem ser aplicadas a dois escalares quaisquer, embora caso esses operandos não sejam de mesmo tipo será mostrada mensagem de aviso ao usuário. Em caso de operação entre tipos distintos, é feita a conversão de tipos: inteiros são convertidos para ponto flutuante na maioria dos casos. Operadores relacionais são um caso especial; quando aparecem, o resultado da operação é sempre um \bf{inteiro}: 0 ou 1. O operador \bf{!} nada mais faz do que troca o valor de seu operando 0 para 1 ou de qualquer outro valor para 1. Em caso de o valor ser um ponto flutuante, a conversão para inteiro é feita, e então seu efeito é aplicado ao valor convertido. Em qualquer outro caso, considera-se que houve um erro.
 
-É possível definir a assinatura de uma função antes de sua definição por meio da estrutura \bf{ahead} BASE\_TYPE ID; contudo, isso só pode ser feito uma vez para cada nome de função (limitação que não limita o poder da funcionalidade, porém facilitou a implementação). Desse modo, pode-se efetuar checagem de tipo e de parâmetros de funções sem que seja necessário percorrer a árvore abstrata mais de uma vez, e portanto é possível a implementação de recursão indireta em C-mat .
+É possível definir a assinatura de uma função antes de sua definição por meio da estrutura \bf{ahead} BASE\_TYPE ID; contudo, isso só pode ser feito uma vez para cada nome de função (limitação que não limita a expressividade da linguagem, porém facilitou a implementação). Desse modo, pode-se efetuar checagem de tipo e de parâmetros de funções sem que seja necessário percorrer a árvore abstrata mais de uma vez, e portanto é possível a implementação de recursão indireta em C-mat .
 
 Conforme entregas passadas, há vetor como tipo de dados composto; porém, não é possível ter vetores multidimensionais e só é possível a instanciação de vetores de escalares. Matrizes podem ser contruídas
 enquanto tipos nativos da linguagem, em notação similar ao que seria um vetor bidimensional, porém com o
@@ -359,7 +359,7 @@ Nesta fase houve pouca alteração no analisador léxico, pois o conjunto de tok
 	\item remoção das funções de impressão
 	\item total desconhecimento da tabela de símbolos: toda sua manipulação é realizada durante a análise semântica
 	\item remoção das palavras reservadas \bf{void} e \bf{char}
-	\item adição da palavra reservada \bf{ahead}
+	\item atribuição de matriz é feita como fosse um vetor com duas dimensões em C, com a diferença de que os sub-vetores do vetor maior não são separados por vírgula; basta deixar um ou mais espaços em branco entre eles
 \end{itemize}
 
 Já a gramática, bem como o analisador sintático, foram refeitos do zero, 
@@ -373,7 +373,7 @@ A estrutura de árvore é obtida fazendo-se cada nó relativo a uma cabeça de p
 são encontradas na regras de declaração e definição de função bem como na regra que gera chamada de função, ações essas que setam a variável cujo valor é o escopo atual ou verificam se um
 identificador representa mesmo uma função.
 
-Toda a análise semântica é realizada juntamente com a montagem da árvore abstrata por meio de \it{ações semânticas}, sem necessidade de percorrê-la mais de uma vez (exceção para a checagem de assinatura de chamada e definição de função, que não exatamente percorre a árvore mais de uma vez, mas apenas a lista de parâmetros ou argumentos). Logo, é feita em \it{apenas uma passada}. Tal decisão foi tomada pois previu-se que a análise em mais de um passada seria bastante trabalhosa e não traria benefícios significativos (o principal
+Toda a análise semântica é realizada juntamente com a montagem da árvore abstrata por meio de \it{ações semânticas}, sem necessidade de percorrê-la mais de uma vez (exceção para a checagem de assinatura de chamada e definição de função, que não exatamente percorre a árvore mais de uma vez, mas apenas a lista de parâmetros ou argumentos). Logo, é feita em \it{apenas uma passada}. Tal decisão foi tomada pois previu-se que a análise em mais de uma passada seria bastante trabalhosa e não traria benefícios significativos (o principal
 benefício seria a possibilidade de recursão indireta; porém, para resolução desse problema, C-mat permite a declaração de função antes de sua utilização).
 
 \subsection{Funcionalidades}
@@ -398,7 +398,7 @@ Em segundo lugar, não estava sendo feita a checagem por ponteiro nulo em todos 
 
 Também não foi possível consertar os vazamentos de memória da entrega passada, pois o analisador foi reimplementado. Quanto aos vazamentos de memória do novo analisador, estes não foram resolvidos a tempo. A memória relativa à árvore gerada pelo \it{bison} é em grande parte liberada, mas há vazamentos.
 
-Como último \it{bug} detectado nessa fase do projeto, a dedução do tipo de expressão para o caso do operador de potenciação de matrizes está errada. O problema estava na função \bf{bin\_expr\_type} e foi corrigido durante a produção deste documento.
+Como último \it{bug} detectado nessa fase do projeto, a dedução do tipo de expressão para o caso do operador de potenciação de matrizes estava errada. O problema residia na função \bf{bin\_expr\_type} e foi corrigido durante a produção deste documento.
 
 \subsection{Novas funções}
 
@@ -411,7 +411,7 @@ Conforme dito na seção \ref{implementacao}, muito teve de ser refeito. Esta su
 	\item \it{void} show\_Sub\_Tree/ \it{void} show\_Lis: mostra a árvore produzida durante a análise sintática
 \end{itemize}
 
-Na entrega passada, algumas funções relativas à análise semântica, especificamente a inserção de identificadores na tabela de símbolos, eram realizados por funções antes presentes no mesmo arquivo que contém o código fonte do analisador sintático. Nesta entrega, as definições de tais funções foram movidas para uma biblioteca específica de funções a serem utilizadas na análise semântica. Desse modo, reduziu-se um pouco o tamanho do arquivo fonte do ASS. Tais funções encontram-se agora implementadas no arquivo \it{SemanticChecker.c}, cujo \it{header} é incluído pelo ASS.
+Na entrega passada, algumas funções relativas à análise semântica, especificamente a inserção de identificadores na tabela de símbolos, eram realizados por funções antes implementadas no mesmo arquivo que contém o código fonte do analisador sintático. Nesta entrega, as definições de tais funções foram movidas para uma biblioteca específica de funções a serem utilizadas na análise semântica. Desse modo, reduziu-se um pouco o tamanho do arquivo fonte do ASS. Tais funções encontram-se agora implementadas no arquivo \it{SemanticChecker.c}, cujo \it{header} é incluído pelo ASS.
 
 Tais funções utilizadas para essa fase de análise semântica são, principalmente:
 
@@ -425,7 +425,7 @@ Tais funções utilizadas para essa fase de análise semântica são, principalm
 	\item \it{void} addToDel: função utilizada para fazer o \it{tracking} das posições de memória utilizadas para alocação das entradas da tabela de símbolos
 \end{itemize}
 
-As funções recém listadas são usadas, ao menos uma delas, em basicamente todo local que aparece um identificador, seja para checar por sua existência da tabela de símbolos ou ainda, no caso de funções, se os tipos e ordem dos parâmetros estão corretos.
+As funções recém listadas são usadas, ao menos uma delas, em basicamente todo local no qual aparece um identificador, seja para checar por sua existência da tabela de símbolos ou ainda, no caso de funções, se os tipos e ordem dos parâmetros estão corretos.
 
 \subsection{Funcionamento do programa}
 
@@ -441,8 +441,8 @@ A figura \ref{esquema} ilustra o fluxo básico de informações entre os módulo
 O programa começa pela execução do módulo de análise, o qual imediatamente chama o \it{scanner} como co-rotina, e este retorna um \it{token} para o ASS. Este por sua vez vez decide entre
 imediatamente pedir outro token, executar alguma redução ou realizar ações semânticas. É neste módulo que os identificadores são inseridos na tabela
 de símbolos e realizada a ligação entre os nós da árvore correspondentes a identificadores e suas respectivas entradas da tabela de símbolos. Este ciclo se repete até que o analisador atinja fim de arquivo
-ou ocorra algum erro durante montagem da árvore sintática por conta do recebimento de
-token inesperado. Caso o arquivo seja sintaticamente correto, ao final do programa é exibida a árvore abstrata relativa ao código fonte. Caso haja erros/"imprecisões" semânticas (imprecisão seria por exemplo uma atribuição cujos tipos não batem), mensagens são exibidas também na saída padrão do console. Vale ressaltar que erros semânticos \bf{não impedem a geração da árvore abstrata}, mas podem gerar \bf{inconsistências} nela e na tabela de símbolos.
+ou ocorra algum erro durante a montagem da árvore sintática por conta do recebimento de
+token inesperado. Caso o arquivo seja sintaticamente correto, ao final do programa é exibida a árvore abstrata gerada a partir do código fonte. Caso haja erros/"imprecisões" semânticas (imprecisão seria por exemplo uma atribuição cujos tipos não batem), mensagens são exibidas também na saída padrão do console. Vale ressaltar que erros semânticos \bf{não impedem a geração da árvore abstrata}, mas podem gerar \bf{inconsistências} nela e na tabela de símbolos.
 
 Ao final da execução do programa, são exibidas a árvore abstrata produzida e em seguida a tabela de símbolos.
 
@@ -457,7 +457,7 @@ O analisador produzido reporta alguns erros comuns, quais sejam:
 		\item não inserção de parêntese direito relativo à condição do \IT{if}
 	}
 \end{itemize}
-Em caso de outros erros, a análise simplesmente é abortada. Em caso de erro acima, a árvore sintática é montada naturalmente pelo \IT{bison}, embora fique inconsistente.
+Em caso de outros erros, a análise simplesmente é abortada. Em caso de erro acima, prosegue-se com a montagem da árvore, porém esta apresentará inconsistências.
 
 \subsection {Dificuldades Encontradas}
 
