@@ -1,0 +1,26 @@
+\providecommand{\abntreprintinfo}[1]{%
+ \citeonline{#1}}
+\setlength{\labelsep}{0pt}\begin{thebibliography}{}
+\providecommand{\abntrefinfo}[3]{}
+\providecommand{\abntbstabout}[1]{}
+\abntbstabout{v-1.9.6 }
+
+\bibitem[Hanson]{uthash}
+\abntrefinfo{Hanson}{HANSON}{}
+{HANSON, T.~D. \emph{uthash User Guide}: uthash user guide.
+Acessado: 18-11-2019.
+Dispon{\'\i}vel em: \url{http://troydhanson.github.io/uthash/userguide.html}.}
+
+\bibitem[Project 2019]{flex}
+\abntrefinfo{Project}{PROJECT}{2019}
+{PROJECT, T.~F. 2019.
+Acessado: 18-11-2019.
+Dispon{\'\i}vel em: \url{https://westes.github.io/flex/manual/}.}
+
+\bibitem[TheBisonTeam 2019]{bison}
+\abntrefinfo{TheBisonTeam}{THEBISONTEAM}{2019}
+{THEBISONTEAM. 2019.
+Acessado: 18-11-2019.
+Dispon{\'\i}vel em: \url{https://www.gnu.org/software/bison/manual/}.}
+
+\end{thebibliography}
