@@ -37,6 +37,7 @@ void show_Spaces(int qtd){
 // Ok.
 No* No_New(int v) {
   No* no = (No*)calloc(1,sizeof(No));
+  // NOTA: em teoria, nada (exceto inicializacao de ival) abaixo eh necessario por conta do calloc.
   no->child = NULL;
   no->childLast = NULL;
   no->n = NULL;
@@ -51,6 +52,7 @@ No* No_New(int v) {
   no->isToken = 0;
   no->hasAux = 0;
   no->ival = v;
+  no->iaux = 0;
   no->fval = 0.0;
   no->is_const = 0;
   return no;

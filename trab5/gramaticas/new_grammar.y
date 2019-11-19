@@ -197,8 +197,6 @@ typeAndNameSign : BASE_TYPE ID {
     SymEntry* neoEntry = add_entry(&reshi, $ID, $BASE_TYPE);
     if(neoEntry) {  //TODO: trtar esse caso
       neoEntry->type = neoEntry->tag;
-      // printf("[typeAndNameSign : BASE_TYPE ID] neoEntry->tag: %s\n", type2string(neoEntry->tag));
-      // printf("[typeAndNameSign : BASE_TYPE ID] neoEntry->type: %s\n", type2string(neoEntry->type));
       MAKE_NODE(typeAndNameSign);
       link_symentry_no(&neoEntry, &$$);      
       add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
@@ -215,49 +213,115 @@ typeAndNameSign : BASE_TYPE ID {
 }
 
 | BASE_TYPE ID '[' num ']' {
-  SymEntry* neoEntry = add_entry(&reshi, $ID, $BASE_TYPE == TYPE_INT ? TYPE_ARRAY_INT : TYPE_ARRAY_FLOAT);
-  if(neoEntry)
-    neoEntry->type = neoEntry->tag;
-  else 
-    printf("[Semantico] %s nao foi declarado!\n", $ID);
+  // TODO: TESTAR!
+  /// Checar:
+  /// 1 - Se nao existe OU existe mas nao eh mesmo escopo, tah ok
+  /// 2 - Se num eh inteiro, tah ok
+  /// 3 - Soh entao cria-se o noh
+  SymEntry* oldEntry = last_decl(&reshi, $ID);
+  printf("Recuperado da tabela de simbolos: %p\n", oldEntry);
   
-  MAKE_NODE(typeAndNameSign);
-  link_symentry_no(&neoEntry, &$$);
-
-  add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
-  add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
-  // SEMANTICO!
-  if($num->type == TYPE_FLOAT) {
-    printf("[Semantico] ERRO: Indexacao soh pode ser feita com indices inteiros. (%f encontrado)\n", $num->fval);
+  char err = 0;
+  if(oldEntry) {
+    if( !strcmp(oldEntry->escopo, currScope) ) {
+      printf("[Semantico] Erro: Redeclaracao de %s:%s!\n", oldEntry->escopo, oldEntry->id);
+      err = 1;
+    }
+    else {
+      printf("\tDeclaracoes sob escopos distintos.\n");
+    }
   }
-  add_Node_Child_If_Not_Null($$, $num);
+
+  if (!err) {
+    if($num->type != TYPE_INT) {
+      printf("[Semantico] Erro: Tamanho de vetor deve ser um inteiro! Encontrado: %s\n", type2string($num->type));
+      $$ = NULL;
+    }
+    else {
+      SymEntry* neoEntry = add_entry(&reshi, $ID, $BASE_TYPE);
+      if(neoEntry) {
+        // TODO: checar se num eh inteiro. Se nao for, ERRO
+        neoEntry->type = neoEntry->tag;
+        MAKE_NODE(typeAndNameSign);
+        link_symentry_no(&neoEntry, &$$);      
+        add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
+        add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
+        add_Node_Child_If_Not_Null($$, $num);
+        free($ID);$ID = NULL;  
+      }
+      else {
+        printf("[BASE_TYPE ID '[' num ']'] ERRO LOGICO: NAO DEVERIA ENTRAR AQUI! %s:%s ...\n", neoEntry->escopo, $ID);
+        $$ = NULL;
+      }
+    }
+  }
+  else {
+    $$ = NULL;
+  }
+
+  if(!$$) {
+    printf("\t[Semantico]Nao adicionou (%s) aa tabela de simbolos (redeclaracao, tamanho nao inteiro, algo deu errado).\n", $ID);
+  }
   free($ID);$ID = NULL;
-  // $$->childLast->ival = $V_INT;
 }
+
 | MAT_TYPE BASE_TYPE ID '[' num ']' '[' num ']' {
-  SymEntry* neoEntry = add_entry(&reshi, $ID, $BASE_TYPE == TYPE_INT ? TYPE_MAT_INT : TYPE_MAT_FLOAT);
-  if(neoEntry)
-    neoEntry->type = neoEntry->tag;
-  else 
-    printf("[Semantico] %s nao foi declarado!\n", $ID);
-  MAKE_NODE(typeAndNameSign);
-  link_symentry_no(&neoEntry, &$$);
-
-  MAKE_NODE(typeAndNameSign);
-  add_Node_Child_If_Not_Null($$, Token_New("MAT_TYPE", "mat"));
-  if($5->type == TYPE_FLOAT) {
-    printf("[Semantico] ERRO: Indexacao soh pode ser feita com indices inteiros. (%f encontrado)\n", $5->fval);
-  }
-  if($8->type == TYPE_FLOAT) {
-    printf("[Semantico] ERRO: Indexacao soh pode ser feita com indices inteiros. (%f encontrado)\n", $8->fval);
+  // Procedimento analogo ao de cima,
+  SymEntry* oldEntry = last_decl(&reshi, $ID);
+  printf("Recuperado da tabela de simbolos: %p\n", oldEntry);
+  
+  char err = 0;
+  if(oldEntry) {
+    if( !strcmp(oldEntry->escopo, currScope) ) {
+      printf("[Semantico] Erro: Redeclaracao de %s:%s!\n", oldEntry->escopo, oldEntry->id);
+      err = 1;
+    }
+    else {
+      printf("\tDeclaracoes sob escopos distintos.\n");
+    }
   }
 
-  add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
-  add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
-  add_Node_Child_If_Not_Null($$, $5);
-  add_Node_Child_If_Not_Null($$, $8);
+  if (!err) {
+    char firstNum = $5->type != TYPE_INT;
+    char secNum = $8->type != TYPE_INT;
+    if(firstNum || secNum) {
+      if(firstNum) {
+        printf("[Semantico] ERRO[2]: Quantidade de linhas de matriz deve ser um inteiro. (%s encontrado)\n", type2string($5->type));
+      }
+      if(secNum) {
+        printf("[Semantico] ERRO[2]: Quantidade de colunas de matriz deve ser um inteiro. (%s encontrado)\n", type2string($8->type));
+      }
+      $$ = NULL;
+    }
+    else {
+      Type type = $BASE_TYPE == TYPE_INT ? TYPE_MAT_INT : TYPE_MAT_FLOAT;
+      SymEntry* neoEntry = add_entry(&reshi, $ID, type);
+      if(neoEntry) {
+        // TODO: checar se num eh inteiro. Se nao for, ERRO
+        neoEntry->type = neoEntry->tag;
+        MAKE_NODE(typeAndNameSign);
+        link_symentry_no(&neoEntry, &$$);      
+        add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string(type)));
+        add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
+        add_Node_Child_If_Not_Null($$, $5);
+        add_Node_Child_If_Not_Null($$, $8);
+        free($ID);$ID = NULL;  
+      }
+      else {
+        printf("[BASE_TYPE ID '[' num ']'] ERRO LOGICO: NAO DEVERIA ENTRAR AQUI! %s:%s ...\n", neoEntry->escopo, $ID);
+        $$ = NULL;
+      }
+    }
+  }
+  else {
+    $$ = NULL;
+  }
+  if(!$$) {
+    printf("\t[Semantico] Nao adicionou (%s) aa tabela de simbolos (redeclaracao, tamanho nao inteiro, algo deu errado).\n", $ID);
+  }
   free($ID); $ID = NULL;
 }
+
 
 declOrdeclInitVar : typeAndNameSign ';'
 | typeAndNameSign '=' rvalue ';' {

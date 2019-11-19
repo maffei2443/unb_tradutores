@@ -109,6 +109,7 @@ typedef struct No {
 
   char* sval;
   int ival;
+  int iaux;
   float fval;
   
   //  Indica tipo do no (ex: expr, param, loop...)
