@@ -17,6 +17,7 @@
   if(!yyval.no) abort();\
   yyval.no->tname =  x  ;}
 #define MAKE_NODE(x) INITNODE(STR(x))
+// TODO: onde aparece setar variavel de erro!
 #define PARAM_RPT_NAME_CHECK(__baseType, __id) \
   if(!neoEntry) {\
     neoEntry = last_decl(&reshi, yyvsp[__id]._id);    \
@@ -92,6 +93,7 @@ int aborta = 0;
 
 %token RETURN PRINT IREAD FREAD COPY
 %token AND OR
+%token BIN_OP
 %token ERRU
 
 %type<no> program
@@ -106,6 +108,7 @@ int aborta = 0;
 %type<ival> V_INT
 %type<cval> V_ASCII
 %type<fval> V_FLOAT
+%type<ival> BIN_OP
 %%
 
 program : globalStmtList {
@@ -370,13 +373,14 @@ param : BASE_TYPE ID {
     }
   }
   else {
-    // printf("1296 !!!\n");
+    printf("1296 !!!\n");
   }
   $$->type = $BASE_TYPE;
   free($ID), $ID = NULL;
 }
 | BASE_TYPE ID '[' ']' {
   $$ = Token_New(STR(param), $ID);
+  // TODO: checar por declaracao previa de parametro!
   SymEntry* neoEntry = add_entry(&reshi, $ID, TYPE_PARAM );
   // SEMANTICO
   PARAM_RPT_NAME_CHECK(-3, -2);
@@ -393,6 +397,7 @@ param : BASE_TYPE ID {
 }
 
 | MAT_TYPE BASE_TYPE ID {
+  // TODO: checar por declaracao previa de parametro!
   $param = Token_New(STR(param), $ID);
   SymEntry* neoEntry = add_entry(&reshi, $ID, TYPE_PARAM);
   // Semantico
@@ -660,14 +665,12 @@ declList : declList declOrdeclInitVar {
 
 expr : expr '+' expr {
   MAKE_NODE(expr);
-  printf("addExpr\n");
   $$->ival = '+';
   
   add_Node_Child_If_Not_Null($$, $1);
   add_Node_Child_If_Not_Null($$, $3);
   // SEMANTICO
   $$->type = bin_expr_type( $1->type, $3->type, '+');
-  printf("tipoResultante: %s\n", type2string($$->type));
 }
 | expr '-' expr {
   MAKE_NODE(expr);
@@ -982,6 +985,8 @@ lvalue : ID {
   free($ID), $ID = NULL;
 }
 | ID '[' expr ']' {
+  // TODO: CHECAR SE ID EH MATRIZ ou ARRAY. Senao, erro.
+  // TODO: INDEXACAO SOH SE TIPO FOR INTEIRO!
   MAKE_NODE(lvalue);
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
   add_Node_Child_If_Not_Null($$, $expr);
@@ -990,6 +995,8 @@ lvalue : ID {
   free($ID); $ID = NULL;
 }
 | ID '[' expr ']' '[' expr ']' {
+  // TODO: CHECAR SE ID EH MATRIZ. Senao, erro.
+  // TODO: INDEXACAO SOH SE TIPO FOR INTEIRO!
   MAKE_NODE(lvalue);
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
   add_Node_Child_If_Not_Null($$, $3);
