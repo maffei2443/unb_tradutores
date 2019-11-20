@@ -140,6 +140,7 @@ SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
     HASH_FIND_STR((*reshi), id, neoEntry);/* id already in the hash? */
     if (neoEntry == NULL) {
       neoEntry = SymEntry_New(id, tag, currScope);
+      printf("\t\tNEO_ENTRY: %p\n", neoEntry);
       printf("<<<<<< add (%p) id, tag: %s, %s\n", neoEntry, id, type2string(tag));
       neoEntry->local.line = numlines;
       neoEntry->local.col = currCol;
@@ -201,13 +202,22 @@ void addToDel(SymEntry** p) {
 void delGambs() {
   printf("QTD : %d\n", gambs_qtd);
   for(int i = 0;i < gambs_qtd;i++){
-    printf("id: %s\n", (gambs[i])->id);
+    printf("id, addr: %s, %p\n", (gambs[i])->id, gambs[i]);
     SymEntry_Destroy(gambs[i]);
     gambs[i] = NULL;
   }
   if(gambs)
     free(gambs);
   gambs = NULL;
+}
+
+void Free_Reshi(SymEntry* tab) {
+  if(!tab) return;
+  SymEntry* aux, *tmp;
+  HASH_ITER(hh, tab, aux, tmp) {
+    HASH_DEL(tab, aux);
+    free(aux);
+  }
 }
 
 // msg_erros

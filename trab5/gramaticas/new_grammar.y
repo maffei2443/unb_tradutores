@@ -1038,5 +1038,6 @@ int main(){
   
   free_All_Child(root);
   free_Lis(root);
-  delGambs();
+  // delGambs();
+  Free_Reshi(reshi);
 }

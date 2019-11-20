@@ -38,23 +38,23 @@ void show_Spaces(int qtd){
 No* No_New(int v) {
   No* no = (No*)calloc(1,sizeof(No));
   // NOTA: em teoria, nada (exceto inicializacao de ival) abaixo eh necessario por conta do calloc.
-  no->child = NULL;
-  no->childLast = NULL;
-  no->n = NULL;
-  // no->p = NULL;
   no->type = TYPE_UNDEFINED;
-  no->sval = NULL;  no->sval_alloc = 0;
-  no->tname = NULL; no->tname_alloc = 0;
-  no->symEntry = NULL;
-  no->nextAux = NULL;
-  no->param = NULL;
-  // no->scope = NULL; no->scope_alloc = 0; 
-  no->isToken = 0;
-  no->hasAux = 0;
+  // no->child = NULL;
+  // no->childLast = NULL;
+  // no->n = NULL;
+  // // no->p = NULL;
+  // no->sval = NULL;  no->sval_alloc = 0;
+  // no->tname = NULL; no->tname_alloc = 0;
+  // no->symEntry = NULL;
+  // no->nextAux = NULL;
+  // no->param = NULL;
+  // // no->scope = NULL; no->scope_alloc = 0; 
+  // no->isToken = 0;
+  // no->hasAux = 0;
   no->ival = v;
-  no->iaux = 0;
-  no->fval = 0.0;
-  no->is_const = 0;
+  // no->iaux = 0;
+  // no->fval = 0.0;
+  // no->is_const = 0;
   return no;
 }
 
@@ -214,10 +214,10 @@ void show_Lis(No* head, Field field) {
     else if(head->isToken) {
       printf("%s ", head->sval);
     }
-    else if(!strcmp(head->tname, "expr")) {
+    else if(head->tname && !strcmp(head->tname, "expr")) {
       printf("<%s, %s> ",head->tname, type2string(head->type));
     }
-    else if(!strcmp(head->tname, "lvalue")) {
+    else if(head->tname && !strcmp(head->tname, "lvalue")) {
       printf("<lvalue, %s> ", type2string(head->type));
     }
     else if(field == IVAL) {
@@ -266,7 +266,6 @@ SymEntry* SymEntry_New(char* id, int tag, char* escopo){
   size_t t = strlen(escopo) + 1;
   neo->escopo = calloc( 1, t );
   memcpy(neo->escopo, escopo, t);
-  neo->escopo[t] = '\0';
   neo->u.ival = 0;
   // neo->u.func.next = 0;
   neo->local.line = neo->local.col = -1;

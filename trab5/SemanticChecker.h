@@ -20,4 +20,6 @@ void addToDel(SymEntry** p);
 void delGambs();
 
 void mensagem_redeclaracao(SymEntry* s);
+
+void Free_Reshi(SymEntry* tab);
 #endif

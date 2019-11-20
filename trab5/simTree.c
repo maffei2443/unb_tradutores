@@ -26,10 +26,12 @@ int main(int argc, char ** argv) {
     caso = atoi(argv[1]);
   }
   if(caso > 1) {
+    printf("CASO A\n");
     test_add_show_n(head, caso);
     free(head); head = NULL;
   }
   else {
+    printf("CASO B\n");
     add_Node_Next(head, No_New(199));
     add_Node_Child_If_Not_Null(head, No_New(1));
     add_Node_Child_If_Not_Null(head, No_New(1));

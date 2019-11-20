@@ -127,6 +127,10 @@ achar '([a-zA-Z0-9_]?)'
     Array_Delete(&currString);
     BEGIN (INITIAL);
   }
+<LN_COMMENT><<EOF>> {
+  Array_Delete(&currString);
+  BEGIN(INITIAL);
+}
 <LN_COMMENT>. {
   ++lineComm.notChar;
   ++currCol;
@@ -397,8 +401,6 @@ void delete(void** p) {
 }
 
 int _main(int argc, char** argv) {
-  Array_Init(&currString, 20);
-  Array_Delete(&currString);
 
   extern FILE *yyin, *yyout; 
   int open = 0;
