@@ -211,15 +211,14 @@ void delGambs() {
   gambs = NULL;
 }
 
-void Free_Reshi(SymEntry* tab) {
-  if(!tab) return;
-  SymEntry* aux, *tmp;
-  HASH_ITER(hh, tab, aux, tmp) {
-    HASH_DEL(tab, aux);
-    free(aux);
+void delete_all(SymEntry* tab) {
+  SymEntry *current_user, *tmp;
+
+  HASH_ITER(hh, tab, current_user, tmp) {
+    HASH_DEL(tab, current_user);  /* delete; users advances to next */
+    free(current_user);            /* optional- if you want to free  */
   }
 }
-
 // msg_erros
 
 void mensagem_redeclaracao(SymEntry* s) {

@@ -1,3 +1,3 @@
-nome do joao;
+// nome do joao;
 int abc = 18;
-abracadabra();
+// abracadabra();

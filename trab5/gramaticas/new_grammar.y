@@ -204,7 +204,6 @@ typeAndNameSign : BASE_TYPE ID {
       link_symentry_no(&neoEntry, &$$);      
       add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
       add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
-      free($ID);$ID = NULL;  
     }
     else {
       printf("ERRO LOGICO: NAO DEVERIA ENTRAR AQUI! %s:%s ...\n", neoEntry->escopo, $ID);
@@ -213,6 +212,7 @@ typeAndNameSign : BASE_TYPE ID {
   else {
     $$ = NULL;
   }
+  free($ID);$ID = NULL;  
 }
 
 | BASE_TYPE ID '[' num ']' {
@@ -1039,5 +1039,5 @@ int main(){
   free_All_Child(root);
   free_Lis(root);
   // delGambs();
-  Free_Reshi(reshi);
+  delete_all(reshi);
 }

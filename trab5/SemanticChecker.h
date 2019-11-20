@@ -21,5 +21,5 @@ void delGambs();
 
 void mensagem_redeclaracao(SymEntry* s);
 
-void Free_Reshi(SymEntry* tab);
+void delete_all(SymEntry* tab);
 #endif

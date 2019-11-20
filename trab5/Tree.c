@@ -70,8 +70,8 @@ No* Token_New(char* tname, char* sval) {
   if(!token->sval ) abort();
   memcpy(token->tname, tname, strlen(tname));
   memcpy(token->sval, sval, strlen(sval));
-  // printf("[Token_New(char* tname, char* sval)] sval = %s\n", sval);
-  // printf("[Token_New(char* tname, char* sval)] token->sval = %s\n\n", token->sval);
+  printf("[Token_New(char* tname, char* sval)] sval = %s\n", sval);
+  printf("[Token_New(char* tname, char* sval)] token->sval = %s\n\n", token->sval);
   return token;
 }
 
