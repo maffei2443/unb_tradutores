@@ -662,18 +662,143 @@ declList : declList declOrdeclInitVar {
 | %empty {
   $$ = NULL;
 }
-expr: expr BIN_OP expr {
+
+expr : expr '+' expr {
   MAKE_NODE(expr);
-  $$->ival = $BIN_OP;
+  $$->ival = '+';
   
   add_Node_Child_If_Not_Null($$, $1);
   add_Node_Child_If_Not_Null($$, $3);
   // SEMANTICO
-  $$->type = bin_expr_type( $1->type, $3->type, $BIN_OP);
-  // TODO: analise semantica! A seguir:
-  // 1 - divisao por zero (warning)
-  // 2 - tirar mod zero
-  // 3 - 
+  $$->type = bin_expr_type( $1->type, $3->type, '+');
+}
+| expr '-' expr {
+  MAKE_NODE(expr);
+
+  $$->ival = '-';
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, '-');
+}
+| expr '*' expr {
+  MAKE_NODE(expr);
+
+  $$->ival = '*';
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, '*');
+  printf("tipoResultante: %s\n", type2string($$->type));
+
+}
+| expr '/' expr {
+  MAKE_NODE(expr);
+
+  $$->ival = '/';
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, '/');
+}
+| expr '%' expr {
+  MAKE_NODE(expr);
+
+  $$->ival = '%';
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, '%');
+}
+| expr '@' expr {
+  MAKE_NODE(expr);
+
+  $$->ival = '@';
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, '@');
+}
+| expr MAT_POW expr {
+  MAKE_NODE(expr);
+
+  $$->ival = MAT_POW;
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, MAT_POW);
+}
+| expr EQ expr {
+  MAKE_NODE(expr);
+
+  $$->ival = EQ;
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, EQ);
+}
+| expr NEQ expr {
+  MAKE_NODE(expr);
+
+  $$->ival = NEQ;
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, NEQ);
+}
+| expr GE expr {
+  MAKE_NODE(expr);
+
+  $$->ival = GE;
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, GE);
+}
+| expr LE expr {
+  MAKE_NODE(expr);
+
+  $$->ival = LE;
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, LE);
+}
+| expr '>' expr {
+  MAKE_NODE(expr);
+
+  $$->ival = '>';
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, '>');
+}
+| expr '<' expr {
+  MAKE_NODE(expr);
+
+  $$->ival = '<';
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, '<');
+}
+| expr AND expr {
+  MAKE_NODE(expr);
+
+  $$->ival = AND;
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, AND);
+}
+| expr OR expr {
+  MAKE_NODE(expr);
+
+  $$->ival = OR;
+  add_Node_Child_If_Not_Null($$, $1);
+  add_Node_Child_If_Not_Null($$, $3);
+  // SEMANTICO
+  $$->type = bin_expr_type( $1->type, $3->type, OR);
 }
 | '!' expr {
   MAKE_NODE(expr);

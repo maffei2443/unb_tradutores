@@ -305,48 +305,31 @@ achar '([a-zA-Z0-9_]?)'
   currCol += yyleng;
   char yy0 = yytext[0], yy1 = yytext[1];
   if(yyleng < 2) {  // '<' ou '>'
-    // return yy0;
-    yylval.ival = yy0;
-    ;
-  }  
-  else    
+    return yy0;
+    }  
+  else
     switch(yy0) {
-      // case '>': return GE;
-      case '>':
-        yylval.ival = GE;
-        break;
+      case '>': return GE;
       ;
-      // case '<': return LE;
-      case '<':
-        yylval.ival = LE;
-        break;
+      case '<': return LE;
       ;
-      // case '=': return EQ;
-      case '=':
-        yylval.ival = EQ;
-        break;
+      case '=': return EQ;
       ;
-      // case '!': return NEQ;
-      case '!':        
-        yylval.ival = NEQ;
-        break;
+      case '!': return NEQ;
       ;
     }
-  return BIN_OP;
-  ;
 }
 {binMathOp} {
   // showBinMathOp();  
   currCol += yyleng;
   if(yyleng == 2) {
-    yylval.ival = MAT_POW;
+    return MAT_POW;
     ;
   }
   else {
-    yylval.ival = yytext[0];
+    return yytext[0];
     ;
   }
-  return BIN_OP;
 }
 
 {binLogiOp} {
@@ -354,19 +337,12 @@ achar '([a-zA-Z0-9_]?)'
   currCol += yyleng;
   if(yyleng == 2) {
     switch(yytext[0]) {
-      // case '&': return AND;
-      case '&': 
-        yylval.ival = AND;      
-        break;
+      case '&': return AND;
       ;
-      // case '|': return OR;
-      case '|':
-        yylval.ival = OR;
-        break;
+      case '|': return OR;
       ;
     }
   }
-  return BIN_OP;
 }
 
 {FLOAT}    {
