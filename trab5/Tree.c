@@ -5,12 +5,14 @@
 #include <stdarg.h>
 #include <assert.h>
 #define ptfi(str, val) printf(str " %d\n",  (val))
-int is_fun(Type t) {
-  return t == TYPE_DEF_FUN || t == TYPE_DECL_FUN;
+int is_fun(Tag t) {
+  return t == TAG_DEF_FUN || t == TAG_DECL_FUN;
 }
 
 Type Type_Class(Type type) {
   switch (type)  {
+    case TYPE_CHAR:
+      return TYPE_CHAR;
     case TYPE_VOID:
       return TYPE_VOID;
     case TYPE_UNDEFINED:
@@ -22,7 +24,7 @@ Type Type_Class(Type type) {
     case TYPE_MAT_FLOAT:
       return TYPE_MAT;
     default:
-      return TYPE_INVALID;
+      return TYPE_UNDEFINED;
   }
 }
 
@@ -272,13 +274,14 @@ SymEntry* SymEntry_New(char* id, int tag, char* escopo){
   neo->type = TYPE_UNDEFINED;
   neo->astNode = NULL; // NAO MEXER NA ARVORE ABSTRATA!
   neo->def_fun = 0;    // usado para diferenciar entre declaracao e definicao de funcao
+
 }
 // Destroi entrada da TS e todas suas TS aninhadas 
 // (valido apenas p/ declaracao de funcao)
 void* SymEntry_Destroy(void* p){
   SymEntry* sym = (SymEntry*)p;
   if(!sym) return NULL;
-  if(sym->tag == TYPE_DEF_FUN || sym->tag == TYPE_DECL_FUN) {
+  if(sym->tag == TAG_DEF_FUN || sym->tag == TAG_DECL_FUN) {
     No* tmp = sym->astNode->param;
     No* tmp2; 
     while(tmp) {
@@ -299,6 +302,7 @@ void* SymEntry_Destroy(void* p){
 
 char* type2string(Type t) {
   switch (t) {
+    case TYPE_CHAR: return "char";
     case TYPE_VOID: return "void";
     case TYPE_UNDEFINED: return "undefined";
     case TYPE_INT: return "int";
@@ -310,12 +314,13 @@ char* type2string(Type t) {
     case TYPE_MAT_INT: return "mat(int)";
     case TYPE_MAT_FLOAT: return "mat(float)";
     case TYPE_MAT: return "mat(int|float)";
-    case TYPE_DECL_FUN: return "fun";
-    case TYPE_DEF_FUN: return "fun";
-    case TYPE_IF: return "if";
-    case TYPE_PARAM: return "param";
     case TYPE_POINTER: return "pointer";
-    case TYPE_INVALID: return "invalid";
+    default:
+      switch (t) {
+      case TAG_DECL_FUN: return "fun-decl";
+      case TAG_DEF_FUN: return "fun-def";
+      case TAG_PARAM: return "param";
+    }
   }
 }
 static char* t2s(Type t) {
@@ -338,34 +343,36 @@ void print_reshi(SymEntry* reshi) {
 
 void show_entry(SymEntry* s) {
   printf("%10s: ", s->escopo);
-  int classType = Type_Class(s->tag);
-  if(classType == TYPE_MAT) {
-    printf("< %s, %s >", 
-      t2s(s->tag) ,s->id);
-  }
-  else if (classType == TYPE_ARRAY) {
-    printf("< %s, %s >", 
-      t2s(s->tag == TYPE_INT ? TYPE_ARRAY_INT : TYPE_ARRAY_FLOAT) ,s->id);
-  }
-  else {
+  if(s->tag) {
     switch(s->tag) {
-      case TYPE_ARRAY_INT:
-      case TYPE_ARRAY_FLOAT:
-      case TYPE_INT:
-      case TYPE_FLOAT:
-        printf("< %s, %s>", type2string(s->tag), s->id);
-        break;    
-      case TYPE_DECL_FUN: case TYPE_DEF_FUN:
+      case TAG_DECL_FUN: case TAG_DEF_FUN:
         printf("< fun(%s), %s>", type2string(s->type), s->id);
         break;
-      case TYPE_PARAM:
+      case TAG_PARAM:
         printf("< param, %s, %s>", s->id, type2string(s->type));
-        break;      
-      case TYPE_MAT_FLOAT: case TYPE_MAT_INT:
-        printf("< mat(%s), %s>", t2s(s->type), s->id);
         break;
-      
     }
   }
+  else {
+    switch(s->type) {
+      case  TYPE_CHAR:
+      case  TYPE_VOID:
+      case  TYPE_UNDEFINED:
+      case  TYPE_INT:
+      case  TYPE_FLOAT:
+      case  TYPE_SCALAR:
+      case  TYPE_ARRAY_INT:
+      case  TYPE_ARRAY_FLOAT:
+      case  TYPE_ARRAY:
+      case  TYPE_MAT_INT:
+      case  TYPE_MAT_FLOAT:
+      case  TYPE_MAT:
+      case  TYPE_POINTER:
+        printf("< %s, %s>", type2string(s->type), s->id);
+        break;        
+      default:
+        printf("NOT FOUND TYPE FOR: %s", type2string(s->type));
+    }
+  }  
   printf("\t(%p)l. %d, c. %d\n", s,s->local.line, s->local.col);
 }

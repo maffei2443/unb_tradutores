@@ -54,7 +54,7 @@ typedef enum {
 } Field;
 
 typedef enum {
-  TYPE_INVALID = -2,
+  TYPE_CHAR = -3,
   TYPE_VOID = -1,
   TYPE_UNDEFINED = 0, 
   TYPE_INT = 1,
@@ -66,19 +66,29 @@ typedef enum {
   TYPE_MAT_INT = 16,
   TYPE_MAT_FLOAT = 32,
   TYPE_MAT = 33,
-  TYPE_DECL_FUN = 60,
-  TYPE_DEF_FUN = 61,
-  TYPE_IF = 80,
-  TYPE_PARAM = 100,
   TYPE_POINTER = 120,
-}Type;
+} Type;
+
+typedef enum {
+  BASE_TYPE_UNDEFINED = 0,
+  BASE_TYPE_INT,
+  BASE_TYPE_FLOAT
+} Base_Type;
+
+typedef enum {
+  TAG_UNDEFINED = 0,
+  TAG_DECL_FUN = TYPE_POINTER + 1,
+  TAG_DEF_FUN,
+  TAG_PARAM
+} Tag;
 
 // Indica TIPO DA REGRA da entrada de simbolos
 
 typedef struct SymEntry{
   char id[257];
-  Type tag;
+  Tag tag;
   Type type;  // nao ideal, MAS fica mais facil...
+  Base_Type base_type;
   char* escopo;
   Local local;
   char def_fun;
@@ -122,7 +132,7 @@ typedef struct No {
   char hasAux;
 } No;
 
-int is_fun(Type t);
+int is_fun(Tag t);
 
 Type Type_Class(Type type);
 

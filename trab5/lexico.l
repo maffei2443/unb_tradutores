@@ -39,7 +39,7 @@ binLogiOp &&|\|\|
 unaryOp !|&
 comment \/\/.*
 
-base_types int|float
+base_types int|float|char
 types mat|{base_types}
 flux_control while|if|else|return
 reserved_words {types}|{flux_control}|"COPY"|"PRINT"|"IREAD"|"FREAD"|"ICAST"|"FCAST"|"ahead"
@@ -237,6 +237,12 @@ achar '([a-zA-Z0-9_]?)'
   char yy0 = yytext[0];
   char yy1 = yytext[1];
   switch(yy0) {
+    case 'c':
+      //showCharVal();
+      currCol += yyleng;
+      yylval.type = TYPE_CHAR;
+      return BASE_TYPE;
+      break;
     case 'a':
       // showAhead();
       currCol += yyleng;

@@ -52,6 +52,10 @@ Type bin_expr_type(Type left, Type right, int op) {
   printf("\n[bin_expr_type] tipos:  = %s <<%c>> %s\n", type2string(left),op, type2string(right));
   Type leftClass = Type_Class(left);
   Type rightClass = Type_Class(right);
+  if(left == TYPE_CHAR || right == TYPE_CHAR){
+    printf("[Semantico] ERRO: TIPO CHAR NAO PODE SER USADO PARA REALIZACAO DE OPERACOES\n");
+    return TYPE_UNDEFINED;
+  }
   if(left == TYPE_UNDEFINED || right == TYPE_UNDEFINED) return TYPE_UNDEFINED;// erro de inicializacao...
   else if(left == TYPE_VOID || right == TYPE_VOID ) return TYPE_VOID;// tentando usar retorno de funcao VOID
   else if(leftClass == TYPE_ARRAY || rightClass == TYPE_ARRAY) return TYPE_UNDEFINED;
@@ -157,7 +161,7 @@ SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
         }
       }
       if( strcmp(id, neoEntry->id) == 0 && !strcmp(currScope, neoEntry->escopo) ) {          
-        if(tag == TYPE_DEF_FUN && neoEntry->tag == TYPE_DECL_FUN) {
+        if(tag == TAG_DEF_FUN && neoEntry->tag == TAG_DECL_FUN) {
           printf("Caso especial de declaracao previa de %s\n", id);
         }
         else

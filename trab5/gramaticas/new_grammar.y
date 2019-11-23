@@ -26,7 +26,7 @@
   else {\
     neoEntry->type = yyvsp[__baseType].type;\
     yyval.no->type = yyvsp[__baseType].type;\
-    neoEntry->tag = TYPE_PARAM;\
+    neoEntry->tag = TAG_PARAM;\
   }
 
 #include "Tree.h" // importante
@@ -141,7 +141,7 @@ declFun : AHEAD BASE_TYPE ID {
   SymEntry* tmp = last_decl(&reshi, $ID);
   if( !tmp ) {
     printf("DEVE ADICIONAR %s como declaracao de funcao\n", $ID);
-    add_entry(&reshi, $ID, TYPE_DECL_FUN);
+    add_entry(&reshi, $ID, TAG_DECL_FUN);
     err = 0;    
   }
   else {
@@ -161,21 +161,19 @@ declFun : AHEAD BASE_TYPE ID {
     err = 0;
   }
   if(tmp) {
-    tmp->tag = TYPE_DECL_FUN;
+    tmp->tag = TAG_DECL_FUN;
     tmp->type = $BASE_TYPE;
   }
   
   add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
   add_Node_Child_If_Not_Null($$, Token_New(STR(ID), $ID));
   printf("[%s] pre-declarou-se!\n", $ID);
-  add_Node_Child_If_Not_Null($$, $paramListVoid);
   
-  $$->param = $paramListVoid;
+  add_Node_Child_If_Not_Null($$, $paramListVoid);
+  $$->param = $paramListVoid; // Para rahpido acesso
+  
   link_symentry_no(&tmp, &$$);
   
-  // if ($$->param) {
-  //   printf("primeiro parametro de %s: %s\n", $ID, $$->param->sval);
-  // }
   free($ID), $ID = NULL;
   currScope = GLOBAL_SCOPE;
   decl_fun_rule = 0;
@@ -185,6 +183,7 @@ declFun : AHEAD BASE_TYPE ID {
 typeAndNameSign : BASE_TYPE ID {
   SymEntry* oldEntry = last_decl(&reshi, $ID);
   printf("Recuperado da tabela de simbolos: %p\n", oldEntry);
+  printf("base_type: %s", type2string($BASE_TYPE));
   char err = 0;
   if(oldEntry) {
     if( !strcmp(oldEntry->escopo, currScope) ) {
@@ -197,9 +196,9 @@ typeAndNameSign : BASE_TYPE ID {
   }
 
   if (!err) {
-    SymEntry* neoEntry = add_entry(&reshi, $ID, $BASE_TYPE);
+    SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_UNDEFINED);
     if(neoEntry) {  //TODO: trtar esse caso
-      neoEntry->type = neoEntry->tag;
+      neoEntry->type = $BASE_TYPE;
       MAKE_NODE(typeAndNameSign);
       link_symentry_no(&neoEntry, &$$);      
       add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
@@ -241,10 +240,11 @@ typeAndNameSign : BASE_TYPE ID {
       $$ = NULL;
     }
     else {
-      SymEntry* neoEntry = add_entry(&reshi, $ID, $BASE_TYPE);
+      SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_UNDEFINED);
+      Type type = $BASE_TYPE == TYPE_FLOAT ? TYPE_ARRAY_FLOAT : TYPE_ARRAY_INT;
       if(neoEntry) {
         // TODO: checar se num eh inteiro. Se nao for, ERRO
-        neoEntry->type = neoEntry->tag;
+        neoEntry->type = type;
         MAKE_NODE(typeAndNameSign);
         link_symentry_no(&neoEntry, &$$);      
         add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
@@ -297,11 +297,11 @@ typeAndNameSign : BASE_TYPE ID {
       $$ = NULL;
     }
     else {
-      Type type = $BASE_TYPE == TYPE_INT ? TYPE_MAT_INT : TYPE_MAT_FLOAT;
-      SymEntry* neoEntry = add_entry(&reshi, $ID, type);
+      Type type = $BASE_TYPE == TYPE_FLOAT ? TYPE_MAT_FLOAT : TYPE_MAT_INT;
+      SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_UNDEFINED);
       if(neoEntry) {
         // TODO: checar se num eh inteiro. Se nao for, ERRO
-        neoEntry->type = neoEntry->tag;
+        neoEntry->type = type;
         MAKE_NODE(typeAndNameSign);
         link_symentry_no(&neoEntry, &$$);      
         add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string(type)));
@@ -364,7 +364,7 @@ param : BASE_TYPE ID {
   SymEntry* funEntry = last_decl(&reshi, $ID);
   printf("!!! %p, %s: param @@@\n", funEntry, $ID);
   if(!declared_curr_fun) {
-    SymEntry* neoEntry = add_entry(&reshi, $ID, TYPE_PARAM);
+    SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_PARAM);
     if(neoEntry) {
       neoEntry->type =  $BASE_TYPE;
       $$->type =  $BASE_TYPE;
@@ -381,25 +381,26 @@ param : BASE_TYPE ID {
 | BASE_TYPE ID '[' ']' {
   $$ = Token_New(STR(param), $ID);
   // TODO: checar por declaracao previa de parametro!
-  SymEntry* neoEntry = add_entry(&reshi, $ID, TYPE_PARAM );
+  SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_PARAM );
   // SEMANTICO
   PARAM_RPT_NAME_CHECK(-3, -2);
   
-  if($BASE_TYPE == TYPE_INT)    neoEntry->type = TYPE_MAT_INT;
+  if($BASE_TYPE == TYPE_INT)    neoEntry->type = TYPE_ARRAY_INT;
   else if ($BASE_TYPE == TYPE_FLOAT) neoEntry->type = TYPE_ARRAY_FLOAT;
   else {
     printf("BASE_TYPE deve ser apenas TYPE_INT ou TYPE_FLOAT\n");
     abort();
   }
-  $$->type = $BASE_TYPE;
-  link_symentry_no(&neoEntry, &$$);
+  $$->type = neoEntry->type;
+  if(neoEntry)
+    link_symentry_no(&neoEntry, &$$);
   free($ID), $ID = NULL;
 }
 
 | MAT_TYPE BASE_TYPE ID {
   // TODO: checar por declaracao previa de parametro!
   $param = Token_New(STR(param), $ID);
-  SymEntry* neoEntry = add_entry(&reshi, $ID, TYPE_PARAM);
+  SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_PARAM);
   // Semantico
   PARAM_RPT_NAME_CHECK(-1, 0);
 
@@ -430,6 +431,7 @@ localStmt : call ';' {
   add_Node_Child_If_Not_Null($$, $call);
 }
 | lvalue '=' rvalue ';'  {
+  // TODO: CHECAR TIPOS!
   MAKE_NODE(localStmt);
   if($lvalue->type != $rvalue->type ||
     $lvalue->type == $rvalue->type && $lvalue->type == TYPE_UNDEFINED) {
@@ -546,10 +548,10 @@ defFun : BASE_TYPE ID '('{
   printf("lastDecl: (%p)\n", old);
   if(old) {
     if(old->def_fun) {
-      printf("[defFun-Semantico] Funcao %s jah foi definida em l.%d, c.%d\n",
+      printf("[defFun-Semantico] Erro: Funcao %s jah foi definida em l.%d, c.%d\n",
       old->id, old->local.line, old->local.col);
     }
-    else if(old->tag == TYPE_DECL_FUN) {
+    else if(old->tag == TAG_DECL_FUN) {
       fprintf(stderr, "Funcao %s foi pre-declarada\n", old->id);
       check_signature = 1;
       declared_curr_fun = 1;
@@ -561,7 +563,7 @@ defFun : BASE_TYPE ID '('{
   }
   else {
     printf("definindo funcao %s\n", $ID); fflush(stdout);
-    SymEntry* neoEntry = add_entry(&reshi, $ID, TYPE_DEF_FUN);
+    SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_DEF_FUN);
     if(!neoEntry) {
       printf("Erro na definicao de funcao %s [bug]\n", $ID);
     }
@@ -587,7 +589,9 @@ defFun : BASE_TYPE ID '('{
         int match = match_paramList(entry->astNode->param, $paramListVoid);
         if(match > 0){
           printf("DEFINICAO de %s BATE COM DECLARACAO!\n", $ID);
-          // SymEntry* neoEntry = add_entry(&reshi, $ID, TYPE_DEF_FUN);
+          // TODO: ATUALIZAR NOME DOS PARAMETROS PARA QUANDO FOR USAR A FUNCAO,
+          // CONTAR OS NOMES DOS PARAMETROS USADOS NA DEFINICAO
+          // SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_DEF_FUN);
           // neoEntry->type = $BASE_TYPE;
         }
         else {
@@ -609,7 +613,7 @@ defFun : BASE_TYPE ID '('{
     printf("FDP\n"); fflush(stdout);
   }
   if (!aborta) {  // nao modificar a entrada jah existente da tabela de simbolos
-    tmp->tag = TYPE_DEF_FUN;
+    tmp->tag = TAG_DEF_FUN;
     tmp->type = $BASE_TYPE;
     $$->param = $paramListVoid;
     link_symentry_no(&tmp, &$$);
@@ -662,7 +666,7 @@ declList : declList declOrdeclInitVar {
 | %empty {
   $$ = NULL;
 }
-
+//  TODO: CHECAR TIPO EM TODOS OS CASOS
 expr : expr '+' expr {
   MAKE_NODE(expr);
   $$->ival = '+';

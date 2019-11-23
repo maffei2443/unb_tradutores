@@ -7,6 +7,6 @@ float xxx(){
 	if(false){}
 	;
 }
-float foo(int g, int vector[], mat int d){
+float foo(int g, int vector[], float v[], mat int d){
 	a = id[13];
 }
