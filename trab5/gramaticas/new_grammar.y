@@ -301,6 +301,8 @@ typeAndNameSign : BASE_TYPE ID {
       SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_UNDEFINED);
       if(neoEntry) {
         // TODO: checar se num eh inteiro. Se nao for, ERRO
+        neoEntry->line = $5->ival;
+        neoEntry->col = $8->ival;
         neoEntry->type = type;
         MAKE_NODE(typeAndNameSign);
         link_symentry_no(&neoEntry, &$$);      

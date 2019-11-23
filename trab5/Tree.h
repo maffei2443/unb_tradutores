@@ -92,17 +92,7 @@ typedef struct SymEntry{
   char* escopo;
   Local local;
   char def_fun;
-
-  union {
-    int ival;
-    char cval;
-    float fval;
-    // struct {
-    //   struct No* next;
-    //   struct SymEntry* upperSym;
-    //   struct SymEntry** nestedSym;
-    // } func;
-  } u;
+  int line, col;
   struct No* astNode;
   struct SymEntry* next; // encadeamento para caso de conflito
   UT_hash_handle hh;

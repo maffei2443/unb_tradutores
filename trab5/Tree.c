@@ -261,15 +261,14 @@ int ListSize(No* no) {
 // Estava em common
 SymEntry* SymEntry_New(char* id, int tag, char* escopo){
   SymEntry* neo = (SymEntry*)calloc(1, sizeof(SymEntry));
-  
+  neo->line = -1;
+  neo->col = -1;
   memcpy(neo->id, id, strlen(id));
   neo->id[strlen(id)] = '\0';
   neo->tag = tag;
   size_t t = strlen(escopo) + 1;
   neo->escopo = calloc( 1, t );
   memcpy(neo->escopo, escopo, t);
-  neo->u.ival = 0;
-  // neo->u.func.next = 0;
   neo->local.line = neo->local.col = -1;
   neo->type = TYPE_UNDEFINED;
   neo->astNode = NULL; // NAO MEXER NA ARVORE ABSTRATA!
@@ -355,6 +354,11 @@ void show_entry(SymEntry* s) {
   }
   else {
     switch(s->type) {
+      case TYPE_MAT_INT:
+      case TYPE_MAT_FLOAT:
+      case TYPE_MAT:
+        printf("< %s[%d][%d], %s>", type2string(s->type), s->line, s->col, s->id);
+        break;
       case  TYPE_CHAR:
       case  TYPE_VOID:
       case  TYPE_UNDEFINED:
@@ -364,9 +368,6 @@ void show_entry(SymEntry* s) {
       case  TYPE_ARRAY_INT:
       case  TYPE_ARRAY_FLOAT:
       case  TYPE_ARRAY:
-      case  TYPE_MAT_INT:
-      case  TYPE_MAT_FLOAT:
-      case  TYPE_MAT:
       case  TYPE_POINTER:
         printf("< %s, %s>", type2string(s->type), s->id);
         break;        
