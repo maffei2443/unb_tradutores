@@ -67,6 +67,8 @@ typedef enum {
   TYPE_MAT_FLOAT = 32,
   TYPE_MAT = 33,
   TYPE_POINTER = 120,
+  TYPE_LIST,
+  TYPE_LIST_LIST
 } Type;
 
 typedef enum {

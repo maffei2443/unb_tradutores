@@ -1,11 +1,13 @@
 - [x] adicionar dimensões da matriz à **tabela de símbolos**
+- [x] adicionar dimensões do vetor à **tabela de símbolos**
 
-- [] diferenciar linha de matriz de COLUNA
+- [x] diferenciar linha de matriz de COLUNA
+  + Solução: campos _line_ e _col_ em _SymEntry_
 
-- [] testar redeclaração de PARAMETROS em TODOS os locais:
+- [x] testar redeclaração de PARAMETROS em TODOS os locais:
   + **typeAndNameSign** na parte de ARRAY e MATRIZ
 - [] Checar tipo em TODAS as expressões
-- [] Garantir que utilização do operador de indexação é feito apeanas em *matriz* ou *array*
+- [] Garantir que utilização do operador de indexação é feito apenas em *matriz* ou *array*
 - [] operador **_!_ SÓ PODE SER APLICADO A ESCALARES**
 
 <!-- GERAÇÃO DE CODIGO -->

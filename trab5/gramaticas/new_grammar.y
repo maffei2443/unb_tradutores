@@ -235,22 +235,24 @@ typeAndNameSign : BASE_TYPE ID {
   }
 
   if (!err) {
-    if($num->type != TYPE_INT) {
+    if ($num->type != TYPE_INT) {
       printf("[Semantico] Erro: Tamanho de vetor deve ser um inteiro! Encontrado: %s\n", type2string($num->type));
       $$ = NULL;
-    }
-    else {
+    }  else if ($num->ival < 0) {
+      printf("[Semantico] Erro: Tamanho deve ser >= 0\n");
+    }  else {
       SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_UNDEFINED);
       Type type = $BASE_TYPE == TYPE_FLOAT ? TYPE_ARRAY_FLOAT : TYPE_ARRAY_INT;
       if(neoEntry) {
         // TODO: checar se num eh inteiro. Se nao for, ERRO
         neoEntry->type = type;
+        neoEntry->base_type = $BASE_TYPE;
+        neoEntry->col = $num->ival;      
         MAKE_NODE(typeAndNameSign);
         link_symentry_no(&neoEntry, &$$);      
         add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
         add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
         add_Node_Child_If_Not_Null($$, $num);
-        free($ID);$ID = NULL;  
       }
       else {
         printf("[BASE_TYPE ID '[' num ']'] ERRO LOGICO: NAO DEVERIA ENTRAR AQUI! %s:%s ...\n", neoEntry->escopo, $ID);
@@ -263,7 +265,7 @@ typeAndNameSign : BASE_TYPE ID {
   }
 
   if(!$$) {
-    printf("\t[Semantico]Nao adicionou (%s) aa tabela de simbolos (redeclaracao, tamanho nao inteiro, algo deu errado).\n", $ID);
+    printf("  [Semantico] Nao adicionou (%s) aa tabela de simbolos (redeclaracao, tamanho nao inteiro, algo deu errado).\n", $ID);
   }
   free($ID);$ID = NULL;
 }
@@ -301,16 +303,16 @@ typeAndNameSign : BASE_TYPE ID {
       SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_UNDEFINED);
       if(neoEntry) {
         // TODO: checar se num eh inteiro. Se nao for, ERRO
-        neoEntry->line = $5->ival;
-        neoEntry->col = $8->ival;
-        neoEntry->type = type;
         MAKE_NODE(typeAndNameSign);
+        $$->type = type;
         link_symentry_no(&neoEntry, &$$);      
         add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string(type)));
         add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
         add_Node_Child_If_Not_Null($$, $5);
         add_Node_Child_If_Not_Null($$, $8);
-        free($ID);$ID = NULL;  
+        neoEntry->line = $5->ival;
+        neoEntry->col = $8->ival;
+        neoEntry->type = type;
       }
       else {
         printf("[BASE_TYPE ID '[' num ']'] ERRO LOGICO: NAO DEVERIA ENTRAR AQUI! %s:%s ...\n", neoEntry->escopo, $ID);
@@ -330,9 +332,24 @@ typeAndNameSign : BASE_TYPE ID {
 
 declOrdeclInitVar : typeAndNameSign ';'
 | typeAndNameSign '=' rvalue ';' {
-  MAKE_NODE(declOrdeclInitVar);
-  add_Node_Child_If_Not_Null($$, $typeAndNameSign);
-  add_Node_Child_If_Not_Null($$, $rvalue);
+  if($1 == NULL || $3 == NULL) {
+    $$ = NULL;
+    printf("[Semantico] NAo foi possivel construir <declOrdeclInitVar> devido a erro semantico.\n");
+  }
+  else {
+    MAKE_NODE(declOrdeclInitVar);
+    add_Node_Child_If_Not_Null($$, $typeAndNameSign);
+    add_Node_Child_If_Not_Null($$, $rvalue);
+    Type class = Type_Class($1->type);
+    printf("[type] %s\n", type2string($1->type));
+    printf("[CLASS] %s\n", type2string(class));
+    if( class == TYPE_MAT) {
+      if ($rvalue->type != TYPE_LIST_LIST) {
+        printf("[Semantico] Erro: inicializacao de matriz com %s\n", type2string($rvalue->type));
+      }
+    }
+
+  }
 }
 | typeAndNameSign '=' rvalue error
 
@@ -996,8 +1013,17 @@ lvalue : ID {
   MAKE_NODE(lvalue);
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
   add_Node_Child_If_Not_Null($$, $expr);
-  // SEMANTICO    
-  if(!last_decl(&reshi, $ID)){printf("Variavel %s, l.%d nao declarada!\n", $ID, numlines);}
+  
+  // SEMANTICO
+  SymEntry* old = last_decl(&reshi, $ID);
+  if(!old){
+    printf("Variavel %s, l.%d nao declarada!\n", $ID, numlines);
+  }
+  else {
+    if(old->col == -1) {
+      printf("[Semantico] Erro: %s nao eh indexavel!\n",  old->id);
+    }
+  }
   free($ID); $ID = NULL;
 }
 | ID '[' expr ']' '[' expr ']' {
@@ -1015,8 +1041,12 @@ lvalue : ID {
 rvalue : expr
 | '{' numList '}' {
   $$ = $2;
+  $$->type = TYPE_LIST;
 }
-| '{' numListList '}' {$$ = $2;}
+| '{' numListList '}' {
+  $$ = $2;
+  $$->type = TYPE_LIST_LIST;
+}
 
 %%
 

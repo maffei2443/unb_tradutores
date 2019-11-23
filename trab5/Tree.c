@@ -242,6 +242,7 @@ void show_Lis(No* head, Field field) {
 
 
 int show_Sub_Tree(No* no, int lvl, Field field) {
+  if(!no) return 0;
   if(!no->child) return 0;
   No* tmp = no->child;
   while(tmp) {
@@ -314,6 +315,8 @@ char* type2string(Type t) {
     case TYPE_MAT_FLOAT: return "mat(float)";
     case TYPE_MAT: return "mat(int|float)";
     case TYPE_POINTER: return "pointer";
+    case TYPE_LIST: return "list(num)";
+    case TYPE_LIST_LIST: return "list(list(num))";
     default:
       switch (t) {
       case TAG_DECL_FUN: return "fun-decl";
@@ -359,15 +362,18 @@ void show_entry(SymEntry* s) {
       case TYPE_MAT:
         printf("< %s[%d][%d], %s>", type2string(s->type), s->line, s->col, s->id);
         break;
+      case  TYPE_ARRAY_INT:
+      case  TYPE_ARRAY_FLOAT:
+      case  TYPE_ARRAY:
+        printf("< %s[%d], %s>", type2string(s->type), s->col, s->id);
+        break;
+
       case  TYPE_CHAR:
       case  TYPE_VOID:
       case  TYPE_UNDEFINED:
       case  TYPE_INT:
       case  TYPE_FLOAT:
       case  TYPE_SCALAR:
-      case  TYPE_ARRAY_INT:
-      case  TYPE_ARRAY_FLOAT:
-      case  TYPE_ARRAY:
       case  TYPE_POINTER:
         printf("< %s, %s>", type2string(s->type), s->id);
         break;        
