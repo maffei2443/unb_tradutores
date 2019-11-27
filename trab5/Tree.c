@@ -45,19 +45,20 @@ No* No_New(int v) {
   // Aqui ficarah o cohdigo associado a cada variavel, tal qual no livro
   // no->code = Array_New();
   // Array_Init(&no->code, 10);
-  // no->child = NULL;
-  // no->childLast = NULL;
-  // no->n = NULL;
-  // // no->p = NULL;
-  // no->sval = NULL;  no->sval_alloc = 0;
-  // no->tname = NULL; no->tname_alloc = 0;
-  // no->symEntry = NULL;
-  // no->nextAux = NULL;
-  // no->param = NULL;
-  // // no->scope = NULL; no->scope_alloc = 0; 
+  no->child = NULL;
+  no->childLast = NULL;
+  no->n = NULL;
+  // no->p = NULL;
+  no->sval = NULL;  no->sval_alloc = 0;
+  no->tname = NULL; no->tname_alloc = 0;
+  no->symEntry = NULL;
+  no->nextAux = NULL;
+  no->param = NULL;
+  // no->scope = NULL; no->scope_alloc = 0; 
   // no->isToken = 0;
   // no->hasAux = 0;
   no->ival = v;
+  no->code = NULL;
   // no->iaux = 0;
   // no->fval = 0.0;
   // no->is_const = 0;
@@ -78,6 +79,7 @@ No* Token_New(char* tname, char* sval) {
   memcpy(token->sval, sval, strlen(sval));
   printf("[Token_New(char* tname, char* sval)] sval = %s\n", sval);
   printf("[Token_New(char* tname, char* sval)] token->sval = %s\n\n", token->sval);
+  printf("ALOCOU %p\n", token);
   return token;
 }
 
@@ -85,21 +87,21 @@ No* Token_New(char* tname, char* sval) {
 // para NULL. Depois, dah free nessa variavel.
 // NAO TESTADO
 void No_Destroy(No* no) {
-  if(!no) return;
-  // NAO DEVE TER NEXT E AUX; UM OU OUTRO
-  assert(!(no->hasAux == 1 && no->n != NULL));
-  no->n = NULL;
-  no->child = NULL; no -> childLast = NULL;
-  no->nextAux = NULL; no->param = NULL;
-  if(no->sval == NULL && no->sval_alloc)
+  // if(!no) return;
+  // // NAO DEVE TER NEXT E AUX; UM OU OUTRO
+  // assert(!(no->hasAux == 1 && no->n != NULL));
+  // no->n = NULL;
+  // no->child = NULL; no -> childLast = NULL;
+  // no->nextAux = NULL; no->param = NULL;
+  if(no->sval_alloc)
     DESTROY_PTR(no->sval);
-  if(no->tname == NULL && no->tname_alloc)
+  if(no->tname_alloc)
     DESTROY_PTR(no->tname);
-  no->symEntry = NULL;  // NAO MEXR NA TABELA DE SIMBOLOS!
-  // if(no->scope == NULL && no->scope_alloc)
-  //   DESTROY_PTR(no->scope);
-  Array_Delete(no->code);
-  free(no->code);
+  // no->symEntry = NULL;  // NAO MEXR NA TABELA DE SIMBOLOS!
+  // // if(no->scope == NULL && no->scope_alloc)
+  // //   DESTROY_PTR(no->scope);
+  // Code_Destroy(no->code);
+  // // free(no->code);
   DESTROY_PTR(no);
 }
 
@@ -172,28 +174,35 @@ void add_Node_Next(No* no, No* next) {
 // Pega proximo, libera atual.
 // ... Ao final, atual serah o ultimo
 void free_Lis(No* no) {
+  printf("[free_Lis] %p\n", no);
   if(!no) return;
   No* next = no->n;
   while(next) {
+      printf("FREE at %p\n", no);
       free(no);  // valgrind reclama; mas n dixa leak
       no = next;
       next = next->n;  
-    } 
-  free(no); no = NULL;
+  }
+  No_Destroy(no);
+  printf("FREE at %p\n", no);
+  
 }
 
 // Chama o "freelLis" para child,
 // mas soh quando todos os childs jah o tiverem feito tambem.
 // TESTADO, FUNCIONA
 void free_All_Child(No * no) {
+  // printf("[free_All_Child] ToFree? %p\n", no);
   if(!no) return;
+  // printf("\t YES\n");
   No* child = no->child;
-  if(!child) return;
   while(child != NULL) {    
     free_All_Child(child);
     child = child->n;
   }
-  free_Lis(no->child);
+  printf("[free_All_Child-final] %p\n", no);
+  No_Destroy(no);
+  // free(no);
 }
 
 void show_Lis(No* head, Field field) {

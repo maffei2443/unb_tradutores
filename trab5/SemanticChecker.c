@@ -164,7 +164,7 @@ SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
       neoEntry->local.line = numlines;
       neoEntry->local.col = currCol;
       HASH_ADD_STR( (*reshi), id, neoEntry );/* id: name of key field */
-      addToDel(&neoEntry);
+      // addToDel(&neoEntry);
     }
     else {    // Checar se eh declaracao no msm escopo. Se for, nao adiciona e dah pau (retorna NULL);
       printf("Possivel conflito com %s:%s\n", id, neoEntry->escopo);

@@ -120,7 +120,7 @@ int aborta = 0;
 program : globalStmtList {
   $$ = $1;
   root = $$;
-  printf("Derivacao foi concluida.\n");
+  printf("Derivacao foi concluida com root = %p.\n", $$);
 }
 
 
@@ -206,6 +206,7 @@ typeAndNameSign : BASE_TYPE ID {
     if(neoEntry) {  //TODO: trtar esse caso
       neoEntry->type = $BASE_TYPE;
       MAKE_NODE(typeAndNameSign);
+      printf("[typeAndNameSign] ALOCOU %p\n", $$);
       link_symentry_no(&neoEntry, &$$);      
       add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
       add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
@@ -1004,7 +1005,7 @@ num : V_INT {
   // Code generation
   char buf[20];
   sprintf(buf, "%d", $1);  
-  $$->code = Code_New(buf);
+  // $$->code = Code_New(buf);
 }
 | V_FLOAT {
   MAKE_NODE(num);
@@ -1120,7 +1121,7 @@ int main(){
   yylex_destroy();
   
   free_All_Child(root);
-  free_Lis(root);
+  // free_Lis(root);
   // delGambs();
   delete_all(reshi);
   temp_next();
