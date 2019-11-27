@@ -235,7 +235,7 @@ void delete_all(SymEntry* tab) {
 
   HASH_ITER(hh, tab, current_user, tmp) {
     HASH_DEL(tab, current_user);  /* delete; users advances to next */
-    free(current_user);            /* optional- if you want to free  */
+    SymEntry_Destroy(current_user);            /* optional- if you want to free  */
   }
 }
 // msg_erros

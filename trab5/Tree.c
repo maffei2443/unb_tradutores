@@ -87,21 +87,20 @@ No* Token_New(char* tname, char* sval) {
 // para NULL. Depois, dah free nessa variavel.
 // NAO TESTADO
 void No_Destroy(No* no) {
-  // if(!no) return;
-  // // NAO DEVE TER NEXT E AUX; UM OU OUTRO
-  // assert(!(no->hasAux == 1 && no->n != NULL));
-  // no->n = NULL;
-  // no->child = NULL; no -> childLast = NULL;
-  // no->nextAux = NULL; no->param = NULL;
-  if(no->sval_alloc)
+  if(!no) return;
+  // printf("[No_Destroy] %p ... %p\n", no, no + sizeof(*no));
+  // printf("\t(%p) [ADDR1] %p\n", no->sval, &no->sval_alloc);
+  if(no->sval && no->sval_alloc)
     DESTROY_PTR(no->sval);
-  if(no->tname_alloc)
+  // printf("\t(%p) [ADDR2] %p\n", no->tname, &no->tname_alloc);
+  if(no->tname && no->tname_alloc)
     DESTROY_PTR(no->tname);
   // no->symEntry = NULL;  // NAO MEXR NA TABELA DE SIMBOLOS!
   // // if(no->scope == NULL && no->scope_alloc)
   // //   DESTROY_PTR(no->scope);
   // Code_Destroy(no->code);
   // // free(no->code);
+  printf("\n");
   DESTROY_PTR(no);
 }
 
@@ -173,19 +172,19 @@ void add_Node_Next(No* no, No* next) {
 
 // Pega proximo, libera atual.
 // ... Ao final, atual serah o ultimo
+// TODO: TESTAR!  
 void free_Lis(No* no) {
   printf("[free_Lis] %p\n", no);
   if(!no) return;
-  No* next = no->n;
-  while(next) {
-      printf("FREE at %p\n", no);
-      free(no);  // valgrind reclama; mas n dixa leak
-      no = next;
-      next = next->n;  
+  No* tmp = no;
+  // EH AQUI QUE TAH DANDO LEITUA DE POSICAO QUE JAH FOI LIBERADA
+  while(no) {
+    printf("\tfree_All_Child(%p)\n", no);
+    tmp = no->n;
+    free_All_Child(no);
+    no = tmp;  
   }
-  No_Destroy(no);
-  printf("FREE at %p\n", no);
-  
+
 }
 
 // Chama o "freelLis" para child,
@@ -196,13 +195,14 @@ void free_All_Child(No * no) {
   if(!no) return;
   // printf("\t YES\n");
   No* child = no->child;
+  No* tmp;
   while(child != NULL) {    
-    free_All_Child(child);
-    child = child->n;
+    tmp = child->n;
+    free_All_Child(child);   // DESCOMENTAR
+    child = tmp;
   }
   printf("[free_All_Child-final] %p\n", no);
   No_Destroy(no);
-  // free(no);
 }
 
 void show_Lis(No* head, Field field) {
@@ -294,22 +294,25 @@ SymEntry* SymEntry_New(char* id, int tag, char* escopo){
 // Destroi entrada da TS e todas suas TS aninhadas 
 // (valido apenas p/ declaracao de funcao)
 void* SymEntry_Destroy(void* p){
+  if(!p) return NULL;
   SymEntry* sym = (SymEntry*)p;
-  if(!sym) return NULL;
-  if(sym->tag == TAG_DEF_FUN || sym->tag == TAG_DECL_FUN) {
-    No* tmp = sym->astNode->param;
-    No* tmp2; 
-    while(tmp) {
-      tmp2 = tmp->nextAux;
-      free(tmp);
-      tmp = tmp2;
-    }
+  // TODO : eh mais facil fazer isso aqui, mass conceitualmente
+  // deveria ser feito em free_All_Child What to do?
+  // if(sym->tag == TAG_DEF_FUN || sym->tag == TAG_DECL_FUN) {
+  //   No* tmp = sym->astNode->param;
+  //   No* tmp2; 
+  //   while(tmp) {
+      // tmp2 = tmp->nextAux;
+      SymEntry_Destroy(sym->next);
+    //   tmp = tmp2;
+    // }
     // trata-se se funcao! liberar portanto
     // a lista de nohs que compoem sua assinatura
     // free_Lis(sym->u.func.next); sym->u.func.next = NULL;
     // SymEntry_Destroy(sym->u.func.nestedSym); sym->u.func.nestedSym = NULL;
     // sym->u.func.upperSym = NULL;  // nao tentar dar free no pai; ciclo
-  }
+  // }
+  free(sym->escopo);
   free(sym);
   sym = NULL;
   return NULL;

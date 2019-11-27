@@ -47,9 +47,10 @@ int main(int argc, char ** argv) {
     show_Sub_Tree(head, 1, IVAL);
 
     show_Lis(head, IVAL);
-    free_All_Child(head);
-    No_Destroy(head->n);
-    No_Destroy(head);
+    // free_All_Child(head);
+    free_Lis(head);
+    // No_Destroy(head->n);
+    // No_Destroy(head);
   }
 
 }
