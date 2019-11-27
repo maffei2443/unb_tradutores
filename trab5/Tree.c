@@ -37,10 +37,14 @@ void show_Spaces(int qtd){
 }
 
 // Ok.
+// obs: NÃO INICIALIZA code
 No* No_New(int v) {
   No* no = (No*)calloc(1,sizeof(No));
   // NOTA: em teoria, nada (exceto inicializacao de ival) abaixo eh necessario por conta do calloc.
   no->type = TYPE_UNDEFINED;
+  // Aqui ficarah o cohdigo associado a cada variavel, tal qual no livro
+  // no->code = Array_New();
+  // Array_Init(&no->code, 10);
   // no->child = NULL;
   // no->childLast = NULL;
   // no->n = NULL;
@@ -94,6 +98,8 @@ void No_Destroy(No* no) {
   no->symEntry = NULL;  // NAO MEXR NA TABELA DE SIMBOLOS!
   // if(no->scope == NULL && no->scope_alloc)
   //   DESTROY_PTR(no->scope);
+  Array_Delete(no->code);
+  free(no->code);
   DESTROY_PTR(no);
 }
 

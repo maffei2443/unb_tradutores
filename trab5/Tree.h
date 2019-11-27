@@ -1,9 +1,13 @@
 #ifndef _TREE_H_
 #define _TREE_H_
-
+#ifdef NULL
+  #undef NULL
+  #define NULL ((void *)0)
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include "Array.h"
+#include "code_gen.h"
 #include "uthash.h"
 #include <assert.h>
 
@@ -87,7 +91,9 @@ typedef enum {
 // Indica TIPO DA REGRA da entrada de simbolos
 
 typedef struct SymEntry{
+  
   char id[257];
+  short int temp_num;   // numero usado para quando se for salvar seu valor/endereço, escolher o temporario associado
   Tag tag;
   Type type;  // nao ideal, MAS fica mais facil...
   Base_Type base_type;
@@ -119,9 +125,11 @@ typedef struct No {
   char is_const;
   char sval_alloc;
   char tname_alloc;
+  char code_alloc;
   Type type;
   char isToken;    // nesse modo, usa-se mesmo noh para token e regra
   char hasAux;
+  Code* code;
 } No;
 
 int is_fun(Tag t);

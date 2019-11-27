@@ -11,6 +11,7 @@
 - [] operador **_!_ SÓ PODE SER APLICADO A ESCALARES**
 
 <!-- GERAÇÃO DE CODIGO -->
+- [] fazer o gerenciamento dos temporários enquanto variáveis locais
 - [] Fazer os CASTs sempre que necessário
 - [] Gerar label para *controles de fluxo*
 - [] tudo mais xD

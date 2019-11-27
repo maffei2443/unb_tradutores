@@ -28,12 +28,18 @@
     yyval.no->type = yyvsp[__baseType].type;\
     neoEntry->tag = TAG_PARAM;\
   }
+#include <string.h>
+#define BLANK_INT "              "
+#define BLANK_FLOAT "                           "
+static int BLANK_FLOAT_SIZE = strlen(BLANK_FLOAT);
+static int BLANK_INT_SIZE = strlen(BLANK_INT);
 
 #include "Tree.h" // importante
 #include "SemanticChecker.h"
+#include "code_gen.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+
 extern int yylineno;
 extern int currCol;
 extern int numlines;
@@ -694,6 +700,30 @@ expr : expr '+' expr {
   add_Node_Child_If_Not_Null($$, $3);
   // SEMANTICO
   $$->type = bin_expr_type( $1->type, $3->type, '+');
+  // GERACO DE CODIGO
+  // printf("t%d = %d + %d\n", temp_next(), $1->ival, $3->ival);
+  // printf("[AsList] t%d = %d + %d\n", temp_next(), $$->child->ival, $$->childLast->ival);
+  
+  char buf[600];
+  if($1->is_const == $3->is_const) {  // ambos constantes ou nao constantes
+    if($1->is_const)
+      switch ($1->type) {
+        case TYPE_INT: sprintf(buf, "t%d = %d + %d\n", temp_next() , $1->ival, $3->ival); break;
+        case TYPE_FLOAT: sprintf(buf, "t%d = %f + %f\n", temp_next() , $1->fval, $3->fval); break;
+        default:break;
+      }
+    else {
+      // TODO: verificar se eh parametro, local ou global. Em cada caso deve
+      // ser feito algo diferente:
+      // - global: apenas sar o nome do identificador, pois nao hah clash
+      // - parametro: verificar em qual local da pilha estah o parametro
+      // - local: usar temporarios de algum jeito.
+      //  + TODO: tratar esse caso
+      sprintf(buf, "t%d = %s + %s\n", temp_next() , $1->symEntry->id, $3->symEntry->id);
+    }
+
+  }
+  printf("TOPP: %s\n", buf);
 }
 | expr '-' expr {
   MAKE_NODE(expr);
@@ -971,6 +1001,10 @@ num : V_INT {
   // SEMANTICO
   $$->is_const = 1;
   $$->type = TYPE_INT;
+  // Code generation
+  char buf[20];
+  sprintf(buf, "%d", $1);  
+  $$->code = Code_New(buf);
 }
 | V_FLOAT {
   MAKE_NODE(num);
@@ -986,18 +1020,16 @@ lvalue : ID {
   No* tok = Token_New("ID", $ID);
   add_Node_Child_If_Not_Null($$, tok);
   // SEMANTICO
-  SymEntry* entry = last_decl(&reshi, $ID);
+  SymEntry* old = last_decl(&reshi, $ID);
   // CHECK FOR NULL (== nao declarado)
-  // printf("[ID: %s]entry->type: %s\n", $ID, type2string(entry->type));
-  if(entry) {
-    if(is_fun(entry->tag)) {
+  // printf("[ID: %s]old->type: %s\n", $ID, type2string(old->type));
+  if(old) {
+    if(is_fun(old->tag)) {
       printf("Identificador %s, l.%d c.%lu DECLARADO PREVIAMENTE como funcao em l.%d, c.%d!\n",
-       $ID, numlines, currCol - (strlen($ID) + 2), entry->local.line, entry->local.col);
+       $ID, numlines, currCol - (strlen($ID) + 2), old->local.line, old->local.col);
     }
     else {
-      tok->type = entry->type;
-      $$->type = entry->type;
-      link_symentry_no(&entry, &tok);
+      SET_TYPE_AND_UNI_LINK(old, tok)
     }
   }
   else {
@@ -1011,7 +1043,9 @@ lvalue : ID {
   // TODO: CHECAR SE ID EH MATRIZ ou ARRAY. Senao, erro.
   // TODO: INDEXACAO SOH SE TIPO FOR INTEIRO!
   MAKE_NODE(lvalue);
-  add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
+  No* tok = Token_New("ID", $ID);
+
+  add_Node_Child_If_Not_Null($$, tok);
   add_Node_Child_If_Not_Null($$, $expr);
   
   // SEMANTICO
@@ -1023,6 +1057,9 @@ lvalue : ID {
     if(old->col == -1) {
       printf("[Semantico] Erro: %s nao eh indexavel!\n",  old->id);
     }
+    else {
+      set_type_and_uni_link($$, old, tok);
+    }
   }
   free($ID); $ID = NULL;
 }
@@ -1030,11 +1067,21 @@ lvalue : ID {
   // TODO: CHECAR SE ID EH MATRIZ. Senao, erro.
   // TODO: INDEXACAO SOH SE TIPO FOR INTEIRO!
   MAKE_NODE(lvalue);
-  add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
+  No* tok = Token_New("ID", $ID);
+
+  add_Node_Child_If_Not_Null($$, tok);
   add_Node_Child_If_Not_Null($$, $3);
   add_Node_Child_If_Not_Null($$, $6);
   // SEMANTICO    
-  if(!last_decl(&reshi, $ID)){printf("Variavel %s, l.%d nao declarada!\n", $ID, numlines);}
+  SymEntry* old = last_decl(&reshi, $ID);
+  if(!old){
+    printf("Variavel %s, l.%d nao declarada!\n", $ID, numlines);
+  } else if(old->type != TYPE_MAT) {
+    printf("[Semantico] Variavel (%s:%s) nao eh matriz para ser indexada duplamente!\n", old->escopo, old->id);
+  } else {
+    set_type_and_uni_link($$, old, tok);
+  }
+  
   free($ID); $ID = NULL;
 }
 
@@ -1076,4 +1123,5 @@ int main(){
   free_Lis(root);
   // delGambs();
   delete_all(reshi);
+  temp_next();
 }

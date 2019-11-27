@@ -1,5 +1,9 @@
 #include "Array.h"
 
+Array* Array_New() {
+  return calloc(1, sizeof(Array));
+}
+
 void Array_Init(Array * a, size_t initSize) {
   a->array = (char*)calloc(initSize, sizeof(char));
   a->used = 0; a->size = initSize;

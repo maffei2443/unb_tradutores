@@ -12,3 +12,6 @@ entre aspas.
 
 + em caso de redeclaracao de variavel/funcao, mantem-se na symTable a antiga
 (além de dar erro)
+
++ **Apenas o "last" do primeiro elemento de uma lista de Code\* é consistente**
+  - **next** deve funcionar adequadamente
