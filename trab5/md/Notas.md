@@ -15,3 +15,4 @@ entre aspas.
 
 + **Apenas o "last" do primeiro elemento de uma lista de Code\* é consistente**
   - **next** deve funcionar adequadamente
++ *nomes dados aos parametros de DECLARACAO de funcao sao IGNORADOS*

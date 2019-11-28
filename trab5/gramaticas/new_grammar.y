@@ -22,6 +22,7 @@
   if(!neoEntry) {\
     neoEntry = last_decl(&reshi, yyvsp[__id]._id);    \
     printf("[Semantico] Parametros de mesmo nome! Arvore vai ficar inconsistente..\n");\
+    critical_error++;\
   }\
   else {\
     neoEntry->type = yyvsp[__baseType].type;\
@@ -53,18 +54,21 @@ unsigned nodeCounter;
 
 extern int gambs_tam;
 extern int gambs_qtd;
+
+extern unsigned long critical_error;
 char* GLOBAL_SCOPE = "0global";
 
 SymEntry* reshi;
 
 char* currScope = NULL;
 int check_signature = 0;
-int decl_fun_rule = 0;
-int def_fun_rule = 0;
 int declared_curr_fun = 0;
 int check_parameters = 0;
 int err = 0;
 int aborta = 0;
+
+int defFun_rule = 0;
+int declFun_rule = 0;
 %}
 %define parse.error verbose
 %define parse.lac none
@@ -143,7 +147,7 @@ globalStmt : defFun
 | declFun error
 
 declFun : AHEAD BASE_TYPE ID {
-  decl_fun_rule = 1;
+  declFun_rule = 1;
   SymEntry* tmp = last_decl(&reshi, $ID);
   if( !tmp ) {
     printf("DEVE ADICIONAR %s como declaracao de funcao\n", $ID);
@@ -152,6 +156,7 @@ declFun : AHEAD BASE_TYPE ID {
   }
   else {
     printf("[Semantico] |%s| nao pode ser declarado pois jah o foi em l.%d, c.%d\n", tmp->id, tmp->local.line, tmp->local.col);
+    err = 1;
   }
   currScope = $ID;
 } '(' paramListVoid ')' {
@@ -160,15 +165,14 @@ declFun : AHEAD BASE_TYPE ID {
   HASH_FIND_STR(reshi, $ID, tmp);
 
   if(!tmp) {
-    printf("tmp is NULL\n");
+    printf("tmp is NULL! Erro logico incorrigivel.\n");
+    abort();
   }
-  else if(!err) {
+  tmp->tag = TAG_DECL_FUN;
+  tmp->type = $BASE_TYPE;
+  if(!err) {
     link_symentry_no(&tmp, &$$);
     err = 0;
-  }
-  if(tmp) {
-    tmp->tag = TAG_DECL_FUN;
-    tmp->type = $BASE_TYPE;
   }
   
   add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
@@ -176,13 +180,12 @@ declFun : AHEAD BASE_TYPE ID {
   printf("[%s] pre-declarou-se!\n", $ID);
   
   add_Node_Child_If_Not_Null($$, $paramListVoid);
-  $$->param = $paramListVoid; // Para rahpido acesso
-  
-  link_symentry_no(&tmp, &$$);
-  
+  $$->param = $paramListVoid; // Para rahpido acesso    
   free($ID), $ID = NULL;
+  
   currScope = GLOBAL_SCOPE;
-  decl_fun_rule = 0;
+  declFun_rule = 0;
+  err = 0;
 }
 
 
@@ -385,28 +388,48 @@ paramList : paramList ',' param {
 }
 | param 
 
-param : BASE_TYPE ID {
-  $$ = Token_New(STR(param), $ID);
-  SymEntry* funEntry = last_decl(&reshi, $ID);
-  printf("!!! %p, %s: param @@@\n", funEntry, $ID);
-  if(!declared_curr_fun) {
-    SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_PARAM);
-    if(neoEntry) {
-      neoEntry->type =  $BASE_TYPE;
-      $$->type =  $BASE_TYPE;
-      PARAM_RPT_NAME_CHECK(-1, 0);
-      link_symentry_no(&neoEntry, &$$);
-    }
+param : BASE_TYPE {
+  if(defFun_rule) {
+    printf("[Semantico] ErroCritico: parametros em definicao de funcao precisam ser nomeados!\n");
+    critical_error++;
   }
-  else {
-    printf("1296 !!!\n");
-  }
+  $$ = Token_New(STR(param), type2string($BASE_TYPE));
   $$->type = $BASE_TYPE;
+}
+| MAT_TYPE BASE_TYPE {
+  if(defFun_rule) {
+    printf("[Semantico] ErroCritico: parametros em definicao de funcao precisam ser nomeados!\n");
+    critical_error++;
+  }  
+  $$ = Token_New(STR(param), type2string($BASE_TYPE));
+  $$->type = $BASE_TYPE == TYPE_INT ? TYPE_MAT_INT : TYPE_MAT_FLOAT;
+}
+| BASE_TYPE ID {
+  if( defFun_rule ) {
+    $$ = Token_New(STR(param), $ID );
+    SymEntry* funEntry = last_decl(&reshi, $ID);
+    if(!declared_curr_fun) {
+      SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_PARAM);
+      if(neoEntry) {
+        neoEntry->type =  $BASE_TYPE;
+        $$->type =  $BASE_TYPE;
+        PARAM_RPT_NAME_CHECK(-1, 0);
+        link_symentry_no(&neoEntry, &$$);
+      }
+    }
+    else {
+      printf("Funcao (%s) jah foi delcarada/definida!\n", $ID);
+    }
+    $$->type = $BASE_TYPE;
+  }
+  else {  // eh declaracao; entao, nao precisa dos nomes. Simplesmente, ignore-o.
+    $$ = Token_New(STR(param), type2string($BASE_TYPE) );
+    $$->type = $BASE_TYPE;
+  }
   free($ID), $ID = NULL;
 }
 | BASE_TYPE ID '[' ']' {
   $$ = Token_New(STR(param), $ID);
-  // TODO: checar por declaracao previa de parametro!
   SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_PARAM );
   // SEMANTICO
   PARAM_RPT_NAME_CHECK(-3, -2);
@@ -429,15 +452,14 @@ param : BASE_TYPE ID {
   SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_PARAM);
   // Semantico
   PARAM_RPT_NAME_CHECK(-1, 0);
-
+  
+  link_symentry_no(&neoEntry, &$$);  
   if($BASE_TYPE == TYPE_INT) neoEntry->type = TYPE_MAT_INT;  
   else if ($BASE_TYPE == TYPE_FLOAT) neoEntry->type = TYPE_MAT_FLOAT;
   else {
     printf("BASE_TYPE deve ser apenas TYPE_INT ou TYPE_FLOAT\n");
     abort();
   }
-  if(neoEntry)
-    link_symentry_no(&neoEntry, &$$);  
   free($ID), $ID = NULL;
 }
 
@@ -567,20 +589,20 @@ loop : WHILE '(' expr ')' block {
 }
 
 defFun : BASE_TYPE ID '('{
-  def_fun_rule = 1;
+  defFun_rule = 1;
   SymEntry* old = last_decl(&reshi, $ID);
-  // CHECAGEM DE REDECLARACAO FEITA AQUI. CHECAGEM DE PARAMETROS,
-  // NAO PODE SER FEITA AQUI
+  // CHECAGEM DE REDECLARACAO FEITA AQUI. 
   printf("lastDecl: (%p)\n", old);
   if(old) {
-    if(old->def_fun) {
+    if(old->tag == TAG_DEF_FUN) {
       printf("[defFun-Semantico] Erro: Funcao %s jah foi definida em l.%d, c.%d\n",
       old->id, old->local.line, old->local.col);
+      aborta = 1;
     }
     else if(old->tag == TAG_DECL_FUN) {
-      fprintf(stderr, "Funcao %s foi pre-declarada\n", old->id);
+      fprintf(stderr, "Funcao %s foi pre-declarada\n", old->id);      
       check_signature = 1;
-      declared_curr_fun = 1;
+      // declared_curr_fun = 1;
     }
     else {
       fprintf(stderr,"Jah tem variavel com esse (%s) nome :/\n", old->id);
@@ -600,44 +622,41 @@ defFun : BASE_TYPE ID '('{
   }
   currScope = $ID;
 } paramListVoid ')' '{' declList localStmtList '}' {
-  if(check_signature) {   
-    fprintf(stderr,"Checando assinatura de %s\n", $ID);
-    currScope = GLOBAL_SCOPE;
-    SymEntry* entry = last_decl(&reshi, $ID);
-    // assert(entry != NULL);  // se der NULL, algo deu errado pois a funcao jah era pra estar na symTable
-    if(entry) {
-      if(entry->def_fun) {
-        mensagem_redeclaracao(entry);
-        $$ = NULL;
-      }
-      else {
-        fprintf(stderr,"entry->astNode: %p, $paramListVoid: %p \n", entry->astNode, $paramListVoid);
-        int match = match_paramList(entry->astNode->param, $paramListVoid);
-        if(match > 0){
-          printf("DEFINICAO de %s BATE COM DECLARACAO!\n", $ID);
-          // TODO: ATUALIZAR NOME DOS PARAMETROS PARA QUANDO FOR USAR A FUNCAO,
-          // CONTAR OS NOMES DOS PARAMETROS USADOS NA DEFINICAO
-          // SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_DEF_FUN);
-          // neoEntry->type = $BASE_TYPE;
+  if(!aborta) {
+    if( check_signature ) {
+      fprintf(stderr,"Checando assinatura de %s\n", $ID);
+      currScope = GLOBAL_SCOPE;
+      SymEntry* entry = last_decl(&reshi, $ID);
+      // assert(entry != NULL);  // se der NULL, algo deu errado pois a funcao jah era pra estar na symTable
+      if(entry) {
+        if(entry->def_fun) {
+          entry->tag = TAG_DEF_FUN;
+          entry->def_fun = 1;
+          mensagem_redeclaracao(entry);
+          $$ = NULL;
         }
         else {
-          printf("Lista de parametros de %s incompativel com sua declaracao!\n", $ID);
+
+          int match = match_paramList(entry->astNode->param, $paramListVoid);
+          if(match <= 0){
+            printf("Lista de parametros de %s incompativel com sua declaracao!\n", $ID);
+            critical_error++;
+          }
         }
       }
+      currScope = GLOBAL_SCOPE;
+      check_signature = 0;
+      declared_curr_fun = 0;
+      defFun_rule = 0;
+      // $$ = NULL;
     }
-    currScope = GLOBAL_SCOPE;
-    check_signature = 0;
-    declared_curr_fun = 0;
-    // $$ = NULL;
   }
   
   MAKE_NODE(defFun);
 
   SymEntry* tmp;
   HASH_FIND_STR(reshi, $ID, tmp);
-  if(!tmp) {
-    printf("FDP\n"); fflush(stdout);
-  }
+
   if (!aborta) {  // nao modificar a entrada jah existente da tabela de simbolos
     tmp->tag = TAG_DEF_FUN;
     tmp->type = $BASE_TYPE;
@@ -653,9 +672,10 @@ defFun : BASE_TYPE ID '('{
   add_Node_Child_If_Not_Null($$, $paramListVoid);
   add_Node_Child_If_Not_Null($$, $declList);
   add_Node_Child_If_Not_Null($$, $localStmtList);  
-  def_fun_rule = 0;
+  
   currScope = GLOBAL_SCOPE;
   free($ID);$ID = NULL;
+  defFun_rule = 0;
 }
 
 numListList :  numListList '{' numList '}' {
@@ -702,17 +722,17 @@ expr : expr '+' expr {
   // SEMANTICO
   $$->type = bin_expr_type( $1->type, $3->type, '+');
   // GERACO DE CODIGO
-  // printf("t%d = %d + %d\n", temp_next(), $1->ival, $3->ival);
-  // printf("[AsList] t%d = %d + %d\n", temp_next(), $$->child->ival, $$->childLast->ival);
   
   char buf[600];
   if($1->is_const == $3->is_const) {  // ambos constantes ou nao constantes
-    if($1->is_const)
+    if($1->is_const){
+
       switch ($1->type) {
         case TYPE_INT: sprintf(buf, "t%d = %d + %d\n", temp_next() , $1->ival, $3->ival); break;
         case TYPE_FLOAT: sprintf(buf, "t%d = %f + %f\n", temp_next() , $1->fval, $3->fval); break;
         default:break;
       }
+    }
     else {
       // TODO: verificar se eh parametro, local ou global. Em cada caso deve
       // ser feito algo diferente:
@@ -720,11 +740,14 @@ expr : expr '+' expr {
       // - parametro: verificar em qual local da pilha estah o parametro
       // - local: usar temporarios de algum jeito.
       //  + TODO: tratar esse caso
-      sprintf(buf, "t%d = %s + %s\n", temp_next() , $1->symEntry->id, $3->symEntry->id);
+      printf("\t\vHEYHEYHEY!\n");
+      sprintf(buf, "t%d = %s + %s\n", temp_next() , $1->child->sval, $3->child->sval);
     }
-
   }
-  printf("TOPP: %s\n", buf);
+  else {
+    printf("TOUCA\n");
+  }
+  printf("TOPPer: %s\n", buf);
 }
 | expr '-' expr {
   MAKE_NODE(expr);
@@ -1019,6 +1042,10 @@ num : V_INT {
 lvalue : ID {
   MAKE_NODE(lvalue);
   No* tok = Token_New("ID", $ID);
+  SymEntry* entry = last_decl(&reshi,$ID);
+  if(!entry)  abort();
+  $$->type = entry->type;
+  // $$->base_type = entry->base_type;
   add_Node_Child_If_Not_Null($$, tok);
   // SEMANTICO
   SymEntry* old = last_decl(&reshi, $ID);

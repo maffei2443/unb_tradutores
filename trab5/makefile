@@ -1,18 +1,26 @@
 FLAGS = -DSILENT -g
 BFLAGS = -vdg
-all: Tree.o lexico.l new_grammar.y Prints.o Prints.c Colorfy.o Array.o code_gen.o SemanticChecker.c
-	bison $(BFLAGS) new_grammar.y
+all: Tree.o lex.yy.o new_grammar.tab.o Prints.o Prints.c \
+	Colorfy.o Array.o code_gen.o SemanticChecker.o		
+	gcc $(FLAGS) -o $@ lex.yy.o new_grammar.tab.o Tree.o Prints.o Colorfy.o \
+		Array.o SemanticChecker.o code_gen.o
+
+# lexico: lexico.l print.o new_grammar.y 
+# 	bison $(BFLAGS) new_grammar.y
+# 	flex lexico.l
+# 	cc $(FLAGS) -o $@ new_grammar.tab.c lex.yy.c Array.c \
+# 		Colorfy.c  Prints.o
+
+lex.yy.o: lexico.l new_grammar.tab.o
 	flex lexico.l
+	gcc -c lex.yy.c
+
+new_grammar.tab.o: new_grammar.y
+	bison $(BFLAGS) new_grammar.y
+	gcc -c new_grammar.tab.c
+
+SemanticChecker.tab.o: SemanticChecker.c SemanticChecker.h new_grammar.tab.h
 	gcc $(FLAGS) -c SemanticChecker.c
-	# gcc $(FLAGS) -c code_gen.c
-	gcc $(FLAGS) -o $@ lex.yy.c new_grammar.tab.c Tree.o Prints.o Colorfy.o Array.o SemanticChecker.c code_gen.o
-
-lexico: lexico.l print.o new_grammar.y 
-	bison $(BFLAGS) new_grammar.y
-	flex lexico.l
-	cc $(FLAGS) -o $@ new_grammar.tab.c lex.yy.c Array.c \
-		Colorfy.c  Prints.o
-
 
 
 tree: Tree.o simTree.c

@@ -1,1 +1,1 @@
-- Não foi posśivel consertar os vazamentos de memória :/
+- [] liberar memoria associada aos noh dos PARAMETROS/ARGUMENTOS!

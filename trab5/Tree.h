@@ -75,11 +75,12 @@ typedef enum {
   TYPE_LIST_LIST
 } Type;
 
-typedef enum {
-  BASE_TYPE_UNDEFINED = 0,
-  BASE_TYPE_INT,
-  BASE_TYPE_FLOAT
-} Base_Type;
+// typedef enum {
+//   BASE_TYPE_UNDEFINED = 0,
+//   BASE_TYPE_CHAR,
+//   BASE_TYPE_INT,
+//   BASE_TYPE_FLOAT,
+// } Base_Type;
 
 typedef enum {
   TAG_UNDEFINED = 0,
@@ -96,7 +97,7 @@ typedef struct SymEntry{
   short int temp_num;   // numero usado para quando se for salvar seu valor/endereço, escolher o temporario associado
   Tag tag;
   Type type;  // nao ideal, MAS fica mais facil...
-  Base_Type base_type;
+  Type base_type;
   char* escopo;
   Local local;
   char def_fun;

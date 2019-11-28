@@ -77,9 +77,9 @@ No* Token_New(char* tname, char* sval) {
   if(!token->sval ) abort();
   memcpy(token->tname, tname, strlen(tname));
   memcpy(token->sval, sval, strlen(sval));
-  printf("[Token_New(char* tname, char* sval)] sval = %s\n", sval);
-  printf("[Token_New(char* tname, char* sval)] token->sval = %s\n\n", token->sval);
-  printf("ALOCOU %p\n", token);
+  // printf("[Token_New(char* tname, char* sval)] sval = %s\n", sval);
+  // printf("[Token_New(char* tname, char* sval)] token->sval = %s\n\n", token->sval);
+  // fprintf(stderr, "ALOCOU %p\n", token);
   return token;
 }
 
@@ -100,7 +100,7 @@ void No_Destroy(No* no) {
   // //   DESTROY_PTR(no->scope);
   // Code_Destroy(no->code);
   // // free(no->code);
-  printf("\n");
+  // printf("\n");
   DESTROY_PTR(no);
 }
 
@@ -201,7 +201,7 @@ void free_All_Child(No * no) {
     free_All_Child(child);   // DESCOMENTAR
     child = tmp;
   }
-  printf("[free_All_Child-final] %p\n", no);
+  // printf("[free_All_Child-final] %p\n", no);
   No_Destroy(no);
 }
 
@@ -258,6 +258,10 @@ void show_Lis(No* head, Field field) {
 
 int show_Sub_Tree(No* no, int lvl, Field field) {
   if(!no) return 0;
+
+  // printf("!!! %p\n", no);
+  // printf("??? %s->%p\n", no->sval, no->child);
+  
   if(!no->child) return 0;
   No* tmp = no->child;
   while(tmp) {

@@ -14,24 +14,15 @@ SymEntry** gambs;
 // -1 se noh eh NULL
 // TODO: FIX IT
 int match_paramList(No* oldParam, No* param) {
-  // printf("sym: %p vs no: %p\n", sym, no);
   if(!oldParam && !param) return 1;   // ambas funcoes sem argumento
   if(!oldParam || !param) return 0;   // apenas 1 eh sem argumento
-  // printf("oldParam: %p vs param: %p\n", oldParam, param);
-  // printf("oldParam: %s vs param: %s OK\n", type2string(oldParam->type), type2string(no->type));
-  printf("%s vs %s\n", type2string(oldParam->type), type2string(param->type));
-  printf("%s vs %s\n", oldParam->sval, param->sval);
-  while (oldParam && param){
-    if(oldParam->type != param->type)
-      break;
-    else {
-      printf("pametro igual!\n");
-      // Alterar os ponteiros por fora, aqui nao estah dando nada certo.
-    }
+  // fprintf(stderr, "%s vs %s\n", type2string(oldParam->type), type2string(param->type));
+  // fprintf(stderr, "%s vs %s\n", oldParam->sval, param->sval);
+  while (oldParam && param)  {
+    if(oldParam->type != param->type) break;
     oldParam = oldParam->nextAux;
     param = param->nextAux;
   }
-  printf("OK, FOI mach_paramList\n");
   return !oldParam && !param;
 }
 
@@ -41,13 +32,12 @@ void link_symentry_no(SymEntry** sym, No** no) {
   printf("(BI directional) linking... %s <--> %p\n", (*sym)->id, *no);
   (*no)->symEntry = *sym;
   (*sym)->astNode = *no;
-  // fprintf(stderr, "\t[link_symentry_no]\t %p %p\n", *sym, *no);
 }
 
 // Utilizado em caso de utilização MAS nao de declaracao de variavel local
 void point_no_symentry(SymEntry** sym, No** no) {
   assert(*no && *sym);
-  printf("(UNI directional) linking... %s <--> %p\n", (*sym)->id, *no);
+  printf("(UNI directional) linking... %s <-- %p\n", (*sym)->id, *no);
   (*no)->symEntry = *sym;
 }
 
