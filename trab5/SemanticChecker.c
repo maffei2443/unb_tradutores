@@ -47,6 +47,16 @@ void set_type_and_uni_link(No* p, SymEntry* old, No* tok) {
     point_no_symentry(&old, &tok);  
 }
 
+int invalid_expr_types(Type left, Type right) {
+  if(left == TYPE_CHAR || right == TYPE_CHAR){
+    printf("[Semantico] ERRO: TIPO CHAR NAO PODE SER USADO PARA REALIZACAO DE OPERACOES\n");
+    return TYPE_UNDEFINED;
+  }
+  if(left == TYPE_UNDEFINED || right == TYPE_UNDEFINED) return TYPE_UNDEFINED;// erro de inicializacao...
+  else if(left == TYPE_VOID || right == TYPE_VOID ) return TYPE_VOID;// tentando usar retorno de funcao VOID
+  return 1;
+}
+
 //  Retorna TYPE_UNDEFINED nos casos:
 // - left/right ser TYPE_UNDEFINED
 // - left/right ser TYPE_VOID
@@ -54,28 +64,27 @@ void set_type_and_uni_link(No* p, SymEntry* old, No* tok) {
 // - expressão mal formada como por exemplo divisão de 
 // escalar por matriz
 Type bin_expr_type(Type left, Type right, int op) {
-  printf("\n[bin_expr_type] tipos:  = %s <<%c>> %s\n", type2string(left),op, type2string(right));
+  fprintf(stderr, "\n[bin_expr_type] tipos:  = %s <<%c>> %s\n", type2string(left),op, type2string(right));
   Type leftClass = Type_Class(left);
   Type rightClass = Type_Class(right);
-  if(left == TYPE_CHAR || right == TYPE_CHAR){
-    printf("[Semantico] ERRO: TIPO CHAR NAO PODE SER USADO PARA REALIZACAO DE OPERACOES\n");
+  if(invalid_expr_types(left, right)) return TYPE_UNDEFINED;
+  // NAO SE PODE OPERAR SOBRE ARRAYS.
+  if(leftClass == TYPE_ARRAY || rightClass == TYPE_ARRAY){
+    printf("[Semantico] NAO SE PODE OPERAR SOBRE ARRAYS.\n");
     return TYPE_UNDEFINED;
   }
-  if(left == TYPE_UNDEFINED || right == TYPE_UNDEFINED) return TYPE_UNDEFINED;// erro de inicializacao...
-  else if(left == TYPE_VOID || right == TYPE_VOID ) return TYPE_VOID;// tentando usar retorno de funcao VOID
-  else if(leftClass == TYPE_ARRAY || rightClass == TYPE_ARRAY) return TYPE_UNDEFINED;
-  // NAO SE PODE OPERAR SOBRE ARRAYS.
+
   printf("**** %s %s\n\n", type2string(leftClass), type2string(rightClass));  
   switch (op)  {
-    case '%': 
-      if(left == right && left == TYPE_INT) return TYPE_INT;
-      else return TYPE_UNDEFINED;
     case '+': case '-':
       if(leftClass == rightClass) return max(left, right);
       else if(leftClass == TYPE_SCALAR && rightClass == TYPE_MAT) return right;
       else {
         return TYPE_UNDEFINED;
       }
+    case '%': 
+      if(left == right && left == TYPE_INT) return TYPE_INT;
+      else return TYPE_UNDEFINED;
     case '*':
       if(leftClass == rightClass) max(left, right);
       else if(leftClass == TYPE_SCALAR && rightClass == TYPE_MAT) return right;
@@ -104,6 +113,10 @@ Type bin_expr_type(Type left, Type right, int op) {
         type2string(left), type2string(right), op); 
       return TYPE_UNDEFINED;
   }
+}
+
+Type add_expr_type(Type left, Type right) {
+  
 }
 
 // Retorna NULL caso nao o tenha sido;senao,

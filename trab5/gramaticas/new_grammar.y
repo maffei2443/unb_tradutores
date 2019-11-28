@@ -1139,6 +1139,12 @@ int main(){
   currScope = GLOBAL_SCOPE;
   reshi = NULL;
   nodeCounter = 0;
+  for(int x = 0; x < 4; x++) {
+    char* a = "a";
+    a += x;
+    widen(a, TYPE_INT, TYPE_FLOAT);
+  }
+  return 9;
   yyparse();
   if(root) {
     show_Sub_Tree(root, 1, SVAL);
