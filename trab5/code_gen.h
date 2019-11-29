@@ -1,8 +1,6 @@
 #ifndef CODE_GEN_H
 #define CODE_GEN_H
-#include "code_gen.h"
 #include "Array.h"
-#include "Tree.h"
 #include "_Common.h"
 static short temp = -1;
 
