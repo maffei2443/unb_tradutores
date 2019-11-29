@@ -301,23 +301,13 @@ void* SymEntry_Destroy(void* p){
   if(!sym) return NULL;
   printf("DESTRUINDO >>> %p->id, sval = %s, %s\n", sym,sym->id, "sym->sval");
   if(sym->tag == TAG_DEF_FUN || sym->tag == TAG_DECL_FUN) {
-    // printf("%p", sym->astNode);
-    if(sym->astNode) {
-      No* tmp = sym->astNode->param;
-      while(tmp) {
-        No* tmp2 = tmp->nextAux;
-        SymEntry_Destroy(tmp);
-        tmp = tmp2;
-      }
-    } else {
+    if(!sym->astNode) {
       printf("$$$ Funcao %s nao tem parametros $$$\n", sym->id);
     }
   }
-/*   if(sym->escopo)
-    
- */
-  free(sym->escopo);
-  free(sym);
+  if(sym->escopo)
+    DESTROY_PTR(sym->escopo);
+  DESTROY_PTR(sym);
   return NULL;
 }
 

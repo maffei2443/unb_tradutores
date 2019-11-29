@@ -36,9 +36,9 @@ int match_paramList(No* oldParam, No* param) {
 }
 
 void link_symentry_no(SymEntry** sym, No** no) {
-  (*sym)->astNode = *no;	  assert(*no && *sym);
-  printf("(BI directional) linking... %s <--> %p\n", (*sym)->id, *no);
-  (*no)->symEntry = *sym;	  (*no)->symEntry = *sym;
+  assert(*no && *sym);
+  printf("(BI directional) linking... ( %p )%s <--> %p\n", *sym,(*sym)->id, *no);
+  (*no)->symEntry = *sym;
   (*sym)->astNode = *no;
   // fprintf(stderr, "\t[link_symentry_no]\t %p %p\n", *sym, *no);	  // fprintf(stderr, "\t[link_symentry_no]\t %p %p\n", *sym, *no);
 }
@@ -225,7 +225,9 @@ void delete_all(SymEntry* tab) {
 
   HASH_ITER(hh, tab, current_user, tmp) {
     HASH_DEL(tab, current_user);  /* delete; users advances to next */
-    SymEntry_Destroy(current_user);            /* optional- if you want to free  */
+    printf("__calling__... %p\n", current_user);
+    if (current_user)
+      SymEntry_Destroy(current_user);            /* optional- if you want to free  */
   }
   free(tab);
 }
