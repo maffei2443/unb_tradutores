@@ -19,7 +19,7 @@
 #define MAKE_NODE(x) INITNODE(STR(x))
 // TODO: onde aparece setar variavel de erro!
 #define PARAM_RPT_NAME_CHECK(__baseType, __id) \
-  if(!neoEntry) {\
+  {if(!neoEntry) {\
     neoEntry = last_decl(&reshi, yyvsp[__id]._id);    \
     printf("[Semantico] Parametros de mesmo nome! Arvore vai ficar inconsistente..\n");\
     critical_error++;\
@@ -28,10 +28,11 @@
     neoEntry->type = yyvsp[__baseType].type;\
     yyval.no->type = yyvsp[__baseType].type;\
     neoEntry->tag = TAG_PARAM;\
-  }
+  }}
 #include <string.h>
 #define BLANK_INT "              "
 #define BLANK_FLOAT "                           "
+#define STUB 88
 static int BLANK_FLOAT_SIZE = strlen(BLANK_FLOAT);
 static int BLANK_INT_SIZE = strlen(BLANK_INT);
 
@@ -58,6 +59,8 @@ extern int gambs_qtd;
 extern unsigned long critical_error;
 char* GLOBAL_SCOPE = "0global";
 
+// Geracao de Codigo
+extern short local_pos; // usado para variaveis locais
 SymEntry* reshi;
 
 char* currScope = NULL;
@@ -151,7 +154,7 @@ declFun : AHEAD BASE_TYPE ID {
   SymEntry* tmp = last_decl(&reshi, $ID);
   if( !tmp ) {
     printf("DEVE ADICIONAR %s como declaracao de funcao\n", $ID);
-    add_entry(&reshi, $ID, TAG_DECL_FUN);
+    add_entry(&reshi, $ID, TAG_DECL_FUN, STUB);
     err = 0;    
   }
   else {
@@ -205,7 +208,7 @@ typeAndNameSign : BASE_TYPE ID {
   }
 
   if (!err) {
-    SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_UNDEFINED);
+    SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_UNDEFINED, STUB);
     if(neoEntry) {  //TODO: trtar esse caso
       neoEntry->type = $BASE_TYPE;
       MAKE_NODE(typeAndNameSign);
@@ -251,7 +254,7 @@ typeAndNameSign : BASE_TYPE ID {
     }  else if ($num->ival < 0) {
       printf("[Semantico] Erro: Tamanho deve ser >= 0\n");
     }  else {
-      SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_UNDEFINED);
+      SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_UNDEFINED, STUB);
       Type type = $BASE_TYPE == TYPE_FLOAT ? TYPE_ARRAY_FLOAT : TYPE_ARRAY_INT;
       if(neoEntry) {
         // TODO: checar se num eh inteiro. Se nao for, ERRO
@@ -310,7 +313,7 @@ typeAndNameSign : BASE_TYPE ID {
     }
     else {
       Type type = $BASE_TYPE == TYPE_FLOAT ? TYPE_MAT_FLOAT : TYPE_MAT_INT;
-      SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_UNDEFINED);
+      SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_UNDEFINED, STUB);
       if(neoEntry) {
         // TODO: checar se num eh inteiro. Se nao for, ERRO
         MAKE_NODE(typeAndNameSign);
@@ -407,9 +410,9 @@ param : BASE_TYPE {
 | BASE_TYPE ID {
   if( defFun_rule ) {
     $$ = Token_New(STR(param), $ID );
-    SymEntry* funEntry = last_decl(&reshi, $ID);
     if(!declared_curr_fun) {
-      SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_PARAM);
+      // Associar temporario a parametro?
+      SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_PARAM, STUB);
       if(neoEntry) {
         neoEntry->type =  $BASE_TYPE;
         $$->type =  $BASE_TYPE;
@@ -418,7 +421,7 @@ param : BASE_TYPE {
       }
     }
     else {
-      printf("Funcao (%s) jah foi delcarada/definida!\n", $ID);
+      printf("Funcao (%s) jah foi declarada/definida!\n", $ID);
     }
     $$->type = $BASE_TYPE;
   }
@@ -430,8 +433,9 @@ param : BASE_TYPE {
 }
 | BASE_TYPE ID '[' ']' {
   $$ = Token_New(STR(param), $ID);
-  SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_PARAM );
+  SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_PARAM , STUB);
   // SEMANTICO
+
   PARAM_RPT_NAME_CHECK(-3, -2);
   
   if($BASE_TYPE == TYPE_INT)    neoEntry->type = TYPE_ARRAY_INT;
@@ -449,7 +453,7 @@ param : BASE_TYPE {
 | MAT_TYPE BASE_TYPE ID {
   // TODO: checar por declaracao previa de parametro!
   $param = Token_New(STR(param), $ID);
-  SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_PARAM);
+  SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_PARAM, STUB);
   // Semantico
   PARAM_RPT_NAME_CHECK(-1, 0);
   
@@ -611,7 +615,7 @@ defFun : BASE_TYPE ID '('{
   }
   else {
     printf("definindo funcao %s\n", $ID); fflush(stdout);
-    SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_DEF_FUN);
+    SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_DEF_FUN, STUB);
     if(!neoEntry) {
       printf("Erro na definicao de funcao %s [bug]\n", $ID);
     }
@@ -1139,12 +1143,11 @@ int main(){
   currScope = GLOBAL_SCOPE;
   reshi = NULL;
   nodeCounter = 0;
-  for(int x = 0; x < 4; x++) {
-    char* a = "a";
-    a += x;
-    widen(a, TYPE_INT, TYPE_FLOAT);
-  }
-  return 9;
+  // char* a = "a";
+  // for(int x = 0; x < 4; x++) {
+  //   free(widen(a, TYPE_INT, TYPE_FLOAT));
+  // }
+  // return 9;
   yyparse();
   if(root) {
     show_Sub_Tree(root, 1, SVAL);

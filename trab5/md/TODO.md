@@ -19,3 +19,9 @@
 - [] Fazer os CASTs sempre que necessário
 - [] Gerar label para *controles de fluxo*
 - [] tudo mais xD
+
+- [] Como lidar com variáveis locais?
+  + Um temporário para cada variável local
+  + Uma tabela HASH para fazer essa associação
+    + A tabela hash pode ser a mesma usada hoje, pois suporta decla-
+      rações de mesmo nome em escopos distintos

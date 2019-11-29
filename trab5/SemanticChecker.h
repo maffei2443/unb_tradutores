@@ -18,7 +18,7 @@ void point_no_symentry(SymEntry** sym, No** no);
 void set_type_and_uni_link(No* p, SymEntry* old, No* tok);
 
 Type bin_expr_type(Type left, Type right, int op);
-SymEntry* add_entry(SymEntry** reshi, char* id, int tag);
+SymEntry* add_entry(SymEntry** reshi, char* id, int tag, short int local_pos);
 SymEntry* last_decl(SymEntry** reshi, char* id);
 int was_declared(SymEntry** reshi, char* id);
 

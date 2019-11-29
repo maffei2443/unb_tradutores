@@ -156,7 +156,7 @@ int was_declared(SymEntry** reshi, char* id){
   return !!last_same_id;
 }
 
-SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
+SymEntry* add_entry(SymEntry** reshi, char* id, int tag, short int local_pos) {
     SymEntry* neoEntry = NULL;
     // fprintf(stderr,"tegi: %s\n", type2string(tag));
     HASH_FIND_STR((*reshi), id, neoEntry);/* id already in the hash? */
@@ -166,6 +166,7 @@ SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
       printf("<<<<<< add (%p) id, tag: %s, %s\n", neoEntry, id, type2string(tag));
       neoEntry->local.line = numlines;
       neoEntry->local.col = currCol;
+      neoEntry->local_pos = local_pos;
       HASH_ADD_STR( (*reshi), id, neoEntry );/* id: name of key field */
       // addToDel(&neoEntry);
     }
