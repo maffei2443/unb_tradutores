@@ -1,0 +1,399 @@
+\documentclass[
+	% -- opções da classe memoir --
+	article,			% indica que é um artigo acadêmico
+	11pt,				% tamanho da fonte
+	oneside,			% para impressão apenas no recto. Oposto a twoside
+	a4paper,			% tamanho do papel. 
+	% -- opções da classe abntex2 --
+	%chapter=TITLE,		% títulos de capítulos convertidos em letras maiúsculas
+	%section=TITLE,		% títulos de seções convertidos em letras maiúsculas
+	%subsection=TITLE,	% títulos de subseções convertidos em letras maiúsculas
+	%subsubsection=TITLE % títulos de subsubseções convertidos em letras maiúsculas
+	% -- opções do pacote babel --
+	english,			% idioma adicional para hifenização
+	brazil,				% o último idioma é o principal do documento
+	sumario=tradicional
+	]{abntex2}
+
+
+% ---
+% PACOTES
+% ---
+
+% ---
+% Pacotes fundamentais 
+% ---
+\usepackage{lmodern}			% Usa a fonte Latin Modern
+\usepackage[T1]{fontenc}		% Selecao de codigos de fonte.
+\usepackage[utf8]{inputenc}		% Codificacao do documento (conversão automática dos acentos)
+\usepackage{indentfirst}		% Indenta o primeiro parágrafo de cada seção.
+\usepackage{nomencl} 			% Lista de simbolos
+\usepackage{color}				% Controle das cores
+\usepackage{graphicx}			% Inclusão de gráficos
+\usepackage{microtype} 			% para melhorias de justificação
+\usepackage{listings}
+\lstset{
+	basicstyle=\itshape,
+	xleftmargin=3em,
+	literate={->}{$\rightarrow$}{2}
+	{α}{$\alpha$}{1}
+	{δ}{$\delta$}{1}
+}
+% ---
+		
+% ---
+% Pacotes adicionais, usados apenas no âmbito do Modelo Canônico do abnteX2
+% ---
+\usepackage{lipsum}				% para geração de dummy text
+% ---
+		
+% ---
+% Pacotes de citações
+% ---
+\usepackage[brazilian,hyperpageref]{backref}	 % Paginas com as citações na bibl
+\usepackage[alf]{abntex2cite}	% Citações padrão ABNT
+
+\usepackage{backnaur} %  especificação da grmática
+\usepackage{syntax} % especificação gramática
+\usepackage{subfiles} % modularização em arquivos
+\usepackage{hyperref} % hyper-links
+
+%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%% https://tex.stackexchange.com/questions/348651/c-code-to-add-in-the-document
+%%%%%%%%%%%%%%%%%%%
+\usepackage{xcolor}
+\usepackage{listings}
+
+\definecolor{mGreen}{rgb}{0,0.6,0}
+\definecolor{mGray}{rgb}{0.5,0.5,0.5}
+\definecolor{mPurple}{rgb}{0.58,0,0.82}
+\definecolor{backgroundColour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{CStyle}{
+	backgroundcolor=\color{backgroundColour},   
+	commentstyle=\color{mGreen},
+	keywordstyle=\color{magenta},
+	numberstyle=\tiny\color{mGray},
+	stringstyle=\color{mPurple},
+	basicstyle=\footnotesize,
+	breakatwhitespace=false,         
+	breaklines=true,                 
+	captionpos=b,                    
+	keepspaces=true,                 
+	numbers=left,                    
+	numbersep=5pt,                  
+	showspaces=false,                
+	showstringspaces=false,
+	showtabs=false,                  
+	tabsize=2,
+	language=C
+}
+%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%
+
+% ---
+
+% ---
+% Configurações do pacote backref
+% Usado sem a opção hyperpageref de backref
+
+\renewcommand{\it}[1]{\textit{#1}}
+\renewcommand{\bf}[1]{\textbf{#1}}
+
+\renewcommand{\backrefpagesname}{Citado na(s) página(s):~}
+% Texto padrão antes do número das páginas
+\renewcommand{\backref}{}
+% Define os textos da citação
+\renewcommand*{\backrefalt}[4]{
+	\ifcase #1 %
+		Nenhuma citação no texto.%
+	\or
+		Citado na página #2.%
+	\else
+		Citado #1 vezes nas páginas #2.%
+	\fi}%
+% ---
+
+% --- Informações de dados para CAPA e FOLHA DE ROSTO ---
+\titulo{C-minus com operações matriciais}
+%\tituloestrangeiro{Canonical article template in \abnTeX: optional foreign title}
+
+\autor{
+Leonardo Maffei da Silva\thanks{leoitu22hotmail.com@gmail.com. \url{https://www.linkedin.com/in/leonardo-maffei-ti/}} }
+
+\local{Brasil}
+\data{2019}
+% ---
+
+% ---
+% Configurações de aparência do PDF final
+
+% alterando o aspecto da cor azul
+\definecolor{blue}{RGB}{41,5,195}
+
+% informações do PDF
+\makeatletter
+\hypersetup{
+     	%pagebackref=true,
+		pdftitle={\@title}, 
+		pdfauthor={\@author},
+    	pdfsubject={Modelo de artigo científico com abnTeX2},
+	    pdfcreator={LaTeX with abnTeX2},
+		pdfkeywords={abnt}{latex}{abntex}{abntex2}{atigo científico}, 
+		colorlinks=true,       		% false: boxed links; true: colored links
+    	linkcolor=blue,          	% color of internal links
+    	citecolor=blue,        		% color of links to bibliography
+    	filecolor=magenta,      		% color of file links
+		urlcolor=blue,
+		bookmarksdepth=4
+}
+\makeatother
+% --- 
+
+% ---
+% compila o indice
+% ---
+\makeindex
+% ---
+
+% ---
+% Altera as margens padrões
+% ---
+\setlrmarginsandblock{3cm}{3cm}{*}
+\setulmarginsandblock{3cm}{3cm}{*}
+\checkandfixthelayout
+% ---
+
+% --- 
+% Espaçamentos entre linhas e parágrafos 
+% --- 
+
+% O tamanho do parágrafo é dado por:
+\setlength{\parindent}{1.3cm}
+
+% Controle do espaçamento entre um parágrafo e outro:
+\setlength{\parskip}{0.2cm}  % tente também \onelineskip
+
+% Espaçamento simples
+\SingleSpacing
+
+
+% ----
+% Início do documento
+% ----
+\begin{document}
+
+% Seleciona o idioma do documento (conforme pacotes do babel)
+%\selectlanguage{english}
+\selectlanguage{brazil}
+
+% Retira espaço extra obsoleto entre as frases.
+\frenchspacing 
+
+% ----------------------------------------------------------
+% ELEMENTOS PRÉ-TEXTUAIS
+% ----------------------------------------------------------
+
+%---
+%
+% Se desejar escrever o artigo em duas colunas, descomente a linha abaixo
+% e a linha com o texto ``FIM DE ARTIGO EM DUAS COLUNAS''.
+% \twocolumn[    		% INICIO DE ARTIGO EM DUAS COLUNAS
+%
+%---
+
+% página de titulo principal (obrigatório)
+\maketitle
+
+
+% titulo em outro idioma (opcional)
+
+
+
+% resumo em português
+\begin{resumoumacoluna}
+ Este documento atende os fins de documentação da segunda
+ parte do projeto final da disciplina \textit{Tradutores},
+ ministrada pela professora Dr.a Cláudia Nalon, no segundo semestre de 2019, na Universidade de Brasília. Tal artefato descreve um pouco da implementação do analisador léxico, dificuldades encontradas durante tal processo; a gramática da linguagem proposta na parte 1 deste trabalho, bem como as alterações nela realizada; políticas de tratamento de erros e arquivos de teste para o analisador produzido.
+  \cite{gramatica}.
+ \vspace{\onelineskip}
+ 
+ \noindent
+ \textbf{Palavras-chave}: C, linguagem, matriz, primitiva.
+\end{resumoumacoluna}
+
+
+
+
+\newcommand{\terminal}[1]{ \bnfpn{\textbf{#1}} }
+
+\newcommand{\production}[1]{\bnfpn{\textit{#1}}}
+\newcommand{\IT}[1]{\textit{#1}}
+
+%\setlength{\grammarparsep}{20pt plus 1pt minus 1pt} % increase separation between rules
+%\setlength{\grammarindent}{12em} % increase separation between LHS/RHS 
+
+\section{Introdução}
+Implementar-se-á, até a versão final deste artigo, um compilador para a linguagem proposta. Para sua realização, serão utilizados os conhecimentos adquiridos na disciplina \textit{Tradutores}, ministrada pela professora \hyperref{http://lattes.cnpq.br/7793795625581127}{}{}{Cláudia Nalon.}
+
+\section{Usuário característico}
+Destina-se ao estudante de álgebra linear, o qual pode usar a linguagem para, por exmeplo, confirmar se sua resolução de um sisema linear encontra-se correta, tudo isso de maneira rápida, eficiente e \it{offline}.
+
+\section{Motivação}
+Durante a realização do curso de Cálculo Numérico, o grupo do autor notou a ausência dessa \it{feature} na linguagem C. Desse modo, foi necessária a simulação desse tipo de dados, à época implementada por meio de inúmeras funções. Se houvese um tipo nativo para matriz bem como operações elementares sobre seus elementos, teria sido de grande auxílio à codificação dos diversos métodos numéricos requeridos pela disciplina.
+\par
+
+
+\section{Gramática}
+A seguir, encontra-se a gramática da linguagem proposta:
+%% BEGIN GRAMÁTICA
+	\subfile{grammar.tex}
+%% END GRMÁTICA
+Em relação à versão pregressa passado, note-se as principais mudanças:
+\begin{itemize}{
+	\item adição dos operadores \IT{@} e \IT{@@}, sendo respectivamente o operador de multiplicação e potenciação de matrizes.
+	\item adição do tipo de dado \IT{char}, para posibilitar uma capacidade de comunicação com o usuário superior à que havia antes, a qual proporcionava apenas tipos de dados numéricos.
+	\item adição de \IT{strings}, tendo em vista a interação com o usuário (semelhante à adição do \IT{char}). Seu destaque fica por conta da simplicidade em se mostrar mensagens "de uma só vez" quando comparado a imprimir um caractere por comando. Limitação: o usuário apenas pode trabalhar com \IT{strings} \textbf{literais}, e não existe o tipo de dados \IT{string}.
+	\item removeu-se a palavra reservada \textbf{void} da linguagem. Desse modo, todas as funções passam a retornar algum valor e não é mais possível a declaração de funções cujo único conteúdo entre os delimitadores de parâmetros era esta palavra reservada. Onde havia ocorrência daquela foi deixada a cadeia vazia.
+	\textbf{void}. A vantagem é a simplificação da gramática bem como remoção de um tipo de função "não essencial" ao usuário.
+	\item sutil alteração na regra \IT{<param>}, tal que agora é gramaticalmente inválido a declaração de um vetor de matrizes(erro semântico, mas que em versão anterior da gramática era sintaticamente válido).
+	\item Além das mudanças acima citadas, foram realizados algumas renomeações de regras afim de representação mais compacta da gramática e desse modo requerindo menos esforço visual para perceber todas as suas regras bem como a relação entre elas. As mudanças de nome realizadas foram:
+		\begin{itemize} {
+			\item \IT{declaration} $\rightarrow$ \IT{decl}
+			\item \IT{specifier} $\rightarrow$ \IT{spec}
+			\item \IT{declarations} $\rightarrow$ \IT{decls}
+			\item \IT{statement} $\rightarrow$ \IT{stmt}
+			\item \IT{iteration} $\rightarrow$ \IT{while}
+			\item \IT{int-nested-seq} $\rightarrow$ \IT{int-seq-list}		
+			\item \IT{float-nested-seq} $\rightarrow$ \IT{int-seq-list}
+			\item \IT{expression} $\rightarrow$ \IT{expr}
+		}\end{itemize}
+	\item por fim, há a alteração do lado direito da regra \IT{<arg-list>}, substituindo \IT{<expression>} por \IT{<simple-expr>}, visto que de fato não faz sentido permitir operações de atribuição na passagem de parâmetros para funções.
+}\end{itemize}
+% ----------------------------------------------------------
+% Introdução
+% ----------------------------------------------------------
+
+
+% ----------------------------------------------------------
+% Seção de explicações
+% ----------------------------------------------------------
+
+
+
+
+\section{Semântica}
+A semântica da linguagem é quase semelhante à da linguagem C: declarações de variáveis (a menos das do tipo \bf{mat}), funções e expressões têm semântica similar. Sendo esta linguagem uma extensão de um subconjunto da linguagem \it{C}, a principal diferença está no tipo de dados \bf{mat} (abreviação de \it{matrix}). Esse tipo de dados é similar aos \it{arrays} em C, porém limitado do ponto de vista da composição pois não é possível a criação de matrizes aninhadas, nem de matrizes de vetores. Entretando, é possível a realização das quatro operações aritméticas básicas diretamente com matrizes, bem como a realização de potenciação de matrizes de forma \it{rápida} e algumas operações sobre elas, como resolução de sistemas lineares e escalonamento. Multiplicação e potenciação de matrizes são respectivamente expressas pelos novos operadores \IT{@} e \IT{@@}.
+
+\section{Exemplo de programa na linguagem}
+A seguir, trechos de código pertencente à nova linguagem.
+
+\begin{lstlisting}[style=CStyle]
+int main() {
+float a = 10.1;
+float c = 10.;
+float d = .1;
+float b = .29;
+
+mat<int> m[3][3] = {{1, 0, 0}, {0 ,1, 0}, {0, 0, 1}};
+scan(a);
+}'a'; '\n'; '\r'; '\\';
+\end{lstlisting}
+
+\begin{lstlisting}[style=CStyle]
+float main;
+{1,2,3};
+"Pode ir, tudo bem..."
+/* Lucero mto bom */
+print('h');
+print('e');
+print('l');
+print('l');
+\end{lstlisting}
+
+\section{Exemplo de programa não pertencentes à linguagem}
+
+\begin{lstlisting}[style=CStyle]
+" string sem dim!
+
+int main() $$ {
+;;;
+}
+\end{lstlisting}
+
+\begin{lstlisting}[style=CStyle]
+float chr(void);
+'\\\\';
+/*
+int main() {
+
+}
+print("e agora, joseh?")
+Obs: a exemplo do tratamento proporcionado pelo gcc,
+nao eh feito nenhuma tentativa de recuperacao para
+erros de comentarios sem fechamento ;)
+\end{lstlisting}
+
+
+
+\section{Implementação}
+O presente analisador léxico tem como dependências, além do programa \IT{flex}, os respectivos arquivos fonte, além de seus respectivos cabeçalhos (com exceção do último, por tratar do código fonte utilizado pelo \IT{flex} para geração do arquivo \textbf{lex.yy.c}):
+	\begin{itemize}{
+		\item{Array.c}
+		\item{Colorfy.c}
+		\item{SymTable.c}
+		\item{leo.l}
+	}\end{itemize}
+Todos os arquivos estão disponíveis publicamente \href{https://github.com/maffei2443/unb_tradutores/tree/master/trab/trab2/code/src}{neste \IT{link}}, bem como o \IT{makefile} utilizado para compilação do analisador. Contudo, \textbf{recomenda-se fortemente} a execução das seguintes instruções, na ordem em que aparecem, para garantia da correta geração do analisador:
+
+\begin{lstlisting}[language=bash,caption={bash version}]
+	make clean
+	flex leo.l
+	make
+	./lexico <caminho-para-arquivo>
+\end{lstlisting}
+As instruções além do clássico \IT{make} fazem-se necessárias pois não foi conseguido pelo autor a automação do processo de transpilação do código em \IT{leo.l} para \IT{lex.yy.c} seguido da compilação e ligação entre os arquivos necessários à geração do analisador de forma automática \IT{com a garantia de nova geração do \textbf{lex.yy.c} sempre que fosse dado o comando \textbf{make}}. Não foi necessária nenhuma modificação direta do arquivo \textbf{lex.yy.c} em momento algum do desenvolvimento.
+
+\subsection{Funcionamento}
+Após gerado o analisador léxico seguindo os passos descritos no início desta seção, sua utilização é bastante simples: execute o programa passando como argumento o caminho para o arquivo que deve ser aberto e processado pelo léxico. O programa então lê sequenciamente o arquivo caractere a caractere e vai exibindo os \textit{tokens} presentes no arquivo apontado à medida que os encontra, bem como trata os erros descritos na subseção logo abaixo.
+A saída é exibida na saída padrão (usualmente, um console) e de forma \textit{colorida}. Entende-se que isso facilita a visualização por parte dos humanod; contudo, isso deve ser adaptado na próxima fase para que seja gerado um arquivo estruturado contendo todos os tokens identificados, o qual será utilizado pelo analisador sintático.
+
+\subsection{Tratamento de Erros}
+O analisador léxico desenvolvido é capaz de detectar os seguintes erros:
+\begin{enumerate}{
+	\item \label{itm:er1}\IT{string} sem fechamento
+	\item \label{itm:er2}comentários em bloco sem fechamento
+	\item \label{itm:er3}caracteres não pertencentes à linguagem (individualmente)
+}\end{enumerate}
+O erro \ref{itm:er1} é tratado considerando que o usuário termina a \IT{string} ao final da linha, visto que não são permitidas \IT{strings} multi-linhas, e continuando a análise como se não houvesse erro.
+O próximo erro (\ref{itm:er2}) não é exatamente tratado; a abordagem utilizada é a mesma do compilador \href{https://gcc.gnu.org/}{gcc 7.7.0}: é emitido um aviso ao usuário informando-lhe linha e coluna onde se inicia o comentário não finalizado.
+Por fim, o último erro (\ref{itm:er3}) é tratado informando ao usuário as ocorrências desses caracteres, porém sem entrar em modo de pânico.
+
+\subsection {Dificuldades Encontradas}
+Uma das dificuldades foi sem dúvida a familiarização com a ferramente \IT{flex}, a qual demonstrou-se muito competente porém não tão intuitiva, bem como alguns trechos de seu \href{ftp://ftp.gnu.org/old-gnu/Manuals/flex-2.5.4/html_mono/flex.html}{manual}. Além disso, surgiram dúvidas a respeito do que seriam erros léxicos, como por exemplo qual o escopo dessa categoria de erros.
+
+Além das dúvidas acima, foram encontrados obstáculos na automação da geração do analisador por meio da ferramenta \IT{make}, questões sobre como deveria ser exibida a sequência de \IT{tokens} (quais possíveis metadados deveriam ser exebidos?) e algumas pontualidades acerca de recursão na gramática.
+
+Em termos de codificação, além do problema recém-citado, não foi possível implementar a tabela de símbolos a tempo da entrega (ocorreram problemas de vazamento de memória e alocação equivocada). Embora esta não seja fundamental para a exibição dos tokens lidos em sequência, sua presença certamente enriqueceria o presente trabalho.
+
+\subsection{Arquivos de teste}
+Os arquivos de teste encontram-se disponíveis \href{https://github.com/maffei2443/unb_tradutores/tree/master/trab/trab2/code/test}{neste link}. Os arquivos desprovidos de erros léxicos têm seus nomes iniciados pela letra 'c', ao passo que os demais iniciam com a letra 'e'.
+
+\section{Agradecimentos}
+Agradecimentos ao responsável por \cite{gramatica}, sem o qual este trabalho teria sido muito mais custoso, bem como ao usuário \hyperref{https://tex.stackexchange.com/users/42366/croco}{}{}{CroCro}, o qual possibilitou conforme \cite{custom} rápida customização do código-exemplo da nova linguagem. Por fim, o pacote utilizado para redação da gramática foi sugerido pelo usuário \hyperref{https://tex.stackexchange.com/questions/348651/c-code-to-add-in-the-document}{}{}{AlanMunn}, conforme \cite{bnf}.
+
+% ---
+% Finaliza a parte no bookmark do PDF, para que se inicie o bookmark na raiz
+% ---
+\bookmarksetup{startatroot}% 
+% ---
+
+% ---
+% Conclusão
+% ---
+\postextual
+
+\bibliography{bib}
+
+\end{document}

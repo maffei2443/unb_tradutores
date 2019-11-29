@@ -1,0 +1,2445 @@
+Terminals unused in grammar
+
+   ERRU
+   DOT
+
+
+Grammar
+
+    0 $accept: program $end
+
+    1 program: global-stmt-list
+
+    2 global-stmt-list: global-stmt-list global-stmt
+    3                 | global-stmt
+
+    4 global-stmt: decl-fun
+    5            | def-fun error
+    6            | def-fun
+    7            | decl-var SEMI_COLON
+    8            | decl-var error
+    9            | attr-var
+   10            | block
+
+   11 def-fun: base-type ID LP param-list-void RP block
+
+   12 decl-fun: AHEAD base-type ID LP param-list-void RP SEMI_COLON
+
+   13 decl-var: MAT_TYPE base-type ID LS num RS LS num RS
+   14         | base-type id-arr
+
+   15 id-arr: ID LS num-id RS
+   16       | ID
+
+   17 attr-var: mat-attr SEMI_COLON
+   18         | index-attr
+   19         | simple-attr
+
+   20 simple-attr: ID ATTR expr SEMI_COLON
+
+   21 index-attr: ID LS num-id RS ATTR expr SEMI_COLON
+
+   22 mat-attr: ID ATTR LS num-list-list RS
+   23         | ID LS num-id RS ATTR LC num-list RC
+   24         | ID LS num-id RS LS num-id RS ATTR expr
+
+   25 num-list-list: num-list-list LC num-list RC
+   26              | LC num-list RC
+
+   27 num-list: num-list num
+   28         | num
+   29         | ID
+
+   30 stmt: RETURN expr SEMI_COLON
+   31     | RETURN expr error
+   32     | COPY LP ID ID RP SEMI_COLON
+   33     | READ LP ID LS num-id RS LS num-id RS RP SEMI_COLON
+   34     | READ LP ID LS num-id RS RP SEMI_COLON
+   35     | READ LP ID RP SEMI_COLON
+   36     | PRINT expr SEMI_COLON
+   37     | call SEMI_COLON
+   38     | decl-var SEMI_COLON
+   39     | attr-var SEMI_COLON
+   40     | flow-control
+   41     | loop
+
+   42 param-list-void: VOID
+   43                | param-list
+
+   44 param-list: param-list param
+   45           | param
+
+   46 param: base-type ID
+   47      | MAT_TYPE base-type ID
+
+   48 loop: WHILE LP expr RP block
+
+   49 flow-control: IF LP expr RP block ELSE flow-control
+   50             | IF LP expr RP block ELSE block
+   51             | IF LP error RP block ELSE block
+   52             | IF LP expr error block ELSE block
+
+   53 block: LC stmt-list RC
+   54      | LC RC
+
+   55 stmt-list: stmt-list stmt
+   56          | stmt
+
+   57 expr: add-expr relop add-expr
+   58     | add-expr
+
+   59 relop: LE
+   60      | GE
+   61      | NEQ
+   62      | EQ
+   63      | GT
+   64      | LT
+
+   65 add-expr: add-expr addop term
+   66         | term
+
+   67 addop: ADD
+   68      | SUB
+
+   69 term: term mulop bin
+   70     | bin
+
+   71 mulop: MAT_MUL
+   72      | MUL
+   73      | DIV
+   74      | MAT_POW
+
+   75 bin: bin bin-logi unary
+   76    | unary
+
+   77 bin-logi: AND
+   78         | OR
+
+   79 unary: unary-op factor
+   80      | factor
+
+   81 unary-op: NOT
+   82         | ADDR
+
+   83 factor: LP expr RP
+   84       | aux
+   85       | call
+   86       | '\'' ascii '\''
+
+   87 aux: ID LS expr RS LS expr RS
+   88    | ID LS expr RS
+   89    | num-id
+
+   90 num-id: num
+   91       | ID
+
+   92 call: ID LP arg-list RP
+   93     | ID LP VOID RP
+
+   94 arg-list: arg-list COMMA arg
+   95         | arg
+
+   96 arg: mat-arg
+   97    | aux
+
+   98 mat-arg: ID V_INT V_INT
+
+   99 ascii: V_ASCII
+
+  100 base-type: CHAR_TYPE
+  101          | INT_TYPE
+  102          | FLOAT_TYPE
+
+  103 num: V_FLOAT
+  104    | V_INT
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+'\'' (39) 86
+error (256) 5 8 31 51 52
+ERRU (258)
+CHAR_TYPE (259) 100
+INT_TYPE (260) 101
+FLOAT_TYPE (261) 102
+MAT_TYPE (262) 13 47
+VOID (263) 42 93
+V_INT (264) 98 104
+V_FLOAT (265) 103
+ID (266) 11 12 13 15 16 20 21 22 23 24 29 32 33 34 35 46 47 87 88 91
+    92 93 98
+AHEAD (267) 12
+LP (268) 11 12 32 33 34 35 48 49 50 51 52 83 92 93
+RP (269) 11 12 32 33 34 35 48 49 50 51 83 92 93
+LS (270) 13 15 21 22 23 24 33 34 87 88
+RS (271) 13 15 21 22 23 24 33 34 87 88
+LC (272) 23 25 26 53 54
+RC (273) 23 25 26 53 54
+EQ (274) 62
+LT (275) 64
+GT (276) 63
+LE (277) 59
+GE (278) 60
+NEQ (279) 61
+ADD (280) 67
+SUB (281) 68
+MUL (282) 72
+DIV (283) 73
+MAT_MUL (284) 71
+MAT_POW (285) 74
+AND (286) 77
+OR (287) 78
+NOT (288) 81
+ADDR (289) 82
+IF (290) 49 50 51 52
+ELSE (291) 49 50 51 52
+WHILE (292) 48
+RETURN (293) 30 31
+COPY (294) 32
+PRINT (295) 36
+READ (296) 33 34 35
+V_ASCII (297) 99
+SEMI_COLON (298) 7 12 17 20 21 30 32 33 34 35 36 37 38 39
+DOT (299)
+COMMA (300) 94
+ATTR (301) 20 21 22 23 24
+
+
+Nonterminals, with rules where they appear
+
+$accept (48)
+    on left: 0
+program (49)
+    on left: 1, on right: 0
+global-stmt-list (50)
+    on left: 2 3, on right: 1 2
+global-stmt (51)
+    on left: 4 5 6 7 8 9 10, on right: 2 3
+def-fun (52)
+    on left: 11, on right: 5 6
+decl-fun (53)
+    on left: 12, on right: 4
+decl-var (54)
+    on left: 13 14, on right: 7 8 38
+id-arr (55)
+    on left: 15 16, on right: 14
+attr-var (56)
+    on left: 17 18 19, on right: 9 39
+simple-attr (57)
+    on left: 20, on right: 19
+index-attr (58)
+    on left: 21, on right: 18
+mat-attr (59)
+    on left: 22 23 24, on right: 17
+num-list-list (60)
+    on left: 25 26, on right: 22 25
+num-list (61)
+    on left: 27 28 29, on right: 23 25 26 27
+stmt (62)
+    on left: 30 31 32 33 34 35 36 37 38 39 40 41, on right: 55 56
+param-list-void (63)
+    on left: 42 43, on right: 11 12
+param-list (64)
+    on left: 44 45, on right: 43 44
+param (65)
+    on left: 46 47, on right: 44 45
+loop (66)
+    on left: 48, on right: 41
+flow-control (67)
+    on left: 49 50 51 52, on right: 40 49
+block (68)
+    on left: 53 54, on right: 10 11 48 49 50 51 52
+stmt-list (69)
+    on left: 55 56, on right: 53 55
+expr (70)
+    on left: 57 58, on right: 20 21 24 30 31 36 48 49 50 52 83 87 88
+relop (71)
+    on left: 59 60 61 62 63 64, on right: 57
+add-expr (72)
+    on left: 65 66, on right: 57 58 65
+addop (73)
+    on left: 67 68, on right: 65
+term (74)
+    on left: 69 70, on right: 65 66 69
+mulop (75)
+    on left: 71 72 73 74, on right: 69
+bin (76)
+    on left: 75 76, on right: 69 70 75
+bin-logi (77)
+    on left: 77 78, on right: 75
+unary (78)
+    on left: 79 80, on right: 75 76
+unary-op (79)
+    on left: 81 82, on right: 79
+factor (80)
+    on left: 83 84 85 86, on right: 79 80
+aux (81)
+    on left: 87 88 89, on right: 84 97
+num-id (82)
+    on left: 90 91, on right: 15 21 23 24 33 34 89
+call (83)
+    on left: 92 93, on right: 37 85
+arg-list (84)
+    on left: 94 95, on right: 92 94
+arg (85)
+    on left: 96 97, on right: 94 95
+mat-arg (86)
+    on left: 98, on right: 96
+ascii (87)
+    on left: 99, on right: 86
+base-type (88)
+    on left: 100 101 102, on right: 11 12 13 14 46 47
+num (89)
+    on left: 103 104, on right: 13 27 28 90
+
+
+State 0
+
+    0 $accept: . program $end
+
+    CHAR_TYPE   shift, and go to state 1
+    INT_TYPE    shift, and go to state 2
+    FLOAT_TYPE  shift, and go to state 3
+    MAT_TYPE    shift, and go to state 4
+    ID          shift, and go to state 5
+    AHEAD       shift, and go to state 6
+    LC          shift, and go to state 7
+
+    program           go to state 8
+    global-stmt-list  go to state 9
+    global-stmt       go to state 10
+    def-fun           go to state 11
+    decl-fun          go to state 12
+    decl-var          go to state 13
+    attr-var          go to state 14
+    simple-attr       go to state 15
+    index-attr        go to state 16
+    mat-attr          go to state 17
+    block             go to state 18
+    base-type         go to state 19
+
+
+State 1
+
+  100 base-type: CHAR_TYPE .
+
+    $default  reduce using rule 100 (base-type)
+
+
+State 2
+
+  101 base-type: INT_TYPE .
+
+    $default  reduce using rule 101 (base-type)
+
+
+State 3
+
+  102 base-type: FLOAT_TYPE .
+
+    $default  reduce using rule 102 (base-type)
+
+
+State 4
+
+   13 decl-var: MAT_TYPE . base-type ID LS num RS LS num RS
+
+    CHAR_TYPE   shift, and go to state 1
+    INT_TYPE    shift, and go to state 2
+    FLOAT_TYPE  shift, and go to state 3
+
+    base-type  go to state 20
+
+
+State 5
+
+   20 simple-attr: ID . ATTR expr SEMI_COLON
+   21 index-attr: ID . LS num-id RS ATTR expr SEMI_COLON
+   22 mat-attr: ID . ATTR LS num-list-list RS
+   23         | ID . LS num-id RS ATTR LC num-list RC
+   24         | ID . LS num-id RS LS num-id RS ATTR expr
+
+    LS    shift, and go to state 21
+    ATTR  shift, and go to state 22
+
+
+State 6
+
+   12 decl-fun: AHEAD . base-type ID LP param-list-void RP SEMI_COLON
+
+    CHAR_TYPE   shift, and go to state 1
+    INT_TYPE    shift, and go to state 2
+    FLOAT_TYPE  shift, and go to state 3
+
+    base-type  go to state 23
+
+
+State 7
+
+   53 block: LC . stmt-list RC
+   54      | LC . RC
+
+    CHAR_TYPE   shift, and go to state 1
+    INT_TYPE    shift, and go to state 2
+    FLOAT_TYPE  shift, and go to state 3
+    MAT_TYPE    shift, and go to state 4
+    ID          shift, and go to state 24
+    RC          shift, and go to state 25
+    IF          shift, and go to state 26
+    WHILE       shift, and go to state 27
+    RETURN      shift, and go to state 28
+    COPY        shift, and go to state 29
+    PRINT       shift, and go to state 30
+    READ        shift, and go to state 31
+
+    decl-var      go to state 32
+    attr-var      go to state 33
+    simple-attr   go to state 15
+    index-attr    go to state 16
+    mat-attr      go to state 17
+    stmt          go to state 34
+    loop          go to state 35
+    flow-control  go to state 36
+    stmt-list     go to state 37
+    call          go to state 38
+    base-type     go to state 39
+
+
+State 8
+
+    0 $accept: program . $end
+
+    $end  shift, and go to state 40
+
+
+State 9
+
+    1 program: global-stmt-list .
+    2 global-stmt-list: global-stmt-list . global-stmt
+
+    CHAR_TYPE   shift, and go to state 1
+    INT_TYPE    shift, and go to state 2
+    FLOAT_TYPE  shift, and go to state 3
+    MAT_TYPE    shift, and go to state 4
+    ID          shift, and go to state 5
+    AHEAD       shift, and go to state 6
+    LC          shift, and go to state 7
+
+    $default  reduce using rule 1 (program)
+
+    global-stmt  go to state 41
+    def-fun      go to state 11
+    decl-fun     go to state 12
+    decl-var     go to state 13
+    attr-var     go to state 14
+    simple-attr  go to state 15
+    index-attr   go to state 16
+    mat-attr     go to state 17
+    block        go to state 18
+    base-type    go to state 19
+
+
+State 10
+
+    3 global-stmt-list: global-stmt .
+
+    $default  reduce using rule 3 (global-stmt-list)
+
+
+State 11
+
+    5 global-stmt: def-fun . error
+    6            | def-fun .
+
+    error  shift, and go to state 42
+
+    $end        reduce using rule 6 (global-stmt)
+    CHAR_TYPE   reduce using rule 6 (global-stmt)
+    INT_TYPE    reduce using rule 6 (global-stmt)
+    FLOAT_TYPE  reduce using rule 6 (global-stmt)
+    MAT_TYPE    reduce using rule 6 (global-stmt)
+    ID          reduce using rule 6 (global-stmt)
+    AHEAD       reduce using rule 6 (global-stmt)
+    LC          reduce using rule 6 (global-stmt)
+
+
+State 12
+
+    4 global-stmt: decl-fun .
+
+    $default  reduce using rule 4 (global-stmt)
+
+
+State 13
+
+    7 global-stmt: decl-var . SEMI_COLON
+    8            | decl-var . error
+
+    error       shift, and go to state 43
+    SEMI_COLON  shift, and go to state 44
+
+
+State 14
+
+    9 global-stmt: attr-var .
+
+    $default  reduce using rule 9 (global-stmt)
+
+
+State 15
+
+   19 attr-var: simple-attr .
+
+    $default  reduce using rule 19 (attr-var)
+
+
+State 16
+
+   18 attr-var: index-attr .
+
+    $default  reduce using rule 18 (attr-var)
+
+
+State 17
+
+   17 attr-var: mat-attr . SEMI_COLON
+
+    SEMI_COLON  shift, and go to state 45
+
+
+State 18
+
+   10 global-stmt: block .
+
+    $default  reduce using rule 10 (global-stmt)
+
+
+State 19
+
+   11 def-fun: base-type . ID LP param-list-void RP block
+   14 decl-var: base-type . id-arr
+
+    ID  shift, and go to state 46
+
+    id-arr  go to state 47
+
+
+State 20
+
+   13 decl-var: MAT_TYPE base-type . ID LS num RS LS num RS
+
+    ID  shift, and go to state 48
+
+
+State 21
+
+   21 index-attr: ID LS . num-id RS ATTR expr SEMI_COLON
+   23 mat-attr: ID LS . num-id RS ATTR LC num-list RC
+   24         | ID LS . num-id RS LS num-id RS ATTR expr
+
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+    ID       shift, and go to state 51
+
+    num-id  go to state 52
+    num     go to state 53
+
+
+State 22
+
+   20 simple-attr: ID ATTR . expr SEMI_COLON
+   22 mat-attr: ID ATTR . LS num-list-list RS
+
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+    ID       shift, and go to state 54
+    LP       shift, and go to state 55
+    LS       shift, and go to state 56
+    NOT      shift, and go to state 57
+    ADDR     shift, and go to state 58
+    '\''     shift, and go to state 59
+
+    expr      go to state 60
+    add-expr  go to state 61
+    term      go to state 62
+    bin       go to state 63
+    unary     go to state 64
+    unary-op  go to state 65
+    factor    go to state 66
+    aux       go to state 67
+    num-id    go to state 68
+    call      go to state 69
+    num       go to state 53
+
+
+State 23
+
+   12 decl-fun: AHEAD base-type . ID LP param-list-void RP SEMI_COLON
+
+    ID  shift, and go to state 70
+
+
+State 24
+
+   20 simple-attr: ID . ATTR expr SEMI_COLON
+   21 index-attr: ID . LS num-id RS ATTR expr SEMI_COLON
+   22 mat-attr: ID . ATTR LS num-list-list RS
+   23         | ID . LS num-id RS ATTR LC num-list RC
+   24         | ID . LS num-id RS LS num-id RS ATTR expr
+   92 call: ID . LP arg-list RP
+   93     | ID . LP VOID RP
+
+    LP    shift, and go to state 71
+    LS    shift, and go to state 21
+    ATTR  shift, and go to state 22
+
+
+State 25
+
+   54 block: LC RC .
+
+    $default  reduce using rule 54 (block)
+
+
+State 26
+
+   49 flow-control: IF . LP expr RP block ELSE flow-control
+   50             | IF . LP expr RP block ELSE block
+   51             | IF . LP error RP block ELSE block
+   52             | IF . LP expr error block ELSE block
+
+    LP  shift, and go to state 72
+
+
+State 27
+
+   48 loop: WHILE . LP expr RP block
+
+    LP  shift, and go to state 73
+
+
+State 28
+
+   30 stmt: RETURN . expr SEMI_COLON
+   31     | RETURN . expr error
+
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+    ID       shift, and go to state 54
+    LP       shift, and go to state 55
+    NOT      shift, and go to state 57
+    ADDR     shift, and go to state 58
+    '\''     shift, and go to state 59
+
+    expr      go to state 74
+    add-expr  go to state 61
+    term      go to state 62
+    bin       go to state 63
+    unary     go to state 64
+    unary-op  go to state 65
+    factor    go to state 66
+    aux       go to state 67
+    num-id    go to state 68
+    call      go to state 69
+    num       go to state 53
+
+
+State 29
+
+   32 stmt: COPY . LP ID ID RP SEMI_COLON
+
+    LP  shift, and go to state 75
+
+
+State 30
+
+   36 stmt: PRINT . expr SEMI_COLON
+
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+    ID       shift, and go to state 54
+    LP       shift, and go to state 55
+    NOT      shift, and go to state 57
+    ADDR     shift, and go to state 58
+    '\''     shift, and go to state 59
+
+    expr      go to state 76
+    add-expr  go to state 61
+    term      go to state 62
+    bin       go to state 63
+    unary     go to state 64
+    unary-op  go to state 65
+    factor    go to state 66
+    aux       go to state 67
+    num-id    go to state 68
+    call      go to state 69
+    num       go to state 53
+
+
+State 31
+
+   33 stmt: READ . LP ID LS num-id RS LS num-id RS RP SEMI_COLON
+   34     | READ . LP ID LS num-id RS RP SEMI_COLON
+   35     | READ . LP ID RP SEMI_COLON
+
+    LP  shift, and go to state 77
+
+
+State 32
+
+   38 stmt: decl-var . SEMI_COLON
+
+    SEMI_COLON  shift, and go to state 78
+
+
+State 33
+
+   39 stmt: attr-var . SEMI_COLON
+
+    SEMI_COLON  shift, and go to state 79
+
+
+State 34
+
+   56 stmt-list: stmt .
+
+    $default  reduce using rule 56 (stmt-list)
+
+
+State 35
+
+   41 stmt: loop .
+
+    $default  reduce using rule 41 (stmt)
+
+
+State 36
+
+   40 stmt: flow-control .
+
+    $default  reduce using rule 40 (stmt)
+
+
+State 37
+
+   53 block: LC stmt-list . RC
+   55 stmt-list: stmt-list . stmt
+
+    CHAR_TYPE   shift, and go to state 1
+    INT_TYPE    shift, and go to state 2
+    FLOAT_TYPE  shift, and go to state 3
+    MAT_TYPE    shift, and go to state 4
+    ID          shift, and go to state 24
+    RC          shift, and go to state 80
+    IF          shift, and go to state 26
+    WHILE       shift, and go to state 27
+    RETURN      shift, and go to state 28
+    COPY        shift, and go to state 29
+    PRINT       shift, and go to state 30
+    READ        shift, and go to state 31
+
+    decl-var      go to state 32
+    attr-var      go to state 33
+    simple-attr   go to state 15
+    index-attr    go to state 16
+    mat-attr      go to state 17
+    stmt          go to state 81
+    loop          go to state 35
+    flow-control  go to state 36
+    call          go to state 38
+    base-type     go to state 39
+
+
+State 38
+
+   37 stmt: call . SEMI_COLON
+
+    SEMI_COLON  shift, and go to state 82
+
+
+State 39
+
+   14 decl-var: base-type . id-arr
+
+    ID  shift, and go to state 83
+
+    id-arr  go to state 47
+
+
+State 40
+
+    0 $accept: program $end .
+
+    $default  accept
+
+
+State 41
+
+    2 global-stmt-list: global-stmt-list global-stmt .
+
+    $default  reduce using rule 2 (global-stmt-list)
+
+
+State 42
+
+    5 global-stmt: def-fun error .
+
+    $default  reduce using rule 5 (global-stmt)
+
+
+State 43
+
+    8 global-stmt: decl-var error .
+
+    $default  reduce using rule 8 (global-stmt)
+
+
+State 44
+
+    7 global-stmt: decl-var SEMI_COLON .
+
+    $default  reduce using rule 7 (global-stmt)
+
+
+State 45
+
+   17 attr-var: mat-attr SEMI_COLON .
+
+    $default  reduce using rule 17 (attr-var)
+
+
+State 46
+
+   11 def-fun: base-type ID . LP param-list-void RP block
+   15 id-arr: ID . LS num-id RS
+   16       | ID .
+
+    LP  shift, and go to state 84
+    LS  shift, and go to state 85
+
+    $default  reduce using rule 16 (id-arr)
+
+
+State 47
+
+   14 decl-var: base-type id-arr .
+
+    $default  reduce using rule 14 (decl-var)
+
+
+State 48
+
+   13 decl-var: MAT_TYPE base-type ID . LS num RS LS num RS
+
+    LS  shift, and go to state 86
+
+
+State 49
+
+  104 num: V_INT .
+
+    $default  reduce using rule 104 (num)
+
+
+State 50
+
+  103 num: V_FLOAT .
+
+    $default  reduce using rule 103 (num)
+
+
+State 51
+
+   91 num-id: ID .
+
+    $default  reduce using rule 91 (num-id)
+
+
+State 52
+
+   21 index-attr: ID LS num-id . RS ATTR expr SEMI_COLON
+   23 mat-attr: ID LS num-id . RS ATTR LC num-list RC
+   24         | ID LS num-id . RS LS num-id RS ATTR expr
+
+    RS  shift, and go to state 87
+
+
+State 53
+
+   90 num-id: num .
+
+    $default  reduce using rule 90 (num-id)
+
+
+State 54
+
+   87 aux: ID . LS expr RS LS expr RS
+   88    | ID . LS expr RS
+   91 num-id: ID .
+   92 call: ID . LP arg-list RP
+   93     | ID . LP VOID RP
+
+    LP  shift, and go to state 71
+    LS  shift, and go to state 88
+
+    $default  reduce using rule 91 (num-id)
+
+
+State 55
+
+   83 factor: LP . expr RP
+
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+    ID       shift, and go to state 54
+    LP       shift, and go to state 55
+    NOT      shift, and go to state 57
+    ADDR     shift, and go to state 58
+    '\''     shift, and go to state 59
+
+    expr      go to state 89
+    add-expr  go to state 61
+    term      go to state 62
+    bin       go to state 63
+    unary     go to state 64
+    unary-op  go to state 65
+    factor    go to state 66
+    aux       go to state 67
+    num-id    go to state 68
+    call      go to state 69
+    num       go to state 53
+
+
+State 56
+
+   22 mat-attr: ID ATTR LS . num-list-list RS
+
+    LC  shift, and go to state 90
+
+    num-list-list  go to state 91
+
+
+State 57
+
+   81 unary-op: NOT .
+
+    $default  reduce using rule 81 (unary-op)
+
+
+State 58
+
+   82 unary-op: ADDR .
+
+    $default  reduce using rule 82 (unary-op)
+
+
+State 59
+
+   86 factor: '\'' . ascii '\''
+
+    V_ASCII  shift, and go to state 92
+
+    ascii  go to state 93
+
+
+State 60
+
+   20 simple-attr: ID ATTR expr . SEMI_COLON
+
+    SEMI_COLON  shift, and go to state 94
+
+
+State 61
+
+   57 expr: add-expr . relop add-expr
+   58     | add-expr .
+   65 add-expr: add-expr . addop term
+
+    EQ   shift, and go to state 95
+    LT   shift, and go to state 96
+    GT   shift, and go to state 97
+    LE   shift, and go to state 98
+    GE   shift, and go to state 99
+    NEQ  shift, and go to state 100
+    ADD  shift, and go to state 101
+    SUB  shift, and go to state 102
+
+    $default  reduce using rule 58 (expr)
+
+    relop  go to state 103
+    addop  go to state 104
+
+
+State 62
+
+   66 add-expr: term .
+   69 term: term . mulop bin
+
+    MUL      shift, and go to state 105
+    DIV      shift, and go to state 106
+    MAT_MUL  shift, and go to state 107
+    MAT_POW  shift, and go to state 108
+
+    $default  reduce using rule 66 (add-expr)
+
+    mulop  go to state 109
+
+
+State 63
+
+   70 term: bin .
+   75 bin: bin . bin-logi unary
+
+    AND  shift, and go to state 110
+    OR   shift, and go to state 111
+
+    $default  reduce using rule 70 (term)
+
+    bin-logi  go to state 112
+
+
+State 64
+
+   76 bin: unary .
+
+    $default  reduce using rule 76 (bin)
+
+
+State 65
+
+   79 unary: unary-op . factor
+
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+    ID       shift, and go to state 54
+    LP       shift, and go to state 55
+    '\''     shift, and go to state 59
+
+    factor  go to state 113
+    aux     go to state 67
+    num-id  go to state 68
+    call    go to state 69
+    num     go to state 53
+
+
+State 66
+
+   80 unary: factor .
+
+    $default  reduce using rule 80 (unary)
+
+
+State 67
+
+   84 factor: aux .
+
+    $default  reduce using rule 84 (factor)
+
+
+State 68
+
+   89 aux: num-id .
+
+    $default  reduce using rule 89 (aux)
+
+
+State 69
+
+   85 factor: call .
+
+    $default  reduce using rule 85 (factor)
+
+
+State 70
+
+   12 decl-fun: AHEAD base-type ID . LP param-list-void RP SEMI_COLON
+
+    LP  shift, and go to state 114
+
+
+State 71
+
+   92 call: ID LP . arg-list RP
+   93     | ID LP . VOID RP
+
+    VOID     shift, and go to state 115
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+    ID       shift, and go to state 116
+
+    aux       go to state 117
+    num-id    go to state 68
+    arg-list  go to state 118
+    arg       go to state 119
+    mat-arg   go to state 120
+    num       go to state 53
+
+
+State 72
+
+   49 flow-control: IF LP . expr RP block ELSE flow-control
+   50             | IF LP . expr RP block ELSE block
+   51             | IF LP . error RP block ELSE block
+   52             | IF LP . expr error block ELSE block
+
+    error    shift, and go to state 121
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+    ID       shift, and go to state 54
+    LP       shift, and go to state 55
+    NOT      shift, and go to state 57
+    ADDR     shift, and go to state 58
+    '\''     shift, and go to state 59
+
+    expr      go to state 122
+    add-expr  go to state 61
+    term      go to state 62
+    bin       go to state 63
+    unary     go to state 64
+    unary-op  go to state 65
+    factor    go to state 66
+    aux       go to state 67
+    num-id    go to state 68
+    call      go to state 69
+    num       go to state 53
+
+
+State 73
+
+   48 loop: WHILE LP . expr RP block
+
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+    ID       shift, and go to state 54
+    LP       shift, and go to state 55
+    NOT      shift, and go to state 57
+    ADDR     shift, and go to state 58
+    '\''     shift, and go to state 59
+
+    expr      go to state 123
+    add-expr  go to state 61
+    term      go to state 62
+    bin       go to state 63
+    unary     go to state 64
+    unary-op  go to state 65
+    factor    go to state 66
+    aux       go to state 67
+    num-id    go to state 68
+    call      go to state 69
+    num       go to state 53
+
+
+State 74
+
+   30 stmt: RETURN expr . SEMI_COLON
+   31     | RETURN expr . error
+
+    error       shift, and go to state 124
+    SEMI_COLON  shift, and go to state 125
+
+
+State 75
+
+   32 stmt: COPY LP . ID ID RP SEMI_COLON
+
+    ID  shift, and go to state 126
+
+
+State 76
+
+   36 stmt: PRINT expr . SEMI_COLON
+
+    SEMI_COLON  shift, and go to state 127
+
+
+State 77
+
+   33 stmt: READ LP . ID LS num-id RS LS num-id RS RP SEMI_COLON
+   34     | READ LP . ID LS num-id RS RP SEMI_COLON
+   35     | READ LP . ID RP SEMI_COLON
+
+    ID  shift, and go to state 128
+
+
+State 78
+
+   38 stmt: decl-var SEMI_COLON .
+
+    $default  reduce using rule 38 (stmt)
+
+
+State 79
+
+   39 stmt: attr-var SEMI_COLON .
+
+    $default  reduce using rule 39 (stmt)
+
+
+State 80
+
+   53 block: LC stmt-list RC .
+
+    $default  reduce using rule 53 (block)
+
+
+State 81
+
+   55 stmt-list: stmt-list stmt .
+
+    $default  reduce using rule 55 (stmt-list)
+
+
+State 82
+
+   37 stmt: call SEMI_COLON .
+
+    $default  reduce using rule 37 (stmt)
+
+
+State 83
+
+   15 id-arr: ID . LS num-id RS
+   16       | ID .
+
+    LS  shift, and go to state 85
+
+    $default  reduce using rule 16 (id-arr)
+
+
+State 84
+
+   11 def-fun: base-type ID LP . param-list-void RP block
+
+    CHAR_TYPE   shift, and go to state 1
+    INT_TYPE    shift, and go to state 2
+    FLOAT_TYPE  shift, and go to state 3
+    MAT_TYPE    shift, and go to state 129
+    VOID        shift, and go to state 130
+
+    param-list-void  go to state 131
+    param-list       go to state 132
+    param            go to state 133
+    base-type        go to state 134
+
+
+State 85
+
+   15 id-arr: ID LS . num-id RS
+
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+    ID       shift, and go to state 51
+
+    num-id  go to state 135
+    num     go to state 53
+
+
+State 86
+
+   13 decl-var: MAT_TYPE base-type ID LS . num RS LS num RS
+
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+
+    num  go to state 136
+
+
+State 87
+
+   21 index-attr: ID LS num-id RS . ATTR expr SEMI_COLON
+   23 mat-attr: ID LS num-id RS . ATTR LC num-list RC
+   24         | ID LS num-id RS . LS num-id RS ATTR expr
+
+    LS    shift, and go to state 137
+    ATTR  shift, and go to state 138
+
+
+State 88
+
+   87 aux: ID LS . expr RS LS expr RS
+   88    | ID LS . expr RS
+
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+    ID       shift, and go to state 54
+    LP       shift, and go to state 55
+    NOT      shift, and go to state 57
+    ADDR     shift, and go to state 58
+    '\''     shift, and go to state 59
+
+    expr      go to state 139
+    add-expr  go to state 61
+    term      go to state 62
+    bin       go to state 63
+    unary     go to state 64
+    unary-op  go to state 65
+    factor    go to state 66
+    aux       go to state 67
+    num-id    go to state 68
+    call      go to state 69
+    num       go to state 53
+
+
+State 89
+
+   83 factor: LP expr . RP
+
+    RP  shift, and go to state 140
+
+
+State 90
+
+   26 num-list-list: LC . num-list RC
+
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+    ID       shift, and go to state 141
+
+    num-list  go to state 142
+    num       go to state 143
+
+
+State 91
+
+   22 mat-attr: ID ATTR LS num-list-list . RS
+   25 num-list-list: num-list-list . LC num-list RC
+
+    RS  shift, and go to state 144
+    LC  shift, and go to state 145
+
+
+State 92
+
+   99 ascii: V_ASCII .
+
+    $default  reduce using rule 99 (ascii)
+
+
+State 93
+
+   86 factor: '\'' ascii . '\''
+
+    '\''  shift, and go to state 146
+
+
+State 94
+
+   20 simple-attr: ID ATTR expr SEMI_COLON .
+
+    $default  reduce using rule 20 (simple-attr)
+
+
+State 95
+
+   62 relop: EQ .
+
+    $default  reduce using rule 62 (relop)
+
+
+State 96
+
+   64 relop: LT .
+
+    $default  reduce using rule 64 (relop)
+
+
+State 97
+
+   63 relop: GT .
+
+    $default  reduce using rule 63 (relop)
+
+
+State 98
+
+   59 relop: LE .
+
+    $default  reduce using rule 59 (relop)
+
+
+State 99
+
+   60 relop: GE .
+
+    $default  reduce using rule 60 (relop)
+
+
+State 100
+
+   61 relop: NEQ .
+
+    $default  reduce using rule 61 (relop)
+
+
+State 101
+
+   67 addop: ADD .
+
+    $default  reduce using rule 67 (addop)
+
+
+State 102
+
+   68 addop: SUB .
+
+    $default  reduce using rule 68 (addop)
+
+
+State 103
+
+   57 expr: add-expr relop . add-expr
+
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+    ID       shift, and go to state 54
+    LP       shift, and go to state 55
+    NOT      shift, and go to state 57
+    ADDR     shift, and go to state 58
+    '\''     shift, and go to state 59
+
+    add-expr  go to state 147
+    term      go to state 62
+    bin       go to state 63
+    unary     go to state 64
+    unary-op  go to state 65
+    factor    go to state 66
+    aux       go to state 67
+    num-id    go to state 68
+    call      go to state 69
+    num       go to state 53
+
+
+State 104
+
+   65 add-expr: add-expr addop . term
+
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+    ID       shift, and go to state 54
+    LP       shift, and go to state 55
+    NOT      shift, and go to state 57
+    ADDR     shift, and go to state 58
+    '\''     shift, and go to state 59
+
+    term      go to state 148
+    bin       go to state 63
+    unary     go to state 64
+    unary-op  go to state 65
+    factor    go to state 66
+    aux       go to state 67
+    num-id    go to state 68
+    call      go to state 69
+    num       go to state 53
+
+
+State 105
+
+   72 mulop: MUL .
+
+    $default  reduce using rule 72 (mulop)
+
+
+State 106
+
+   73 mulop: DIV .
+
+    $default  reduce using rule 73 (mulop)
+
+
+State 107
+
+   71 mulop: MAT_MUL .
+
+    $default  reduce using rule 71 (mulop)
+
+
+State 108
+
+   74 mulop: MAT_POW .
+
+    $default  reduce using rule 74 (mulop)
+
+
+State 109
+
+   69 term: term mulop . bin
+
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+    ID       shift, and go to state 54
+    LP       shift, and go to state 55
+    NOT      shift, and go to state 57
+    ADDR     shift, and go to state 58
+    '\''     shift, and go to state 59
+
+    bin       go to state 149
+    unary     go to state 64
+    unary-op  go to state 65
+    factor    go to state 66
+    aux       go to state 67
+    num-id    go to state 68
+    call      go to state 69
+    num       go to state 53
+
+
+State 110
+
+   77 bin-logi: AND .
+
+    $default  reduce using rule 77 (bin-logi)
+
+
+State 111
+
+   78 bin-logi: OR .
+
+    $default  reduce using rule 78 (bin-logi)
+
+
+State 112
+
+   75 bin: bin bin-logi . unary
+
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+    ID       shift, and go to state 54
+    LP       shift, and go to state 55
+    NOT      shift, and go to state 57
+    ADDR     shift, and go to state 58
+    '\''     shift, and go to state 59
+
+    unary     go to state 150
+    unary-op  go to state 65
+    factor    go to state 66
+    aux       go to state 67
+    num-id    go to state 68
+    call      go to state 69
+    num       go to state 53
+
+
+State 113
+
+   79 unary: unary-op factor .
+
+    $default  reduce using rule 79 (unary)
+
+
+State 114
+
+   12 decl-fun: AHEAD base-type ID LP . param-list-void RP SEMI_COLON
+
+    CHAR_TYPE   shift, and go to state 1
+    INT_TYPE    shift, and go to state 2
+    FLOAT_TYPE  shift, and go to state 3
+    MAT_TYPE    shift, and go to state 129
+    VOID        shift, and go to state 130
+
+    param-list-void  go to state 151
+    param-list       go to state 132
+    param            go to state 133
+    base-type        go to state 134
+
+
+State 115
+
+   93 call: ID LP VOID . RP
+
+    RP  shift, and go to state 152
+
+
+State 116
+
+   87 aux: ID . LS expr RS LS expr RS
+   88    | ID . LS expr RS
+   91 num-id: ID .
+   98 mat-arg: ID . V_INT V_INT
+
+    V_INT  shift, and go to state 153
+    LS     shift, and go to state 88
+
+    $default  reduce using rule 91 (num-id)
+
+
+State 117
+
+   97 arg: aux .
+
+    $default  reduce using rule 97 (arg)
+
+
+State 118
+
+   92 call: ID LP arg-list . RP
+   94 arg-list: arg-list . COMMA arg
+
+    RP     shift, and go to state 154
+    COMMA  shift, and go to state 155
+
+
+State 119
+
+   95 arg-list: arg .
+
+    $default  reduce using rule 95 (arg-list)
+
+
+State 120
+
+   96 arg: mat-arg .
+
+    $default  reduce using rule 96 (arg)
+
+
+State 121
+
+   51 flow-control: IF LP error . RP block ELSE block
+
+    RP  shift, and go to state 156
+
+
+State 122
+
+   49 flow-control: IF LP expr . RP block ELSE flow-control
+   50             | IF LP expr . RP block ELSE block
+   52             | IF LP expr . error block ELSE block
+
+    error  shift, and go to state 157
+    RP     shift, and go to state 158
+
+
+State 123
+
+   48 loop: WHILE LP expr . RP block
+
+    RP  shift, and go to state 159
+
+
+State 124
+
+   31 stmt: RETURN expr error .
+
+    $default  reduce using rule 31 (stmt)
+
+
+State 125
+
+   30 stmt: RETURN expr SEMI_COLON .
+
+    $default  reduce using rule 30 (stmt)
+
+
+State 126
+
+   32 stmt: COPY LP ID . ID RP SEMI_COLON
+
+    ID  shift, and go to state 160
+
+
+State 127
+
+   36 stmt: PRINT expr SEMI_COLON .
+
+    $default  reduce using rule 36 (stmt)
+
+
+State 128
+
+   33 stmt: READ LP ID . LS num-id RS LS num-id RS RP SEMI_COLON
+   34     | READ LP ID . LS num-id RS RP SEMI_COLON
+   35     | READ LP ID . RP SEMI_COLON
+
+    RP  shift, and go to state 161
+    LS  shift, and go to state 162
+
+
+State 129
+
+   47 param: MAT_TYPE . base-type ID
+
+    CHAR_TYPE   shift, and go to state 1
+    INT_TYPE    shift, and go to state 2
+    FLOAT_TYPE  shift, and go to state 3
+
+    base-type  go to state 163
+
+
+State 130
+
+   42 param-list-void: VOID .
+
+    $default  reduce using rule 42 (param-list-void)
+
+
+State 131
+
+   11 def-fun: base-type ID LP param-list-void . RP block
+
+    RP  shift, and go to state 164
+
+
+State 132
+
+   43 param-list-void: param-list .
+   44 param-list: param-list . param
+
+    CHAR_TYPE   shift, and go to state 1
+    INT_TYPE    shift, and go to state 2
+    FLOAT_TYPE  shift, and go to state 3
+    MAT_TYPE    shift, and go to state 129
+
+    $default  reduce using rule 43 (param-list-void)
+
+    param      go to state 165
+    base-type  go to state 134
+
+
+State 133
+
+   45 param-list: param .
+
+    $default  reduce using rule 45 (param-list)
+
+
+State 134
+
+   46 param: base-type . ID
+
+    ID  shift, and go to state 166
+
+
+State 135
+
+   15 id-arr: ID LS num-id . RS
+
+    RS  shift, and go to state 167
+
+
+State 136
+
+   13 decl-var: MAT_TYPE base-type ID LS num . RS LS num RS
+
+    RS  shift, and go to state 168
+
+
+State 137
+
+   24 mat-attr: ID LS num-id RS LS . num-id RS ATTR expr
+
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+    ID       shift, and go to state 51
+
+    num-id  go to state 169
+    num     go to state 53
+
+
+State 138
+
+   21 index-attr: ID LS num-id RS ATTR . expr SEMI_COLON
+   23 mat-attr: ID LS num-id RS ATTR . LC num-list RC
+
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+    ID       shift, and go to state 54
+    LP       shift, and go to state 55
+    LC       shift, and go to state 170
+    NOT      shift, and go to state 57
+    ADDR     shift, and go to state 58
+    '\''     shift, and go to state 59
+
+    expr      go to state 171
+    add-expr  go to state 61
+    term      go to state 62
+    bin       go to state 63
+    unary     go to state 64
+    unary-op  go to state 65
+    factor    go to state 66
+    aux       go to state 67
+    num-id    go to state 68
+    call      go to state 69
+    num       go to state 53
+
+
+State 139
+
+   87 aux: ID LS expr . RS LS expr RS
+   88    | ID LS expr . RS
+
+    RS  shift, and go to state 172
+
+
+State 140
+
+   83 factor: LP expr RP .
+
+    $default  reduce using rule 83 (factor)
+
+
+State 141
+
+   29 num-list: ID .
+
+    $default  reduce using rule 29 (num-list)
+
+
+State 142
+
+   26 num-list-list: LC num-list . RC
+   27 num-list: num-list . num
+
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+    RC       shift, and go to state 173
+
+    num  go to state 174
+
+
+State 143
+
+   28 num-list: num .
+
+    $default  reduce using rule 28 (num-list)
+
+
+State 144
+
+   22 mat-attr: ID ATTR LS num-list-list RS .
+
+    $default  reduce using rule 22 (mat-attr)
+
+
+State 145
+
+   25 num-list-list: num-list-list LC . num-list RC
+
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+    ID       shift, and go to state 141
+
+    num-list  go to state 175
+    num       go to state 143
+
+
+State 146
+
+   86 factor: '\'' ascii '\'' .
+
+    $default  reduce using rule 86 (factor)
+
+
+State 147
+
+   57 expr: add-expr relop add-expr .
+   65 add-expr: add-expr . addop term
+
+    ADD  shift, and go to state 101
+    SUB  shift, and go to state 102
+
+    $default  reduce using rule 57 (expr)
+
+    addop  go to state 104
+
+
+State 148
+
+   65 add-expr: add-expr addop term .
+   69 term: term . mulop bin
+
+    MUL      shift, and go to state 105
+    DIV      shift, and go to state 106
+    MAT_MUL  shift, and go to state 107
+    MAT_POW  shift, and go to state 108
+
+    $default  reduce using rule 65 (add-expr)
+
+    mulop  go to state 109
+
+
+State 149
+
+   69 term: term mulop bin .
+   75 bin: bin . bin-logi unary
+
+    AND  shift, and go to state 110
+    OR   shift, and go to state 111
+
+    $default  reduce using rule 69 (term)
+
+    bin-logi  go to state 112
+
+
+State 150
+
+   75 bin: bin bin-logi unary .
+
+    $default  reduce using rule 75 (bin)
+
+
+State 151
+
+   12 decl-fun: AHEAD base-type ID LP param-list-void . RP SEMI_COLON
+
+    RP  shift, and go to state 176
+
+
+State 152
+
+   93 call: ID LP VOID RP .
+
+    $default  reduce using rule 93 (call)
+
+
+State 153
+
+   98 mat-arg: ID V_INT . V_INT
+
+    V_INT  shift, and go to state 177
+
+
+State 154
+
+   92 call: ID LP arg-list RP .
+
+    $default  reduce using rule 92 (call)
+
+
+State 155
+
+   94 arg-list: arg-list COMMA . arg
+
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+    ID       shift, and go to state 116
+
+    aux      go to state 117
+    num-id   go to state 68
+    arg      go to state 178
+    mat-arg  go to state 120
+    num      go to state 53
+
+
+State 156
+
+   51 flow-control: IF LP error RP . block ELSE block
+
+    LC  shift, and go to state 7
+
+    block  go to state 179
+
+
+State 157
+
+   52 flow-control: IF LP expr error . block ELSE block
+
+    LC  shift, and go to state 7
+
+    block  go to state 180
+
+
+State 158
+
+   49 flow-control: IF LP expr RP . block ELSE flow-control
+   50             | IF LP expr RP . block ELSE block
+
+    LC  shift, and go to state 7
+
+    block  go to state 181
+
+
+State 159
+
+   48 loop: WHILE LP expr RP . block
+
+    LC  shift, and go to state 7
+
+    block  go to state 182
+
+
+State 160
+
+   32 stmt: COPY LP ID ID . RP SEMI_COLON
+
+    RP  shift, and go to state 183
+
+
+State 161
+
+   35 stmt: READ LP ID RP . SEMI_COLON
+
+    SEMI_COLON  shift, and go to state 184
+
+
+State 162
+
+   33 stmt: READ LP ID LS . num-id RS LS num-id RS RP SEMI_COLON
+   34     | READ LP ID LS . num-id RS RP SEMI_COLON
+
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+    ID       shift, and go to state 51
+
+    num-id  go to state 185
+    num     go to state 53
+
+
+State 163
+
+   47 param: MAT_TYPE base-type . ID
+
+    ID  shift, and go to state 186
+
+
+State 164
+
+   11 def-fun: base-type ID LP param-list-void RP . block
+
+    LC  shift, and go to state 7
+
+    block  go to state 187
+
+
+State 165
+
+   44 param-list: param-list param .
+
+    $default  reduce using rule 44 (param-list)
+
+
+State 166
+
+   46 param: base-type ID .
+
+    $default  reduce using rule 46 (param)
+
+
+State 167
+
+   15 id-arr: ID LS num-id RS .
+
+    $default  reduce using rule 15 (id-arr)
+
+
+State 168
+
+   13 decl-var: MAT_TYPE base-type ID LS num RS . LS num RS
+
+    LS  shift, and go to state 188
+
+
+State 169
+
+   24 mat-attr: ID LS num-id RS LS num-id . RS ATTR expr
+
+    RS  shift, and go to state 189
+
+
+State 170
+
+   23 mat-attr: ID LS num-id RS ATTR LC . num-list RC
+
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+    ID       shift, and go to state 141
+
+    num-list  go to state 190
+    num       go to state 143
+
+
+State 171
+
+   21 index-attr: ID LS num-id RS ATTR expr . SEMI_COLON
+
+    SEMI_COLON  shift, and go to state 191
+
+
+State 172
+
+   87 aux: ID LS expr RS . LS expr RS
+   88    | ID LS expr RS .
+
+    LS  shift, and go to state 192
+
+    $default  reduce using rule 88 (aux)
+
+
+State 173
+
+   26 num-list-list: LC num-list RC .
+
+    $default  reduce using rule 26 (num-list-list)
+
+
+State 174
+
+   27 num-list: num-list num .
+
+    $default  reduce using rule 27 (num-list)
+
+
+State 175
+
+   25 num-list-list: num-list-list LC num-list . RC
+   27 num-list: num-list . num
+
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+    RC       shift, and go to state 193
+
+    num  go to state 174
+
+
+State 176
+
+   12 decl-fun: AHEAD base-type ID LP param-list-void RP . SEMI_COLON
+
+    SEMI_COLON  shift, and go to state 194
+
+
+State 177
+
+   98 mat-arg: ID V_INT V_INT .
+
+    $default  reduce using rule 98 (mat-arg)
+
+
+State 178
+
+   94 arg-list: arg-list COMMA arg .
+
+    $default  reduce using rule 94 (arg-list)
+
+
+State 179
+
+   51 flow-control: IF LP error RP block . ELSE block
+
+    ELSE  shift, and go to state 195
+
+
+State 180
+
+   52 flow-control: IF LP expr error block . ELSE block
+
+    ELSE  shift, and go to state 196
+
+
+State 181
+
+   49 flow-control: IF LP expr RP block . ELSE flow-control
+   50             | IF LP expr RP block . ELSE block
+
+    ELSE  shift, and go to state 197
+
+
+State 182
+
+   48 loop: WHILE LP expr RP block .
+
+    $default  reduce using rule 48 (loop)
+
+
+State 183
+
+   32 stmt: COPY LP ID ID RP . SEMI_COLON
+
+    SEMI_COLON  shift, and go to state 198
+
+
+State 184
+
+   35 stmt: READ LP ID RP SEMI_COLON .
+
+    $default  reduce using rule 35 (stmt)
+
+
+State 185
+
+   33 stmt: READ LP ID LS num-id . RS LS num-id RS RP SEMI_COLON
+   34     | READ LP ID LS num-id . RS RP SEMI_COLON
+
+    RS  shift, and go to state 199
+
+
+State 186
+
+   47 param: MAT_TYPE base-type ID .
+
+    $default  reduce using rule 47 (param)
+
+
+State 187
+
+   11 def-fun: base-type ID LP param-list-void RP block .
+
+    $default  reduce using rule 11 (def-fun)
+
+
+State 188
+
+   13 decl-var: MAT_TYPE base-type ID LS num RS LS . num RS
+
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+
+    num  go to state 200
+
+
+State 189
+
+   24 mat-attr: ID LS num-id RS LS num-id RS . ATTR expr
+
+    ATTR  shift, and go to state 201
+
+
+State 190
+
+   23 mat-attr: ID LS num-id RS ATTR LC num-list . RC
+   27 num-list: num-list . num
+
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+    RC       shift, and go to state 202
+
+    num  go to state 174
+
+
+State 191
+
+   21 index-attr: ID LS num-id RS ATTR expr SEMI_COLON .
+
+    $default  reduce using rule 21 (index-attr)
+
+
+State 192
+
+   87 aux: ID LS expr RS LS . expr RS
+
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+    ID       shift, and go to state 54
+    LP       shift, and go to state 55
+    NOT      shift, and go to state 57
+    ADDR     shift, and go to state 58
+    '\''     shift, and go to state 59
+
+    expr      go to state 203
+    add-expr  go to state 61
+    term      go to state 62
+    bin       go to state 63
+    unary     go to state 64
+    unary-op  go to state 65
+    factor    go to state 66
+    aux       go to state 67
+    num-id    go to state 68
+    call      go to state 69
+    num       go to state 53
+
+
+State 193
+
+   25 num-list-list: num-list-list LC num-list RC .
+
+    $default  reduce using rule 25 (num-list-list)
+
+
+State 194
+
+   12 decl-fun: AHEAD base-type ID LP param-list-void RP SEMI_COLON .
+
+    $default  reduce using rule 12 (decl-fun)
+
+
+State 195
+
+   51 flow-control: IF LP error RP block ELSE . block
+
+    LC  shift, and go to state 7
+
+    block  go to state 204
+
+
+State 196
+
+   52 flow-control: IF LP expr error block ELSE . block
+
+    LC  shift, and go to state 7
+
+    block  go to state 205
+
+
+State 197
+
+   49 flow-control: IF LP expr RP block ELSE . flow-control
+   50             | IF LP expr RP block ELSE . block
+
+    LC  shift, and go to state 7
+    IF  shift, and go to state 26
+
+    flow-control  go to state 206
+    block         go to state 207
+
+
+State 198
+
+   32 stmt: COPY LP ID ID RP SEMI_COLON .
+
+    $default  reduce using rule 32 (stmt)
+
+
+State 199
+
+   33 stmt: READ LP ID LS num-id RS . LS num-id RS RP SEMI_COLON
+   34     | READ LP ID LS num-id RS . RP SEMI_COLON
+
+    RP  shift, and go to state 208
+    LS  shift, and go to state 209
+
+
+State 200
+
+   13 decl-var: MAT_TYPE base-type ID LS num RS LS num . RS
+
+    RS  shift, and go to state 210
+
+
+State 201
+
+   24 mat-attr: ID LS num-id RS LS num-id RS ATTR . expr
+
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+    ID       shift, and go to state 54
+    LP       shift, and go to state 55
+    NOT      shift, and go to state 57
+    ADDR     shift, and go to state 58
+    '\''     shift, and go to state 59
+
+    expr      go to state 211
+    add-expr  go to state 61
+    term      go to state 62
+    bin       go to state 63
+    unary     go to state 64
+    unary-op  go to state 65
+    factor    go to state 66
+    aux       go to state 67
+    num-id    go to state 68
+    call      go to state 69
+    num       go to state 53
+
+
+State 202
+
+   23 mat-attr: ID LS num-id RS ATTR LC num-list RC .
+
+    $default  reduce using rule 23 (mat-attr)
+
+
+State 203
+
+   87 aux: ID LS expr RS LS expr . RS
+
+    RS  shift, and go to state 212
+
+
+State 204
+
+   51 flow-control: IF LP error RP block ELSE block .
+
+    $default  reduce using rule 51 (flow-control)
+
+
+State 205
+
+   52 flow-control: IF LP expr error block ELSE block .
+
+    $default  reduce using rule 52 (flow-control)
+
+
+State 206
+
+   49 flow-control: IF LP expr RP block ELSE flow-control .
+
+    $default  reduce using rule 49 (flow-control)
+
+
+State 207
+
+   50 flow-control: IF LP expr RP block ELSE block .
+
+    $default  reduce using rule 50 (flow-control)
+
+
+State 208
+
+   34 stmt: READ LP ID LS num-id RS RP . SEMI_COLON
+
+    SEMI_COLON  shift, and go to state 213
+
+
+State 209
+
+   33 stmt: READ LP ID LS num-id RS LS . num-id RS RP SEMI_COLON
+
+    V_INT    shift, and go to state 49
+    V_FLOAT  shift, and go to state 50
+    ID       shift, and go to state 51
+
+    num-id  go to state 214
+    num     go to state 53
+
+
+State 210
+
+   13 decl-var: MAT_TYPE base-type ID LS num RS LS num RS .
+
+    $default  reduce using rule 13 (decl-var)
+
+
+State 211
+
+   24 mat-attr: ID LS num-id RS LS num-id RS ATTR expr .
+
+    $default  reduce using rule 24 (mat-attr)
+
+
+State 212
+
+   87 aux: ID LS expr RS LS expr RS .
+
+    $default  reduce using rule 87 (aux)
+
+
+State 213
+
+   34 stmt: READ LP ID LS num-id RS RP SEMI_COLON .
+
+    $default  reduce using rule 34 (stmt)
+
+
+State 214
+
+   33 stmt: READ LP ID LS num-id RS LS num-id . RS RP SEMI_COLON
+
+    RS  shift, and go to state 215
+
+
+State 215
+
+   33 stmt: READ LP ID LS num-id RS LS num-id RS . RP SEMI_COLON
+
+    RP  shift, and go to state 216
+
+
+State 216
+
+   33 stmt: READ LP ID LS num-id RS LS num-id RS RP . SEMI_COLON
+
+    SEMI_COLON  shift, and go to state 217
+
+
+State 217
+
+   33 stmt: READ LP ID LS num-id RS LS num-id RS RP SEMI_COLON .
+
+    $default  reduce using rule 33 (stmt)

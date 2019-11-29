@@ -1,0 +1,150 @@
+\documentclass[bigger]{beamer}
+\usepackage{bibentry}
+\usepackage{backnaur}
+% \nobibliography* %tells bibentry to (re)use the bibliographic data from the standard BibTeX setup by \bibliography{test.bib}.
+\usepackage[utf8]{inputenc}
+\usepackage{tabu}
+
+\usepackage{graphicx}  % para as imagens
+\graphicspath{images}
+
+\usepackage{background}
+\newcommand\DeactivateBG{\backgroundsetup{contents={}}}
+
+\title{temp.tex}
+\author{leoitu22hotmail.com }
+\date{June 2019}
+
+% \usebackgroundtemplate%
+% {
+%     \includegraphics[width=\paperwidth,height=\paperheight]{nature.jpg}%
+% }
+
+% % % % % % %
+% \bibliography{test.bib}
+
+\usepackage{tabularx}
+
+\begin{document}
+{
+    \usebackgroundtemplate{\includegraphics[width=\paperwidth]{example-image-a}}
+    
+    \begin{frame}
+    % \printbibliography
+    
+    \end{frame}
+}
+
+\begin{figure}[h]
+ \caption{Caption nulo}
+ \centering
+%% \includegraphics[scale=0.4]{images/15_clusters,_10000_samples,_744592_seed.png}
+ \label{fig:nada}
+\end{figure}
+\begin{figure}[h]
+ \caption{Caption nulo2}
+ \centering
+% \includegraphics[scale=0.4]{images/15_clusters,_10000_samples,_744592_seed.png}
+ \label{fig:n}
+\end{figure}
+% % % % % % 
+% \centering
+% \begin{tabu} to 0.5\textwidth { | X[c] | X[c] |}
+%      \hline
+%      Parâmetro & Valor \\
+%      \hline
+%      n\_samples & 10.000\\
+%      \hline
+%      n\_features & 3\\
+%      \hline
+%      cluster\_std & 1.0\\
+%      \hline
+%      random\_state & 666\\
+%     \hline
+%     \label{parametros}
+% \end{tabu}
+% \DeactivateBG{}
+
+\begin{frame}{Frame Title}
+\begin{table}[ht]
+\centering
+    \caption{A table without vertical lines.}
+    \begin{tabular}[t]{|c|c|}
+        \hline
+         Parâmetro & Valor \\
+         \hline
+         n\_samples & 10.000\\
+         \hline
+         n\_features & 3\\
+         \hline
+         cluster\_std & 1.0\\
+         \hline
+         random\_state & 666\\
+        \hline
+    \end{tabular}
+\end{table}%
+\end{frame}
+
+\begin{tabularx}{\textwidth}{|X|c|}
+  \hline
+  \textbf{Symptom} & \textbf{Metric} \\
+\hline
+Class that has many accessor methods and accesses a lot of external data & ATFD is more than a few\\
+Class that is large and complex & WMC is high\\
+Class that has a lot of methods that only operate on a proper subset of the instance variable set & TCC is low\\
+\end{tabularx}
+
+% \begin{tabular*}{0.4\textwidth}{cc}
+%   \hline
+%   label 1 & label 2\\
+%   \hline 
+%   item 1  & item 2\\
+%   \hline
+% \end{tabular*}
+
+% 
+\newcommand{\terminal}[1]{ \bnfpn{\textbf{#1}} }
+
+\newcommand{\production}[1]{\bnfpn{\textit{#1}}}
+\newcommand{\IT}[1]{\textit{#1}}
+
+\begin{bnf*}
+	\bnfprod{\IT{param}} {\production{type-specifier}\ \textbf{ID}\ \bnfor\ \production{type-specifier}\ \textbf{ID}\ [\ ]}\ \\
+  \bnfprod{\IT{program}}  {\production{decl-list}} \\
+  \bnfprod{\IT{program}} {\production{decl-list}} \\
+  \bnfprod{\IT{program}} {\IT{decl-list} \bnfor \IT{decl}}\\
+  \bnfprod{\IT{list-items}} {\production{item} \bnfor \bnfpn{item}} \\
+  \bnfprod{\IT{decl-list}} {\production{decl-list}\ \production{decl} \bnfor \production{decl} 
+     \bnfsp \bnfts{;} \bnfsp \bnfpn{listitems}}\\
+  \bnfprod{item} {\bnftd{description of item}}\\
+\bnfprod{\IT{program}}  {declaration-list} \\
+\bnfprod{\IT{declaration-list}}  {declaration-list declaration \bnfor declaration} \\
+\bnfprod{\IT{declaration}}  {var-declaration \bnfor fun-declaration} \\
+\bnfprod{\IT{var-declaration}}  {type-specifier \textbf{ID} ; \bnfor type-specifier \textbf{ID} [ NUM ] ;} \\
+\bnfprod{\IT{type-specifier}}  {\textbf{int} \bnfor \textbf{void}} \\
+\bnfprod{\IT{fun-declaration}}  {type-specifier \textbf{ID} ( params ) compound-stmt} \\
+\bnfprod{\IT{params}}  {param-list \bnfor \textbf{void}} \\
+\bnfprod{\IT{param-list}}  {param-list , param \bnfor param} \\
+\bnfprod{\IT{param}}  {type-specifier \textbf{ID} \bnfor type-specifier \textbf{ID} [ ]} \\
+\bnfprod{\IT{compound-stmt}}  {{ local-declarations statement-list }} \\
+\bnfprod{\IT{local-declarations}}  {local-declarations var-declarations \bnfor empty} \\
+\bnfprod{\IT{statement-list}}  {statement-list statement \bnfor empty} \\
+\bnfprod{\IT{statement}}  {expression-stmt \bnfor compound-stmt \bnfor selection-stmt \bnfor iteration-stmt \bnfor return-stmt} \\
+\bnfprod{\IT{expression-stmt}}  {expression ; \bnfor ;} \\
+\bnfprod{\IT{selection-stmt}}  {if ( expression ) statement \bnfor if ( expression ) statement else statement} \\
+\bnfprod{\IT{iteration-stmt}}  {while ( expression ) statement} \\
+\bnfprod{\IT{return-stmt}}  {return ; \bnfor return expression ;} \\
+\bnfprod{\IT{expression}}  {var = expression \bnfor simple-expression} \\
+\bnfprod{\IT{var}}  {\textbf{ID} \bnfor \textbf{ID} [ expression ]} \\
+\bnfprod{\IT{simple-expression}}  {additive-expression relop additive-expression \bnfor additive-expression} \\
+\bnfprod{\IT{relop}}  {<= \bnfor < \bnfor > \bnfor >= \bnfor == \bnfor !=} \\
+\bnfprod{\IT{additive-expression}}  {additive-expression addop term \bnfor term} \\
+\bnfprod{\IT{addop}}  {+ \bnfor -} \\
+\bnfprod{\IT{term}}  {term mulop factor \bnfor factor} \\
+\bnfprod{\IT{mulop}}  {* \bnfor /} \\
+\bnfprod{\IT{factor}}  {( expression ) \bnfor var \bnfor call \bnfor NUM} \\
+\bnfprod{\IT{call}}  {\textbf{ID} ( args )} \\
+\bnfprod{\IT{args}}  {arg-list \bnfor empty} \\
+\bnfprod{\IT{arg-list}}  {arg-list , expression \bnfor expression} \\\end{bnf*}
+
+\end{document}

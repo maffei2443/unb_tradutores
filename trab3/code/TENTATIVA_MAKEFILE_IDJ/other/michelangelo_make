@@ -1,0 +1,34 @@
+.PHONY: clean distclean
+
+all: TestGOL
+
+clean:
+	rm -f *.o TestGOL GOL.aux GOL.log GOL.pdf GOL.dvi GOL.ps GOL
+
+distclean: clean
+	rm -f Absyn.h Absyn.c Test.c Parser.c Parser.h Lexer.c Printer.c Printer.h GOL.l GOL.y
+
+TestGOL: Absyn.o Lexer.o Parser.o Printer.o Test.o
+	@echo "Linkando..."
+	gcc -g -W -Wall Absyn.o Lexer.o Parser.o Printer.o Test.o -o TestGOL
+
+Absyn.o: Absyn.c Absyn.h
+	gcc -g -W -Wall -c Absyn.c
+
+Lexer.c: GOL.l
+	flex -PGOL -oLexer.c GOL.l
+
+Parser.c: GOL.y
+	bison -t -pGOL GOL.y -o Parser.c
+
+Lexer.o: Lexer.c Parser.h
+	gcc -g -W -Wall -c Lexer.c 
+
+Parser.o: Parser.c Absyn.h
+	gcc -g -W -Wall -c Parser.c
+
+Printer.o: Printer.c Printer.h Absyn.h
+	gcc -g -W -Wall -c Printer.c
+
+Test.o: Test.c Parser.h Printer.h Absyn.h
+	gcc -g -W -Wall -c Test.c
