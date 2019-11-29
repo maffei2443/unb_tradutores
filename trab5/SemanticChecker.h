@@ -12,6 +12,9 @@ int was_declared(SymEntry** reshi, char* id);
 // Retorna TRUE sse n-esimos parametros dao match com os
 // n-esimos parametros
 
+void link_symentry_no(SymEntry** sym, No** no);
+void point_no_symentry(SymEntry** sym, No** no);
+void set_type_and_uni_link(No* p, SymEntry* old, No* tok) ;
 
 int id_has_type(SymEntry** reshi, char* id, Type type);
 int can_cast(Type t1, Type t2);

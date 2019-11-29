@@ -35,12 +35,28 @@ int match_paramList(No* oldParam, No* param) {
   return !oldParam && !param;
 }
 
-
 void link_symentry_no(SymEntry** sym, No** no) {
+  (*sym)->astNode = *no;	  assert(*no && *sym);
+  printf("(BI directional) linking... %s <--> %p\n", (*sym)->id, *no);
+  (*no)->symEntry = *sym;	  (*no)->symEntry = *sym;
   (*sym)->astNode = *no;
-  (*no)->symEntry = *sym;
-  // fprintf(stderr, "\t[link_symentry_no]\t %p %p\n", *sym, *no);
+  // fprintf(stderr, "\t[link_symentry_no]\t %p %p\n", *sym, *no);	  // fprintf(stderr, "\t[link_symentry_no]\t %p %p\n", *sym, *no);
 }
+
+
+// Utilizado em caso de utilização MAS nao de declaracao de variavel local
+void point_no_symentry(SymEntry** sym, No** no) {
+  assert(*no && *sym);
+  printf("(UNI directional) linking... %s <--> %p\n", (*sym)->id, *no);
+  (*no)->symEntry = *sym;
+}
+
+void set_type_and_uni_link(No* p, SymEntry* old, No* tok) {
+    tok->type = old->type;
+    p->type = old->type;
+    point_no_symentry(&old, &tok);  
+}
+
 
 //  Retorna TYPE_UNDEFINED nos casos:
 // - left/right ser TYPE_UNDEFINED

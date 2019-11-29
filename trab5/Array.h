@@ -14,7 +14,7 @@ typedef struct{
   size_t size;
 } Array;
 
-
+Array* Array_New();
 void Array_Init(Array * a, size_t initSize);
 void Array_Insert(Array * a, char * other);
 void Array_Delete(Array* a);

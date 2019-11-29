@@ -77,7 +77,7 @@ char* widen(char* src, Type t_src ,Type t_dest) {
   src = str_ptr_clone(src);
   if(t_src == t_dest) return src;
   else if (t_src == TYPE_INT && t_dest == TYPE_FLOAT) {
-    int a;
+    short  a;
     char* buf = itoa(a=temp_next(), calloc(1, 200));
     char* buf2 = calloc(1, 200 + strlen(buf) + 1);
     sprintf(buf2, "inttofl $%d, %s", a, buf);
