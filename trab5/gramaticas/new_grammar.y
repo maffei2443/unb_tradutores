@@ -188,7 +188,7 @@ declFun : AHEAD BASE_TYPE ID {
 typeAndNameSign : BASE_TYPE ID {
   SymEntry* oldEntry = last_decl(&reshi, $ID);
   printf("Recuperado da tabela de simbolos: %p\n", oldEntry);
-  printf("base_type: %s", type2string($BASE_TYPE));
+  printf("base_type: %s\n", type2string($BASE_TYPE));
   char err = 0;
   if(oldEntry) {
     if( !strcmp(oldEntry->escopo, currScope) ) {
@@ -598,6 +598,7 @@ defFun : BASE_TYPE ID '('{
   }
   currScope = $ID;
 } paramListVoid ')' '{' declList localStmtList '}' {
+  printf("%p ====== paramListVoid\n", $paramListVoid);
   if(check_signature) {   
     fprintf(stderr,"Checando assinatura de %s\n", $ID);
     currScope = GLOBAL_SCOPE;
@@ -639,8 +640,10 @@ defFun : BASE_TYPE ID '('{
   if (!aborta) {  // nao modificar a entrada jah existente da tabela de simbolos
     tmp->tag = TAG_DEF_FUN;
     tmp->type = $BASE_TYPE;
-    $$->param = $paramListVoid;
-    link_symentry_no(&tmp, &$$);
+    // if($$->param) {
+      $$->param = $paramListVoid;
+      link_symentry_no(&tmp, &$$);
+    // }
   }
   else
     aborta = 0;
@@ -704,26 +707,26 @@ expr : expr '+' expr {
   // printf("t%d = %d + %d\n", temp_next(), $1->ival, $3->ival);
   // printf("[AsList] t%d = %d + %d\n", temp_next(), $$->child->ival, $$->childLast->ival);
 
-  char buf[600];
-  if($1->is_const == $3->is_const) {  // ambos constantes ou nao constantes
-    if($1->is_const)
-      switch ($1->type) {
-        case TYPE_INT: sprintf(buf, "t%d = %d + %d\n", temp_next() , $1->ival, $3->ival); break;
-        case TYPE_FLOAT: sprintf(buf, "t%d = %f + %f\n", temp_next() , $1->fval, $3->fval); break;
-        default:break;
-      }
-    else {
-      // TODO: verificar se eh parametro, local ou global. Em cada caso deve
-      // ser feito algo diferente:
-      // - global: apenas sar o nome do identificador, pois nao hah clash
-      // - parametro: verificar em qual local da pilha estah o parametro
-      // - local: usar temporarios de algum jeito.
-      //  + TODO: tratar esse caso
-      sprintf(buf, "t%d = %s + %s\n", temp_next() , $1->symEntry->id, $3->symEntry->id);
-    }
+  // char buf[600];
+  // if($1->is_const == $3->is_const) {  // ambos constantes ou nao constantes
+  //   if($1->is_const)
+  //     switch ($1->type) {
+  //       case TYPE_INT: sprintf(buf, "t%d = %d + %d\n", temp_next() , $1->ival, $3->ival); break;
+  //       case TYPE_FLOAT: sprintf(buf, "t%d = %f + %f\n", temp_next() , $1->fval, $3->fval); break;
+  //       default:break;
+  //     }
+  //   else {
+  //     // TODO: verificar se eh parametro, local ou global. Em cada caso deve
+  //     // ser feito algo diferente:
+  //     // - global: apenas sar o nome do identificador, pois nao hah clash
+  //     // - parametro: verificar em qual local da pilha estah o parametro
+  //     // - local: usar temporarios de algum jeito.
+  //     //  + TODO: tratar esse caso
+  //     sprintf(buf, "t%d = %s + %s\n", temp_next() , $1->symEntry->id, $3->symEntry->id);
+  //   }
 
-  }
-  printf("TOPP: %s\n", buf);
+  // }
+  // printf("TOPP: %s\n", buf);
 }
 | expr '-' expr {
   MAKE_NODE(expr);
@@ -911,13 +914,17 @@ call : ID '(' argList ')' {
     $$->type = aux->type;
     if(is_fun (aux->tag)) {
       printf("%s eh uma funcao!.\n", aux->id);
-      printf("\t astNode: %p!.\n", aux->astNode);
       // Ver se assinatura bate com a declaracao!
-      int match = match_paramList(aux->astNode->param, $argList);
-      if(match > 0) 
-        printf("[++++Semantico++++] Argumentos de %s corretos\n", $ID);
-      else
-        printf("[----Semantico----] Uso indevido de %s\n", $ID); 
+      if(aux->astNode) {
+        int match = match_paramList(aux->astNode->param, $argList);
+        if(match > 0) 
+          printf("[++++Semantico++++] Argumentos de %s corretos\n", $ID);
+        else
+          printf("[----Semantico----] Uso indevido de %s\n", $ID); 
+      } else {
+        printf("TODO : CHECAR SE ARGLIST EH VAZIO !!!\n");
+      }
+      
     }
     else {
       printf("%s nao eh funcao para ser chamada\n", aux->id);
@@ -1116,8 +1123,6 @@ int main(){
   print_reshi(reshi);
   yylex_destroy();
   
-  free_All_Child(root);
-  free_Lis(root);
-  // delGambs();
   delete_all(reshi);
+  free_All_Child(root);
 }

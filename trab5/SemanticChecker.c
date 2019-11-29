@@ -165,7 +165,6 @@ SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
       neoEntry->local.line = numlines;
       neoEntry->local.col = currCol;
       HASH_ADD_STR( (*reshi), id, neoEntry );/* id: name of key field */
-      addToDel(&neoEntry);
     }
     else {    // Checar se eh declaracao no msm escopo. Se for, nao adiciona e dah pau (retorna NULL);
       printf("Possivel conflito com %s:%s\n", id, neoEntry->escopo);
@@ -208,16 +207,6 @@ int can_cast(Type t1, Type t2) {
   
 }
 
-void addToDel(SymEntry** p) {
-  if(gambs_qtd  >= gambs_tam) {
-    gambs_tam = 2 * (gambs_tam + 1);
-    gambs = (SymEntry**)realloc(gambs, gambs_tam*sizeof(SymEntry*));
-  }
-  gambs[gambs_qtd] = *p;
-  // printf("AddToDel: %p\n", gambs[gambs_qtd]);
-  // printf("\tcom id: %s\n", gambs[gambs_qtd]->id);
-  gambs_qtd++;
-}
 
 void delGambs() {
   printf("QTD : %d\n", gambs_qtd);
@@ -236,8 +225,9 @@ void delete_all(SymEntry* tab) {
 
   HASH_ITER(hh, tab, current_user, tmp) {
     HASH_DEL(tab, current_user);  /* delete; users advances to next */
-    free(current_user);            /* optional- if you want to free  */
+    SymEntry_Destroy(current_user);            /* optional- if you want to free  */
   }
+  free(tab);
 }
 // msg_erros
 

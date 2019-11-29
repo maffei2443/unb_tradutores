@@ -37,23 +37,28 @@ void show_Spaces(int qtd){
 }
 
 // Ok.
+// obs: NÃO INICIALIZA code
 No* No_New(int v) {
   No* no = (No*)calloc(1,sizeof(No));
   // NOTA: em teoria, nada (exceto inicializacao de ival) abaixo eh necessario por conta do calloc.
   no->type = TYPE_UNDEFINED;
-  // no->child = NULL;
-  // no->childLast = NULL;
-  // no->n = NULL;
-  // // no->p = NULL;
-  // no->sval = NULL;  no->sval_alloc = 0;
-  // no->tname = NULL; no->tname_alloc = 0;
-  // no->symEntry = NULL;
-  // no->nextAux = NULL;
-  // no->param = NULL;
-  // // no->scope = NULL; no->scope_alloc = 0; 
+  // Aqui ficarah o cohdigo associado a cada variavel, tal qual no livro
+  // no->code = Array_New();
+  // Array_Init(&no->code, 10);
+  no->child = NULL;
+  no->childLast = NULL;
+  no->n = NULL;
+  // no->p = NULL;
+  no->sval = NULL;  no->sval_alloc = 0;
+  no->tname = NULL; no->tname_alloc = 0;
+  no->symEntry = NULL;
+  no->nextAux = NULL;
+  no->param = NULL;
+  // no->scope = NULL; no->scope_alloc = 0; 
   // no->isToken = 0;
   // no->hasAux = 0;
   no->ival = v;
+  no->code = NULL;
   // no->iaux = 0;
   // no->fval = 0.0;
   // no->is_const = 0;
@@ -72,8 +77,9 @@ No* Token_New(char* tname, char* sval) {
   if(!token->sval ) abort();
   memcpy(token->tname, tname, strlen(tname));
   memcpy(token->sval, sval, strlen(sval));
-  printf("[Token_New(char* tname, char* sval)] sval = %s\n", sval);
-  printf("[Token_New(char* tname, char* sval)] token->sval = %s\n\n", token->sval);
+  // printf("[Token_New(char* tname, char* sval)] sval = %s\n", sval);
+  // printf("[Token_New(char* tname, char* sval)] token->sval = %s\n\n", token->sval);
+  // printf("ALOCOU %p\n", token);
   return token;
 }
 
@@ -81,19 +87,22 @@ No* Token_New(char* tname, char* sval) {
 // para NULL. Depois, dah free nessa variavel.
 // NAO TESTADO
 void No_Destroy(No* no) {
-  if(!no) return;
-  // NAO DEVE TER NEXT E AUX; UM OU OUTRO
-  assert(!(no->hasAux == 1 && no->n != NULL));
-  no->n = NULL;
-  no->child = NULL; no -> childLast = NULL;
-  no->nextAux = NULL; no->param = NULL;
-  if(no->sval == NULL && no->sval_alloc)
+  // if(!no) return;
+  // // NAO DEVE TER NEXT E AUX; UM OU OUTRO
+  // assert(!(no->hasAux == 1 && no->n != NULL));
+  // no->n = NULL;
+  // no->child = NULL; no -> childLast = NULL;
+  // no->nextAux = NULL; no->param = NULL;
+  if(no->sval_alloc)
     DESTROY_PTR(no->sval);
-  if(no->tname == NULL && no->tname_alloc)
+  if(no->tname_alloc)
     DESTROY_PTR(no->tname);
-  no->symEntry = NULL;  // NAO MEXR NA TABELA DE SIMBOLOS!
+  
+  // no->symEntry = NULL;  // NAO MEXR NA TABELA DE SIMBOLOS!
   // if(no->scope == NULL && no->scope_alloc)
   //   DESTROY_PTR(no->scope);
+  // Code_Destroy(no->code);
+  // // free(no->code);
   DESTROY_PTR(no);
 }
 
@@ -166,28 +175,36 @@ void add_Node_Next(No* no, No* next) {
 // Pega proximo, libera atual.
 // ... Ao final, atual serah o ultimo
 void free_Lis(No* no) {
+  printf("[free_Lis] %p\n", no);
+  // return;
   if(!no) return;
+  // if(!(no->n)) return;
   No* next = no->n;
   while(next) {
-      free(no);  // valgrind reclama; mas n dixa leak
+      // No_Destroy(no);  // valgrind reclama; mas n dixa leak
+      // printf("FREE at %p\n", no);
       no = next;
       next = next->n;  
-    } 
-  free(no); no = NULL;
+  }
+  // No_Destroy(no);
+  // printf("FREE at %p\n", no);
+  
 }
 
 // Chama o "freelLis" para child,
 // mas soh quando todos os childs jah o tiverem feito tambem.
 // TESTADO, FUNCIONA
 void free_All_Child(No * no) {
+  // printf("[free_All_Child] ToFree? %p\n", no);
   if(!no) return;
   No* child = no->child;
-  if(!child) return;
-  while(child != NULL) {    
+  while(child != NULL) {
+    No* nxt = child->n;
     free_All_Child(child);
-    child = child->n;
+    child = nxt;
   }
-  free_Lis(no->child);
+  // printf("[free_All_Child-final] %p\n", no);
+  No_Destroy(no);
 }
 
 void show_Lis(No* head, Field field) {
@@ -262,6 +279,7 @@ int ListSize(No* no) {
 // Estava em common
 SymEntry* SymEntry_New(char* id, int tag, char* escopo){
   SymEntry* neo = (SymEntry*)calloc(1, sizeof(SymEntry));
+  printf("CONSTRUINDO <<<>>>>>> %s\n", id);
   neo->line = -1;
   neo->col = -1;
   memcpy(neo->id, id, strlen(id));
@@ -274,29 +292,32 @@ SymEntry* SymEntry_New(char* id, int tag, char* escopo){
   neo->type = TYPE_UNDEFINED;
   neo->astNode = NULL; // NAO MEXER NA ARVORE ABSTRATA!
   neo->def_fun = 0;    // usado para diferenciar entre declaracao e definicao de funcao
-
+  return neo;
 }
 // Destroi entrada da TS e todas suas TS aninhadas 
 // (valido apenas p/ declaracao de funcao)
 void* SymEntry_Destroy(void* p){
   SymEntry* sym = (SymEntry*)p;
   if(!sym) return NULL;
+  printf("DESTRUINDO >>> %p->id, sval = %s, %s\n", sym,sym->id, "sym->sval");
   if(sym->tag == TAG_DEF_FUN || sym->tag == TAG_DECL_FUN) {
-    No* tmp = sym->astNode->param;
-    No* tmp2; 
-    while(tmp) {
-      tmp2 = tmp->nextAux;
-      free(tmp);
-      tmp = tmp2;
+    // printf("%p", sym->astNode);
+    if(sym->astNode) {
+      No* tmp = sym->astNode->param;
+      while(tmp) {
+        No* tmp2 = tmp->nextAux;
+        SymEntry_Destroy(tmp);
+        tmp = tmp2;
+      }
+    } else {
+      printf("$$$ Funcao %s nao tem parametros $$$\n", sym->id);
     }
-    // trata-se se funcao! liberar portanto
-    // a lista de nohs que compoem sua assinatura
-    // free_Lis(sym->u.func.next); sym->u.func.next = NULL;
-    // SymEntry_Destroy(sym->u.func.nestedSym); sym->u.func.nestedSym = NULL;
-    // sym->u.func.upperSym = NULL;  // nao tentar dar free no pai; ciclo
   }
+/*   if(sym->escopo)
+    
+ */
+  free(sym->escopo);
   free(sym);
-  sym = NULL;
   return NULL;
 }
 

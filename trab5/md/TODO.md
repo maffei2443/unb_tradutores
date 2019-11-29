@@ -14,3 +14,4 @@
 - [] Fazer os CASTs sempre que necessário
 - [] Gerar label para *controles de fluxo*
 - [] tudo mais xD
+- [] gramatica permitir parametros sem nome em DECLARAÇÕES (pegar de commits futuros)
