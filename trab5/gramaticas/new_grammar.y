@@ -154,7 +154,7 @@ declFun : AHEAD BASE_TYPE ID {
   SymEntry* tmp = last_decl(&reshi, $ID);
   if( !tmp ) {
     printf("DEVE ADICIONAR %s como declaracao de funcao\n", $ID);
-    add_entry(&reshi, $ID, TAG_DECL_FUN, STUB);
+    add_entry(&reshi, $ID, TAG_DECL_FUN, -1);
     err = 0;    
   }
   else {
@@ -208,7 +208,7 @@ typeAndNameSign : BASE_TYPE ID {
   }
 
   if (!err) {
-    SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_UNDEFINED, STUB);
+    SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_UNDEFINED, local_pos++);
     if(neoEntry) {  //TODO: trtar esse caso
       neoEntry->type = $BASE_TYPE;
       MAKE_NODE(typeAndNameSign);
@@ -254,7 +254,7 @@ typeAndNameSign : BASE_TYPE ID {
     }  else if ($num->ival < 0) {
       printf("[Semantico] Erro: Tamanho deve ser >= 0\n");
     }  else {
-      SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_UNDEFINED, STUB);
+      SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_UNDEFINED, local_pos++);
       Type type = $BASE_TYPE == TYPE_FLOAT ? TYPE_ARRAY_FLOAT : TYPE_ARRAY_INT;
       if(neoEntry) {
         // TODO: checar se num eh inteiro. Se nao for, ERRO
@@ -313,7 +313,7 @@ typeAndNameSign : BASE_TYPE ID {
     }
     else {
       Type type = $BASE_TYPE == TYPE_FLOAT ? TYPE_MAT_FLOAT : TYPE_MAT_INT;
-      SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_UNDEFINED, STUB);
+      SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_UNDEFINED, local_pos++);
       if(neoEntry) {
         // TODO: checar se num eh inteiro. Se nao for, ERRO
         MAKE_NODE(typeAndNameSign);
@@ -412,7 +412,7 @@ param : BASE_TYPE {
     $$ = Token_New(STR(param), $ID );
     if(!declared_curr_fun) {
       // Associar temporario a parametro?
-      SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_PARAM, STUB);
+      SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_PARAM, local_pos++);
       if(neoEntry) {
         neoEntry->type =  $BASE_TYPE;
         $$->type =  $BASE_TYPE;
@@ -432,37 +432,47 @@ param : BASE_TYPE {
   free($ID), $ID = NULL;
 }
 | BASE_TYPE ID '[' ']' {
-  $$ = Token_New(STR(param), $ID);
-  SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_PARAM , STUB);
-  // SEMANTICO
+  if( defFun_rule ) {
+    $$ = Token_New(STR(param), $ID);
+    SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_PARAM , local_pos++);
+    // SEMANTICO
 
-  PARAM_RPT_NAME_CHECK(-3, -2);
-  
-  if($BASE_TYPE == TYPE_INT)    neoEntry->type = TYPE_ARRAY_INT;
-  else if ($BASE_TYPE == TYPE_FLOAT) neoEntry->type = TYPE_ARRAY_FLOAT;
-  else {
-    printf("BASE_TYPE deve ser apenas TYPE_INT ou TYPE_FLOAT\n");
-    abort();
+    PARAM_RPT_NAME_CHECK(-3, -2);
+    
+    if($BASE_TYPE == TYPE_INT)    neoEntry->type = TYPE_ARRAY_INT;
+    else if ($BASE_TYPE == TYPE_FLOAT) neoEntry->type = TYPE_ARRAY_FLOAT;
+    else {
+      printf("BASE_TYPE deve ser apenas TYPE_INT ou TYPE_FLOAT\n");
+      abort();
+    }
+    $$->type = neoEntry->type;
+    if(neoEntry)
+      link_symentry_no(&neoEntry, &$$);
   }
-  $$->type = neoEntry->type;
-  if(neoEntry)
-    link_symentry_no(&neoEntry, &$$);
+  else {
+    $$ = Token_New(STR(param), type2string($BASE_TYPE == TYPE_INT ? TYPE_ARRAY_INT : TYPE_ARRAY_FLOAT) );
+  }
   free($ID), $ID = NULL;
 }
 
 | MAT_TYPE BASE_TYPE ID {
   // TODO: checar por declaracao previa de parametro!
-  $param = Token_New(STR(param), $ID);
-  SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_PARAM, STUB);
-  // Semantico
-  PARAM_RPT_NAME_CHECK(-1, 0);
-  
-  link_symentry_no(&neoEntry, &$$);  
-  if($BASE_TYPE == TYPE_INT) neoEntry->type = TYPE_MAT_INT;  
-  else if ($BASE_TYPE == TYPE_FLOAT) neoEntry->type = TYPE_MAT_FLOAT;
+  if( defFun_rule ) {
+    $$ = Token_New(STR(param), $ID);
+    SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_PARAM, local_pos++);
+    // Semantico
+    PARAM_RPT_NAME_CHECK(-1, 0);
+    
+    link_symentry_no(&neoEntry, &$$);  
+    if($BASE_TYPE == TYPE_INT) neoEntry->type = TYPE_MAT_INT;  
+    else if ($BASE_TYPE == TYPE_FLOAT) neoEntry->type = TYPE_MAT_FLOAT;
+    else {
+      printf("BASE_TYPE deve ser apenas TYPE_INT ou TYPE_FLOAT\n");
+      abort();
+    }
+  }
   else {
-    printf("BASE_TYPE deve ser apenas TYPE_INT ou TYPE_FLOAT\n");
-    abort();
+    $$ = Token_New(STR(param), type2string($BASE_TYPE == TYPE_INT ? TYPE_MAT_INT : TYPE_MAT_FLOAT) );
   }
   free($ID), $ID = NULL;
 }
@@ -594,6 +604,7 @@ loop : WHILE '(' expr ')' block {
 
 defFun : BASE_TYPE ID '('{
   defFun_rule = 1;
+  local_pos = 0;
   SymEntry* old = last_decl(&reshi, $ID);
   // CHECAGEM DE REDECLARACAO FEITA AQUI. 
   printf("lastDecl: (%p)\n", old);
@@ -615,7 +626,7 @@ defFun : BASE_TYPE ID '('{
   }
   else {
     printf("definindo funcao %s\n", $ID); fflush(stdout);
-    SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_DEF_FUN, STUB);
+    SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_DEF_FUN, -1);
     if(!neoEntry) {
       printf("Erro na definicao de funcao %s [bug]\n", $ID);
     }

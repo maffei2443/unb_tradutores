@@ -48,7 +48,7 @@ typedef struct SymEntry{
   struct No* astNode;
   struct SymEntry* next; // encadeamento para caso de conflito
   UT_hash_handle hh;
-  short unsigned local_pos;
+  short local_pos;
   // numero utilizado para localizacao da variahvel no escopo local!
   // Deve comecar em 0 para cada escopo
 } SymEntry;

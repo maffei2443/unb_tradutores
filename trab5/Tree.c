@@ -403,5 +403,5 @@ void show_entry(SymEntry* s) {
         printf("NOT FOUND TYPE FOR: %s", type2string(s->type));
     }
   }  
-  printf("\t(%p)l. %d, c. %d\n", s,s->local.line, s->local.col);
+  printf("\t(%p)l. %d, c. %d | res-temp: %d\n", s,s->local.line, s->local.col, s->local_pos);
 }
