@@ -704,29 +704,33 @@ expr : expr '+' expr {
   $$->type = bin_expr_type( $1->type, $3->type, '+');
   
   // GERACO DE CODIGO
-  // printf("t%d = %d + %d\n", temp_next(), $1->ival, $3->ival);
-  // printf("[AsList] t%d = %d + %d\n", temp_next(), $$->child->ival, $$->childLast->ival);
 
-  // char buf[600];
-  // if($1->is_const == $3->is_const) {  // ambos constantes ou nao constantes
-  //   if($1->is_const)
-  //     switch ($1->type) {
-  //       case TYPE_INT: sprintf(buf, "t%d = %d + %d\n", temp_next() , $1->ival, $3->ival); break;
-  //       case TYPE_FLOAT: sprintf(buf, "t%d = %f + %f\n", temp_next() , $1->fval, $3->fval); break;
-  //       default:break;
-  //     }
-  //   else {
-  //     // TODO: verificar se eh parametro, local ou global. Em cada caso deve
-  //     // ser feito algo diferente:
-  //     // - global: apenas sar o nome do identificador, pois nao hah clash
-  //     // - parametro: verificar em qual local da pilha estah o parametro
-  //     // - local: usar temporarios de algum jeito.
-  //     //  + TODO: tratar esse caso
-  //     sprintf(buf, "t%d = %s + %s\n", temp_next() , $1->symEntry->id, $3->symEntry->id);
-  //   }
+  char buf[600];
+  if($1->is_const == $3->is_const) {  // ambos constantes ou nao constantes
+    if($1->is_const)
+      switch ($1->type) {
+        case TYPE_INT: sprintf(buf, "t%d = %d + %d\n", temp_next() , $1->ival, $3->ival); break;
+        case TYPE_FLOAT: sprintf(buf, "t%d = %f + %f\n", temp_next() , $1->fval, $3->fval); break;
+        default:break;
+      }
+    else {      
+      // TODO: verificar se eh parametro, local ou global. Em cada caso deve
+      // ser feito algo diferente:
+      // - global: apenas usar o nome do identificador, pois nao hah clash
+      // - parametro: verificar em qual local da pilha estah o parametro
+      // - local: usar temporarios de algum jeito.
+      //  + TODO: tratar esse caso
+      sprintf(buf, "[notConstx] t%d = %s + %s\n", temp_next() , $1->symEntry->id, $3->symEntry->id);
 
-  // }
-  // printf("TOPP: %s\n", buf);
+    }
+
+  } else{
+    printf("Types: %s, %s\n", type2string($1->type), type2string($3->type));
+    char* t = widen_basic($1->symEntry->id, $1->type, $3->type);
+    sprintf(buf, "[notConst~]\t t%d = %s + %s\n", temp_next() , $1->symEntry->id, $3->symEntry->id);
+    free(t);
+  }
+  printf("%s\n", buf);
 }
 | expr '-' expr {
   MAKE_NODE(expr);
@@ -765,6 +769,12 @@ expr : expr '+' expr {
   add_Node_Child_If_Not_Null($$, $3);
   // SEMANTICO
   $$->type = bin_expr_type( $1->type, $3->type, '%');
+  if($3->type != TYPE_INT) {
+    printf("[Erro] Operando aa direita de mohdulo deve ser INTEIRO!\n");
+  }
+  else if ($1->type != TYPE_INT) {
+    printf("[Erro] Operador aa esquerda de mohdulo deve ser INTEIRO\n");
+  }
 }
 | expr '@' expr {
   MAKE_NODE(expr);
@@ -1032,9 +1042,8 @@ lvalue : ID {
        $ID, numlines, currCol - (strlen($ID) + 2), entry->local.line, entry->local.col);
     }
     else {
-      tok->type = entry->type;
-      $$->type = entry->type;
-      link_symentry_no(&entry, &tok);
+      point_no_symentry(&entry, &$$);
+      point_no_symentry(&entry, &tok);
     }
   }
   else {
@@ -1063,7 +1072,8 @@ lvalue : ID {
       printf("[Semantico] Erro: %s nao eh indexavel!\n",  old->id);
     }
     else {
-      set_type_and_uni_link($$, old, tok);
+      point_no_symentry(&old, &$$);
+      point_no_symentry(&old, &tok);
     }
   }
   free($ID); $ID = NULL;
@@ -1084,7 +1094,8 @@ lvalue : ID {
   } else if(old->type != TYPE_MAT) {
     printf("[Semantico] Variavel (%s:%s) nao eh matriz para ser indexada duplamente!\n", old->escopo, old->id);
   } else {
-    set_type_and_uni_link($$, old, tok);
+      point_no_symentry(&old, &$$);
+      point_no_symentry(&old, &tok);    
   }
   free($ID); $ID = NULL;
 }

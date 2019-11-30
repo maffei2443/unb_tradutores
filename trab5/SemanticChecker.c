@@ -49,13 +49,15 @@ void point_no_symentry(SymEntry** sym, No** no) {
   assert(*no && *sym);
   printf("(UNI directional) linking... %s <--> %p\n", (*sym)->id, *no);
   (*no)->symEntry = *sym;
+  (*no)->type = (*sym)->type;
 }
 
-void set_type_and_uni_link(No* p, SymEntry* old, No* tok) {
-    tok->type = old->type;
-    p->type = old->type;
-    point_no_symentry(&old, &tok);  
+/* 
+void set_type_and_uni_link(SymEntry** old, No** tok) {
+    (*tok)->type = (*old)->type;
+    point_no_symentry(old, tok);
 }
+*/
 
 
 //  Retorna TYPE_UNDEFINED nos casos:
@@ -160,6 +162,9 @@ SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
     HASH_FIND_STR((*reshi), id, neoEntry);/* id already in the hash? */
     if (neoEntry == NULL) {
       neoEntry = SymEntry_New(id, tag, currScope);
+      if( !strcmp(currScope, GLOBAL_SCOPE) ) {
+        neoEntry->is_global = 1;
+      } 
       printf("\t\tNEO_ENTRY: %p\n", neoEntry);
       printf("<<<<<< add (%p) id, tag: %s, %s\n", neoEntry, id, type2string(tag));
       neoEntry->local.line = numlines;
@@ -229,7 +234,7 @@ void delete_all(SymEntry* tab) {
     if (current_user)
       SymEntry_Destroy(current_user);            /* optional- if you want to free  */
   }
-  free(tab);
+  // free(tab);
 }
 // msg_erros
 

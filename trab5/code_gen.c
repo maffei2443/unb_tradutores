@@ -72,8 +72,11 @@ char* str_ptr_clone(const char* src) {
 // OBS: dever ser dado FREE pela funcao chamadora.
 // PROBLEMAS POSSIVEIS: se src nao for passivel de dar free.
 // SOLUCAO: criar copia!
+
 char* widen(char* src, Type t_src ,Type t_dest) {
   // inicio - igual ao livro
+  // NAO USAR POR ENQUANTO
+  abort();
   src = str_ptr_clone(src);
   if(t_src == t_dest) return src;
   else if (t_src == TYPE_INT && t_dest == TYPE_FLOAT) {
@@ -101,4 +104,54 @@ char* widen(char* src, Type t_src ,Type t_dest) {
 
   }
   // return temp;
+}
+
+// Utilizado para promocao de tipo nas operacoes de:
+// +
+// -
+// /
+// *
+// Caso algum dos operadores NAO SEJA INTEIRO, retorna NULL.
+
+char* widen_basic(char* src, Type t_src, Type t_dest) {
+  
+  if( ! ( Type_Class(t_src) == TYPE_SCALAR && Type_Class(t_dest) == TYPE_SCALAR) )
+    return NULL;
+  
+  if(t_src == t_dest) return str_ptr_clone(src);
+  char* addr = calloc(10, sizeof(char));
+  
+  if (t_src == TYPE_INT && t_dest == TYPE_FLOAT) {
+    int temp = temp_next();
+    printf("inttofl $%d, %s\n", temp, src);
+    sprintf(addr, "$%d", temp);
+  }
+  else if (t_src == TYPE_FLOAT && t_dest == TYPE_INT) {
+    int temp = temp_next();
+    printf("fltoint $%d, %s\n", temp, src);
+    sprintf(addr, "$%d", temp);
+  }
+  else {
+    critical_error++;
+    printf("[Erro] Tipo %s ou %s nao suporta opecao +|*|-|/\n", type2string(t_src), type2string(t_src));
+  }
+  return addr;
+}
+
+char* get_addr(No* no) {
+  if(no->symEntry && no->symEntry->is_global) {  // eh identificador
+    return str_ptr_clone(no->symEntry->id);
+  }
+  else {
+    char* buf = calloc(20, sizeof(char));
+    
+    if(no->symEntry) {  // eh variavel local
+      sprintf(buf, "$%d", no->symEntry->temp_num);
+    } else {  
+      int temp = temp_next();
+      sprintf(buf, "$%d", temp);
+    }
+    
+    return buf;
+  }
 }

@@ -7,8 +7,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "Array.h"
-#include "code_gen.h"
-#include "uthash.h"
+#include "Common.h"
+
 #include <assert.h>
 
 #define ptfi(str, val) printf(str " %d\n",  (val))
@@ -27,112 +27,10 @@
     _a < _b ? _a : _b;       \
 })
 
-/* typedef struct {
-  int lines, isChar, notChar;
-  int lineInit, colInit;
-} CommBlock;
- */CommBlock comm_block;
-
-/* typedef struct  {
-  int lineInit,
-      colInit,
-      notChar,
-      isChar;
-} LineComment; */
+CommBlock comm_block;
 LineComment lineComm;
-
 Array currString;
-/* typedef struct {
-  int line,
-      col;
-} StringStart;
 
-typedef struct {
-  int line, col;
-} Local;
-
-typedef enum {
-  IVAL  = 0,
-  SVAL,
-  TVAL
-} Field;
-
-typedef enum {
-  TYPE_CHAR = -3,
-  TYPE_VOID = -1,
-  TYPE_UNDEFINED = 0, 
-  TYPE_INT = 1,
-  TYPE_FLOAT = 2,
-  TYPE_SCALAR = 3,
-  TYPE_ARRAY_INT = 4,
-  TYPE_ARRAY_FLOAT = 8,
-  TYPE_ARRAY = 9,
-  TYPE_MAT_INT = 16,
-  TYPE_MAT_FLOAT = 32,
-  TYPE_MAT = 33,
-  TYPE_POINTER = 120,
-  TYPE_LIST,
-  TYPE_LIST_LIST
-} Type;
-
-
-typedef enum {
-  TAG_UNDEFINED = 0,
-  TAG_DECL_FUN = TYPE_POINTER + 1,
-  TAG_DEF_FUN,
-  TAG_PARAM
-} Tag;
- */
-
-typedef enum {
-  BASE_TYPE_UNDEFINED = 0,
-  BASE_TYPE_INT,
-  BASE_TYPE_FLOAT
-} Base_Type;
-
-// Indica TIPO DA REGRA da entrada de simbolos
-
-typedef struct SymEntry{
-  
-  char id[257];
-  short int temp_num;   // numero usado para quando se for salvar seu valor/endereço, escolher o temporario associado
-  Tag tag;
-  Type type;  // nao ideal, MAS fica mais facil...
-  Base_Type base_type;
-  char* escopo;
-  Local local;
-  char def_fun;
-  int line, col;
-  struct No* astNode;
-  struct SymEntry* next; // encadeamento para caso de conflito
-  UT_hash_handle hh;
-} SymEntry;
-
-typedef struct No {
-  // struct No * p;   // ponteiro para pai
-  struct No * child;
-  struct No * childLast;
-  struct No * n;
-  struct No * nextAux;
-  struct No * param;  // usado apenas por entradas representando FUNCOES
-  SymEntry* symEntry;
-
-  char* sval;
-  int ival;
-  int iaux;
-  float fval;
-  
-  //  Indica tipo do no (ex: expr, param, loop...)
-  char* tname;        
-  char is_const;
-  char sval_alloc;
-  char tname_alloc;
-  char code_alloc;
-  Type type;
-  char isToken;    // nesse modo, usa-se mesmo noh para token e regra
-  char hasAux;
-  Code* code;
-} No;
 
 int is_fun(Tag t);
 
@@ -164,7 +62,7 @@ void add_Node_Next(No* no, No* next) ;
 // Pega proximo, libera atual.
 // ... Ao final, atual serah o ultimo
 // NO LEAKS, mas erros :/
-void free_Lis(No* no) ;
+void free_Param_Lis(No* no) ;
 
 // Chama o "freelLis" para child,
 // mas soh quando todos os childs jah o tiverem feito tambem.

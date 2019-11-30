@@ -4,12 +4,7 @@
 #include "Common.h"
 static short temp = -1;
 
-typedef struct {
-  struct Code* next;
-  struct Code* last;
-  Array* text;
-  char text_alloc;
-} Code;
+
 
 short int local_pos;
 
@@ -32,9 +27,21 @@ void Code_Destroy(Code* code);
 
 char* str_ptr_clone(const char* src);
 
-// char* widen(char* src, Type t_src ,Type t_dest);
+// Provavelmente serah deprecated
+char* widen(char* src, Type t_src ,Type t_dest);
+
+
+char* widen_basic(char* src, Type t_src ,Type t_dest);
 
 char* wrapper(char);
+
+// Retorna string contendo nome que se deve usar para tal identificador.
+// SE eh um identificador GLOBAL, retorna o nome na tabela de simbolos.
+// SE eh um identificador LOCAL, retorna $<numero>
+// SE eh um identificador parametro, deve cair no mesmo caso de 
+//    identificador local.
+// LEMBRAR DE DESALOCAR APOHS USAR O RESULTADO!
+char* get_addr(No*);
 
 unsigned long critical_error;
 // int sprintf ( char * str, const char * format, ... );

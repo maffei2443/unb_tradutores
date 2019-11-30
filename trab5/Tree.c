@@ -87,6 +87,7 @@ No* Token_New(char* tname, char* sval) {
 // para NULL. Depois, dah free nessa variavel.
 // NAO TESTADO
 void No_Destroy(No* no) {
+  // printf("[No_Destroy] %p\n", no);
   // if(!no) return;
   // // NAO DEVE TER NEXT E AUX; UM OU OUTRO
   // assert(!(no->hasAux == 1 && no->n != NULL));
@@ -95,9 +96,12 @@ void No_Destroy(No* no) {
   // no->nextAux = NULL; no->param = NULL;
   if(no->sval_alloc)
     DESTROY_PTR(no->sval);
-  if(no->tname_alloc)
+  if(no->tname_alloc) {
     DESTROY_PTR(no->tname);
-  
+  }
+  if (no->param) {
+    free_Param_Lis(no->param);
+  }
   // no->symEntry = NULL;  // NAO MEXR NA TABELA DE SIMBOLOS!
   // if(no->scope == NULL && no->scope_alloc)
   //   DESTROY_PTR(no->scope);
@@ -174,21 +178,16 @@ void add_Node_Next(No* no, No* next) {
 
 // Pega proximo, libera atual.
 // ... Ao final, atual serah o ultimo
-void free_Lis(No* no) {
-  printf("[free_Lis] %p\n", no);
-  // return;
+void free_Param_Lis(No* no) {
+  printf("[free_Param_Lis] %p\n", no);
   if(!no) return;
-  // if(!(no->n)) return;
-  No* next = no->n;
-  while(next) {
-      // No_Destroy(no);  // valgrind reclama; mas n dixa leak
-      // printf("FREE at %p\n", no);
-      no = next;
-      next = next->n;  
+  No* param = no;
+  while(param->hasAux) {
+      printf("\t will free %p\n", param);
+      No* next = param->nextAux;
+      No_Destroy(param);  // valgrind reclama; mas n dixa leak
+      param = next;
   }
-  // No_Destroy(no);
-  // printf("FREE at %p\n", no);
-  
 }
 
 // Chama o "freelLis" para child,
