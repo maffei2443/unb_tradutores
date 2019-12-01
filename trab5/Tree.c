@@ -62,6 +62,7 @@ No* No_New(int v) {
   // no->iaux = 0;
   // no->fval = 0.0;
   // no->is_const = 0;
+  no->addr = -1;  // seta como sem temporario associado!
   return no;
 }
 

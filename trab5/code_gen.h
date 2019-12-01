@@ -2,7 +2,6 @@
 #define CODE_GEN_H
 #include "Array.h"
 #include "Common.h"
-static short temp = -1;
 
 
 
@@ -16,7 +15,7 @@ short int local_pos;
 char* itoa(int value, char* result);
 
 /// Retorna prohximo valor para ser usado como temporario
-short temp_next();
+// short temp_next();
 
 /// Reseta tempo de modo que na proxima chamada retorna o valor 0.
 int tempo_reset();

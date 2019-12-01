@@ -39,6 +39,7 @@ static int BLANK_INT_SIZE = strlen(BLANK_INT);
 #include "Tree.h" // importante
 #include "SemanticChecker.h"
 #include "code_gen.h"
+#include "Common.h"
 extern int yylineno;
 extern int currCol;
 extern int numlines;
@@ -697,7 +698,8 @@ declList : declList declOrdeclInitVar {
 expr : expr '+' expr {
   MAKE_NODE(expr);
   $$->ival = '+';
-  
+  printf("ADDRs: add %s, %s, %s\n", get_addr($$), get_addr($1), get_addr($3));
+  // abort();
   add_Node_Child_If_Not_Null($$, $1);
   add_Node_Child_If_Not_Null($$, $3);
   // SEMANTICO
@@ -706,31 +708,31 @@ expr : expr '+' expr {
   // GERACO DE CODIGO
 
   char buf[600];
-  if($1->is_const == $3->is_const) {  // ambos constantes ou nao constantes
-    if($1->is_const)
-      switch ($1->type) {
-        case TYPE_INT: sprintf(buf, "t%d = %d + %d\n", temp_next() , $1->ival, $3->ival); break;
-        case TYPE_FLOAT: sprintf(buf, "t%d = %f + %f\n", temp_next() , $1->fval, $3->fval); break;
-        default:break;
-      }
-    else {      
-      // TODO: verificar se eh parametro, local ou global. Em cada caso deve
-      // ser feito algo diferente:
-      // - global: apenas usar o nome do identificador, pois nao hah clash
-      // - parametro: verificar em qual local da pilha estah o parametro
-      // - local: usar temporarios de algum jeito.
-      //  + TODO: tratar esse caso
-      sprintf(buf, "[notConstx] t%d = %s + %s\n", temp_next() , $1->symEntry->id, $3->symEntry->id);
+//   if($1->is_const == $3->is_const) {  // ambos constantes ou nao constantes
+//     if($1->is_const)
+//       switch ($1->type) {
+//         case TYPE_INT: sprintf(buf, "t%d = %d + %d\n", temp_next() , $1->ival, $3->ival); break;
+//         case TYPE_FLOAT: sprintf(buf, "t%d = %f + %f\n", temp_next() , $1->fval, $3->fval); break;
+//         default:break;
+//       }
+//     else {      
+//       // TODO: verificar se eh parametro, local ou global. Em cada caso deve
+//       // ser feito algo diferente:
+//       // - global: apenas usar o nome do identificador, pois nao hah clash
+//       // - parametro: verificar em qual local da pilha estah o parametro
+//       // - local: usar temporarios de algum jeito.
+//       //  + TODO: tratar esse caso
+//       sprintf(buf, "[notConstx] t%d = %s + %s\n", temp_next() , $1->symEntry->id, $3->symEntry->id);
 
-    }
+//     }
 
-  } else{
-    printf("Types: %s, %s\n", type2string($1->type), type2string($3->type));
-    char* t = widen_basic($1->symEntry->id, $1->type, $3->type);
-    sprintf(buf, "[notConst~]\t t%d = %s + %s\n", temp_next() , $1->symEntry->id, $3->symEntry->id);
-    free(t);
-  }
-  printf("%s\n", buf);
+//   } else{
+//     printf("Types: %s, %s\n", type2string($1->type), type2string($3->type));
+//     char* t = widen_basic($1->symEntry->id, $1->type, $3->type);
+//     sprintf(buf, "[notConst~]\t t%d = %s + %s\n", temp_next() , $1->symEntry->id, $3->symEntry->id);
+//     free(t);
+//   }
+//   printf("%s\n", buf);
 }
 | expr '-' expr {
   MAKE_NODE(expr);

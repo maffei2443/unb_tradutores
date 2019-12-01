@@ -1,5 +1,7 @@
 #include "SemanticChecker.h"
 #include "new_grammar.tab.h"
+#include "Common.h"
+extern int temp;    // usado para enumerar os temporarios. Deve ser zerado e restaurado cada vez que entra em definicao de funcao
 extern char* currScope;
 extern char* GLOBAL_SCOPE;
 extern int numlines;
@@ -37,7 +39,7 @@ int match_paramList(No* oldParam, No* param) {
 
 void link_symentry_no(SymEntry** sym, No** no) {
   assert(*no && *sym);
-  printf("(BI directional) linking... ( %p )%s <--> %p\n", *sym,(*sym)->id, *no);
+  // printf("(BI directional) linking... ( %p )%s <--> %p\n", *sym,(*sym)->id, *no);
   (*no)->symEntry = *sym;
   (*sym)->astNode = *no;
   // fprintf(stderr, "\t[link_symentry_no]\t %p %p\n", *sym, *no);	  // fprintf(stderr, "\t[link_symentry_no]\t %p %p\n", *sym, *no);
@@ -47,7 +49,7 @@ void link_symentry_no(SymEntry** sym, No** no) {
 // Utilizado em caso de utilização MAS nao de declaracao de variavel local
 void point_no_symentry(SymEntry** sym, No** no) {
   assert(*no && *sym);
-  printf("(UNI directional) linking... %s <--> %p\n", (*sym)->id, *no);
+  // printf("(UNI directional) linking... %s <--> %p\n", (*sym)->id, *no);
   (*no)->symEntry = *sym;
   (*no)->type = (*sym)->type;
 }
@@ -158,13 +160,18 @@ int was_declared(SymEntry** reshi, char* id){
 
 SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
     SymEntry* neoEntry = NULL;
-    // fprintf(stderr,"tegi: %s\n", type2string(tag));
     HASH_FIND_STR((*reshi), id, neoEntry);/* id already in the hash? */
     if (neoEntry == NULL) {
       neoEntry = SymEntry_New(id, tag, currScope);
       if( !strcmp(currScope, GLOBAL_SCOPE) ) {
         neoEntry->is_global = 1;
-      } 
+        printf("\t\t%s eh GLOBAL!\n", id);
+      } else {
+        neoEntry->is_global = 0;
+        neoEntry->temp_num = temp_next();
+        printf("%s:%s com $%d associado\n", neoEntry->id, currScope, neoEntry->temp_num);
+
+      }
       printf("\t\tNEO_ENTRY: %p\n", neoEntry);
       printf("<<<<<< add (%p) id, tag: %s, %s\n", neoEntry, id, type2string(tag));
       neoEntry->local.line = numlines;

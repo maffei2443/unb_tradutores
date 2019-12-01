@@ -32,14 +32,14 @@ char* itoa(int i, char b[]){
 
 ///////
 
-short temp_next() {
-  temp++;
-  if(temp > 1023) {
-    printf("[Erro] Esgotou-se o nuhmero maximo de variaveis temporarias em utilizacao simultanea (max = 2014)\n");
-    assert(temp < (short)1024);
-  }
-  return temp;
-}
+// short temp_next() {
+//   temp++;
+//   if(temp > 1023) {
+//     printf("[Erro] Esgotou-se o nuhmero maximo de variaveis temporarias em utilizacao simultanea (max = 2014)\n");
+//     assert(temp < (short)1024);
+//   }
+//   return temp;
+// }
 
 int temp_reset() {
   temp = -1;
@@ -139,17 +139,27 @@ char* widen_basic(char* src, Type t_src, Type t_dest) {
 }
 
 char* get_addr(No* no) {
-  if(no->symEntry && no->symEntry->is_global) {  // eh identificador
+  if(no->symEntry && no->symEntry->is_global) {  // eh identificador GLOBAL
     return str_ptr_clone(no->symEntry->id);
-  }
+  } 
   else {
-    char* buf = calloc(20, sizeof(char));
+    char* buf = calloc(22, sizeof(char));
     
-    if(no->symEntry) {  // eh variavel local
+    if (no->is_const) {  // se eh constante, nao precisa de temporario associado
+      switch(no->type){
+        case TYPE_INT:  sprintf(buf, "%d",  no->ival); break;
+        case TYPE_FLOAT: sprintf(buf, "%f",  no->fval); break;
+        case TYPE_CHAR: sprintf(buf, "%c",  no->ival); break;
+      }
+    } else if(no->symEntry) {  // eh variavel local
       sprintf(buf, "$%d", no->symEntry->temp_num);
-    } else {  
+    } else if (no->addr == -1){  // atribuir endereco temporario
       int temp = temp_next();
+      no->addr = temp;
       sprintf(buf, "$%d", temp);
+    }
+    else {  // jah tem endereco temporario associado
+      sprintf(buf, "$%d", no->addr);
     }
     
     return buf;
