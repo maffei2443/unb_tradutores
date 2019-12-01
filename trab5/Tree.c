@@ -1,4 +1,5 @@
 #include "Tree.h"
+#include "Colorfy.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -392,5 +393,8 @@ void show_entry(SymEntry* s) {
         printf("NOT FOUND TYPE FOR: %s", type2string(s->type));
     }
   }  
-  printf("\t(%p)l. %d, c. %d\n", s,s->local.line, s->local.col);
+  printf("\t(%p)l. %d, c. %d ", s,s->local.line, s->local.col);
+  BoldRed();
+  printf("\t| Addr: %d\n", s->addr);
+  Reset();
 }

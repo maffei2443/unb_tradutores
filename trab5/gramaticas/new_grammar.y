@@ -40,6 +40,7 @@ static int BLANK_INT_SIZE = strlen(BLANK_INT);
 #include "SemanticChecker.h"
 #include "code_gen.h"
 #include "Common.h"
+#include "Colorfy.h"
 extern int yylineno;
 extern int currCol;
 extern int numlines;
@@ -65,6 +66,7 @@ int declared_curr_fun = 0;
 int check_parameters = 0;
 int err = 0;
 int aborta = 0;
+
 %}
 %define parse.error verbose
 %define parse.lac none
@@ -566,6 +568,9 @@ loop : WHILE '(' expr ')' block {
 }
 
 defFun : BASE_TYPE ID '('{
+
+  new_context();
+
   def_fun_rule = 1;
   SymEntry* old = last_decl(&reshi, $ID);
   // CHECAGEM DE REDECLARACAO FEITA AQUI. CHECAGEM DE PARAMETROS,
@@ -658,6 +663,8 @@ defFun : BASE_TYPE ID '('{
   def_fun_rule = 0;
   currScope = GLOBAL_SCOPE;
   free($ID);$ID = NULL;
+  
+  old_context();
 }
 
 numListList :  numListList '{' numList '}' {
@@ -667,7 +674,6 @@ numListList :  numListList '{' numList '}' {
 }
 | %empty {
   $$ = NULL;
-  // MAKE_NODE(numListList);
 }
 
 numList : numList ',' num {
@@ -987,14 +993,26 @@ argList : argList ',' arg {
 }
 | arg 
 
-arg : lvalue 
-| ID '(' expr ')' '(' expr ')' {
+arg : lvalue {
+  assert( $lvalue->symEntry );
+  printf("param $%d (%s)\n", $1->symEntry->addr, $1->symEntry->id);
+  $$ = $1;
+}
+| ID '(' ')' '(' expr ')' {
+  SymEntry* entry = last_decl(&reshi, $ID);
+  assert( entry );
+  
+  BoldCyan();
+  printf(CODE_PREFIX "param $%d (%s)\n", entry->addr, entry->id);
+  printf(CODE_PREFIX "param %s\n", get_addr($5));
+  Reset();
+
   MAKE_NODE(arg);
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
-  add_Node_Child_If_Not_Null($$, $3);
-  add_Node_Child_If_Not_Null($$, $6);
+  add_Node_Child_If_Not_Null($$, $5);
+  // add_Node_Child_If_Not_Null($$, $6);
   // SEMANTICO    
-  SymEntry* entry = last_decl(&reshi, $ID);
+  // SymEntry* entry = last_decl(&reshi, $ID);
   if(!entry) {  // var na odeclarada
     printf("[Semantico] Erro: Variavel %s, l.%d nao declarada\n", $ID, numlines);    
   }
@@ -1136,6 +1154,6 @@ int main(){
   print_reshi(reshi);
   yylex_destroy();
   
-  delete_all(reshi);
+  // delete_all(reshi);
   free_All_Child(root);
 }

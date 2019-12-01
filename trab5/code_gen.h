@@ -3,6 +3,7 @@
 #include "Array.h"
 #include "Common.h"
 
+#define CODE_PREFIX ">>>>> [CodeGen] <<<<<\t"
 
 
 short int local_pos;

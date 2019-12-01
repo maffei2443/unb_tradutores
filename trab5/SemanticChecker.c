@@ -168,8 +168,8 @@ SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
         printf("\t\t%s eh GLOBAL!\n", id);
       } else {
         neoEntry->is_global = 0;
-        neoEntry->temp_num = temp_next();
-        printf("%s:%s com $%d associado\n", neoEntry->id, currScope, neoEntry->temp_num);
+        neoEntry->addr = temp_next();
+        printf("%s:%s com $%d associado\n", neoEntry->id, currScope, neoEntry->addr);
 
       }
       printf("\t\tNEO_ENTRY: %p\n", neoEntry);

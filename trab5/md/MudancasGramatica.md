@@ -22,4 +22,8 @@
 
   + **declaração de variáveis e inicialização ANTES dos demais statements de uma função** (para simplificar a implementação)
 
-    
+<!--  -->
+# GERAÇÃO DE CÓDIGO
+
+- passagem de dimensão de matriz requer agora apenas 1 parâmetro
+  (bem como em *C*, para vetores de 2 dimensões)

@@ -30,16 +30,6 @@ char* itoa(int i, char b[]){
 }  
 
 
-///////
-
-// short temp_next() {
-//   temp++;
-//   if(temp > 1023) {
-//     printf("[Erro] Esgotou-se o nuhmero maximo de variaveis temporarias em utilizacao simultanea (max = 2014)\n");
-//     assert(temp < (short)1024);
-//   }
-//   return temp;
-// }
 
 int temp_reset() {
   temp = -1;
@@ -152,7 +142,7 @@ char* get_addr(No* no) {
         case TYPE_CHAR: sprintf(buf, "%c",  no->ival); break;
       }
     } else if(no->symEntry) {  // eh variavel local
-      sprintf(buf, "$%d", no->symEntry->temp_num);
+      sprintf(buf, "$%d", no->symEntry->addr);
     } else if (no->addr == -1){  // atribuir endereco temporario
       int temp = temp_next();
       no->addr = temp;
