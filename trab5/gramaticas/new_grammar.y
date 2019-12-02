@@ -604,7 +604,9 @@ flowControl : IF '(' expr ')' block ELSE flowControl {
   add_Node_Child_If_Not_Null($$, Token_New("IF","if"));
   add_Node_Child_If_Not_Null($$, $expr);
   add_Node_Child_If_Not_Null($$, $block);
+
 }
+
 | IF '(' expr error block ELSE block {
   printf("Erro : IF ( expr error block ELSE block\n");
   printf("Falta FECHAR parentese\n");  
