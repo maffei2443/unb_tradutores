@@ -14,8 +14,6 @@ Type Type_Class(Type type) {
   switch (type)  {
     case TYPE_CHAR:
       return TYPE_CHAR;
-    case TYPE_VOID:
-      return TYPE_VOID;
     case TYPE_UNDEFINED:
       return TYPE_UNDEFINED;
     case TYPE_INT:
@@ -315,7 +313,6 @@ void* SymEntry_Destroy(void* p){
 char* type2string(Type t) {
   switch (t) {
     case TYPE_CHAR: return "char";
-    case TYPE_VOID: return "void";
     case TYPE_UNDEFINED: return "undefined";
     case TYPE_INT: return "int";
     case TYPE_FLOAT: return "float";
@@ -381,7 +378,6 @@ void show_entry(SymEntry* s) {
         break;
 
       case  TYPE_CHAR:
-      case  TYPE_VOID:
       case  TYPE_UNDEFINED:
       case  TYPE_INT:
       case  TYPE_FLOAT:

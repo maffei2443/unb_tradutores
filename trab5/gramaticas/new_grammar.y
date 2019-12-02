@@ -188,6 +188,79 @@ declFun : AHEAD BASE_TYPE ID {
 }
 
 
+declOrdeclInitVar : typeAndNameSign ';'
+| typeAndNameSign '=' rvalue ';' {
+  if($1 == NULL || $3 == NULL) {
+    $$ = NULL;
+    printf("[Semantico] NAo foi possivel construir <declOrdeclInitVar> devido a erro semantico.\n");
+  }
+  else {
+    MAKE_NODE(declOrdeclInitVar);
+    add_Node_Child_If_Not_Null($$, $typeAndNameSign);
+    add_Node_Child_If_Not_Null($$, $rvalue);
+    No* decl = $1, *rval = $3;
+    Type t1 = $1->type, t2 = $3->type;
+    
+    Type left_class = Type_Class(t1);
+    Type right_class = Type_Class(t2);
+
+    printf("[type-left] %s\n", type2string(t1));
+    printf("[type-right] %s\n", type2string(t2));
+    printf("[CLASS-left] %s\n", type2string(left_class));
+    printf("[CLASS-right] %s\n", type2string(right_class));
+    char* r;
+    char* l = get_addr($1);
+
+    if(left_class == right_class) {
+      if(t1 == t2) {
+          CODESHOW( printf("mov %s, %s\n", get_addr(decl), get_addr(rval)) );
+      } else {  // efetuar conversoes, jah que sao de mesma classe
+        // Converter do tipo de rvalue -> declOrInitVar 
+        if(left_class < right_class) {
+          printf("[Warning] Conversao %s -> %s vai perder informacao\n", type2string(t1), type2string(t2));
+          // r = narrow(rval,decl);
+          switch(left_class) {
+            case TYPE_MAT: BLUE(printf("Converter para matriz de int\n")); break;
+            case TYPE_ARRAY: CODESHOW(printf("Nao se pode operar sobre arrays %d\n", 2)); break;
+            case TYPE_SCALAR: CODESHOW(printf("Converter float -> int\n")); break;
+          } 
+        } else {  // conversao widen
+          BLUE(printf("Widening ..."));
+          r = widen(rval,decl);
+          switch(left_class) {
+            case TYPE_MAT: BLUE(printf("Convertes para matriz de float\n")); break;
+            case TYPE_ARRAY: CODESHOW(printf("Nao se pode operar sobre arrays %d\n", 2)); break;
+            case TYPE_SCALAR: { BLUE(printf("Convertendo... "));break;}
+          }
+          CODESHOW(printf("mov %s, %s\n", l, r));
+        }        
+      }
+    } else {
+      if( left_class == TYPE_SCALAR ) {
+        if (right_class == TYPE_SCALAR) {
+          printf("Atibuicao entre escalares ok\n");
+        }
+        else {
+          printf("[Semantico] Erro de Atribuicao: %s = %s\n!", type2string(t1), type2string(t2));
+        }
+      } else if ( left_class == TYPE_MAT ) {
+        if(right_class == TYPE_MAT) {
+
+        }
+      } else if( left_class == TYPE_MAT) {
+        if ($rvalue->type != TYPE_LIST_LIST) {
+          printf("[Semantico] Erro: inicializacao de matriz com %s\n", type2string($rvalue->type));
+        }
+        else {
+        }
+      }
+    }
+    DESTROY_PTR(l); DESTROY_PTR(r);
+  }
+  
+}
+| typeAndNameSign '=' rvalue error
+
 typeAndNameSign : BASE_TYPE ID {
   SymEntry* oldEntry = last_decl(&reshi, $ID);
   printf("Recuperado da tabela de simbolos: %p\n", oldEntry);
@@ -205,12 +278,14 @@ typeAndNameSign : BASE_TYPE ID {
 
   if (!err) {
     SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_UNDEFINED);
-    if(neoEntry) {  //TODO: trtar esse caso
+    if(neoEntry) {  // DE UTUDO CERTO
       neoEntry->type = $BASE_TYPE;
       MAKE_NODE(typeAndNameSign);
       link_symentry_no(&neoEntry, &$$);      
       add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
       add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
+      // para facilitar geracao de cohdigo
+      point_no_symentry(&neoEntry, &$$);      
     }
     else {
       printf("ERRO LOGICO: NAO DEVERIA ENTRAR AQUI! %s:%s ...\n", neoEntry->escopo, $ID);
@@ -248,7 +323,7 @@ typeAndNameSign : BASE_TYPE ID {
       $$ = NULL;
     }  else if ($num->ival < 0) {
       printf("[Semantico] Erro: Tamanho deve ser >= 0\n");
-    }  else {
+    }  else {   // DEU TUDO CERTO! 
       SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_UNDEFINED);
       Type type = $BASE_TYPE == TYPE_FLOAT ? TYPE_ARRAY_FLOAT : TYPE_ARRAY_INT;
       if(neoEntry) {
@@ -261,6 +336,9 @@ typeAndNameSign : BASE_TYPE ID {
         add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
         add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
         add_Node_Child_If_Not_Null($$, $num);
+
+        // para facilitar geracao de cohdigo
+        point_no_symentry(&neoEntry, &$$);
       }
       else {
         printf("[BASE_TYPE ID '[' num ']'] ERRO LOGICO: NAO DEVERIA ENTRAR AQUI! %s:%s ...\n", neoEntry->escopo, $ID);
@@ -306,7 +384,7 @@ typeAndNameSign : BASE_TYPE ID {
       }
       $$ = NULL;
     }
-    else {
+    else {    // TUDO CERTO: PODE CIRAR O NOH
       Type type = $BASE_TYPE == TYPE_FLOAT ? TYPE_MAT_FLOAT : TYPE_MAT_INT;
       SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_UNDEFINED);
       if(neoEntry) {
@@ -314,13 +392,18 @@ typeAndNameSign : BASE_TYPE ID {
         MAKE_NODE(typeAndNameSign);
         $$->type = type;
         link_symentry_no(&neoEntry, &$$);      
-        add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string(type)));
+        // [ WARNING ] todo: testar!  Nao deve dar problema... eh soh pra facilitar geracao de codigo
+
+        // add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string(type)));
         add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
         add_Node_Child_If_Not_Null($$, $5);
         add_Node_Child_If_Not_Null($$, $8);
         neoEntry->line = $5->ival;
         neoEntry->col = $8->ival;
         neoEntry->type = type;
+        // para facilitar geracao de cohdigo
+        point_no_symentry(&neoEntry, &$$);
+
       }
       else {
         printf("[BASE_TYPE ID '[' num ']'] ERRO LOGICO: NAO DEVERIA ENTRAR AQUI! %s:%s ...\n", neoEntry->escopo, $ID);
@@ -338,28 +421,6 @@ typeAndNameSign : BASE_TYPE ID {
 }
 
 
-declOrdeclInitVar : typeAndNameSign ';'
-| typeAndNameSign '=' rvalue ';' {
-  if($1 == NULL || $3 == NULL) {
-    $$ = NULL;
-    printf("[Semantico] NAo foi possivel construir <declOrdeclInitVar> devido a erro semantico.\n");
-  }
-  else {
-    MAKE_NODE(declOrdeclInitVar);
-    add_Node_Child_If_Not_Null($$, $typeAndNameSign);
-    add_Node_Child_If_Not_Null($$, $rvalue);
-    Type class = Type_Class($1->type);
-    printf("[type] %s\n", type2string($1->type));
-    printf("[CLASS] %s\n", type2string(class));
-    if( class == TYPE_MAT) {
-      if ($rvalue->type != TYPE_LIST_LIST) {
-        printf("[Semantico] Erro: inicializacao de matriz com %s\n", type2string($rvalue->type));
-      }
-    }
-
-  }
-}
-| typeAndNameSign '=' rvalue error
 
 paramListVoid : paramList {
   // childLast eh usado como auxiliar para criar a lista na ordem correta ;)
@@ -704,41 +765,25 @@ declList : declList declOrdeclInitVar {
 expr : expr '+' expr {
   MAKE_NODE(expr);
   $$->ival = '+';
-  printf("ADDRs: add %s, %s, %s\n", get_addr($$), get_addr($1), get_addr($3));
+  No* e = $$, *e1 = $1, *e2 = $3;
+  Type t1 = e1->type, t2 = e2->type;
+  printf("ADDRs: ");
+  BoldCyan();
+  printf("add %s, %s, %s\n", get_addr(e), get_addr(e1), get_addr(e2));
+  Reset();
   // abort();
-  add_Node_Child_If_Not_Null($$, $1);
-  add_Node_Child_If_Not_Null($$, $3);
+  add_Node_Child_If_Not_Null($$, e1);
+  add_Node_Child_If_Not_Null($$, e2);
   // SEMANTICO
-  $$->type = bin_expr_type( $1->type, $3->type, '+');
-  
+  $$->type = bin_expr_type( t1, t2, '+');
+  printf("RESULT TYPE: %s\n", type2string(e->type));
+  printf("\tfrom: %s + %s\n", type2string(e1->type), type2string(e2->type));
+  printf("\t    : %d + %d\n", e1->is_const, e2->is_const);
+
+  printf("%s\n", widen($1 ,$$));
+  printf("%s\n", widen($3, $$));
+
   // GERACO DE CODIGO
-
-  char buf[600];
-//   if($1->is_const == $3->is_const) {  // ambos constantes ou nao constantes
-//     if($1->is_const)
-//       switch ($1->type) {
-//         case TYPE_INT: sprintf(buf, "t%d = %d + %d\n", temp_next() , $1->ival, $3->ival); break;
-//         case TYPE_FLOAT: sprintf(buf, "t%d = %f + %f\n", temp_next() , $1->fval, $3->fval); break;
-//         default:break;
-//       }
-//     else {      
-//       // TODO: verificar se eh parametro, local ou global. Em cada caso deve
-//       // ser feito algo diferente:
-//       // - global: apenas usar o nome do identificador, pois nao hah clash
-//       // - parametro: verificar em qual local da pilha estah o parametro
-//       // - local: usar temporarios de algum jeito.
-//       //  + TODO: tratar esse caso
-//       sprintf(buf, "[notConstx] t%d = %s + %s\n", temp_next() , $1->symEntry->id, $3->symEntry->id);
-
-//     }
-
-//   } else{
-//     printf("Types: %s, %s\n", type2string($1->type), type2string($3->type));
-//     char* t = widen_basic($1->symEntry->id, $1->type, $3->type);
-//     sprintf(buf, "[notConst~]\t t%d = %s + %s\n", temp_next() , $1->symEntry->id, $3->symEntry->id);
-//     free(t);
-//   }
-//   printf("%s\n", buf);
 }
 | expr '-' expr {
   MAKE_NODE(expr);
@@ -1111,7 +1156,7 @@ lvalue : ID {
   SymEntry* old = last_decl(&reshi, $ID);
   if(!old){
     printf("Variavel %s, l.%d nao declarada!\n", $ID, numlines);
-  } else if(old->type != TYPE_MAT) {
+  } else if(Type_Class(old->type) != TYPE_MAT) {
     printf("[Semantico] Variavel (%s:%s) nao eh matriz para ser indexada duplamente!\n", old->escopo, old->id);
   } else {
       point_no_symentry(&old, &$$);

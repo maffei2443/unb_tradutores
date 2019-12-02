@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "Tree.h"
+#include "Colorfy.h"
 //////
 unsigned long critical_error = 0;
 short int local_pos = 0;
@@ -63,39 +64,71 @@ char* str_ptr_clone(const char* src) {
 // PROBLEMAS POSSIVEIS: se src nao for passivel de dar free.
 // SOLUCAO: criar copia!
 
-char* widen(char* src, Type t_src ,Type t_dest) {
-  // inicio - igual ao livro
-  // NAO USAR POR ENQUANTO
-  abort();
-  src = str_ptr_clone(src);
-  if(t_src == t_dest) return src;
-  else if (t_src == TYPE_INT && t_dest == TYPE_FLOAT) {
-    short  a;
-    char* buf = itoa(a=temp_next(), calloc(1, 200));
-    char* buf2 = calloc(1, 200 + strlen(buf) + 1);
-    sprintf(buf2, "inttofl $%d, %s", a, buf);
-    free(buf);
-    buf2 = realloc(buf2, strlen(buf2)+1);
-    return buf2;
-  }
-  return NULL;
-  // final - igual ao livro
-  Type maior = max(t_src,t_dest), menor = min(t_src, t_dest);
-  Type c1 = Type_Class(t_src), c2 = Type_Class(t_dest);
-  
-
-  if((c1 == TYPE_MAT) == (c2 == TYPE_MAT)) {  // ambos ou matriz ou nao matriz
-    
-    if(maior == menor) {
-      
+char* widen(No* src ,No* dest) {
+  char * ret;
+  if(src->type == dest->type) ret = get_addr(src);
+  else if (src->type == TYPE_INT && dest->type == TYPE_FLOAT) {
+    int temp;
+    temp = temp_next();
+    char* temp_addr = calloc(8, sizeof(char));
+    temp_addr[0] = '$';
+    char* temp_as_str = itoa(temp, calloc(6, sizeof(char)));  // numero maximo de temporario eh 1023
+    memcpy(temp_addr + 1, temp_as_str, strlen(temp_as_str) + 1);
+    ret = temp_addr;
+    if(src->is_const) { 
+      // Conversao de constante:
+      // - pegar novo temporario, salvar nele o resultado da conversao.
+      // - retornar string com esse temporario      
+      BoldCyan();
+      printf("inttofl %s, %d\n", temp_addr, src->ival);
+      Reset();
+    } else {
+      BoldCyan();
+      printf("inttofl %s, %s\n", temp_addr, get_addr(src));
+      Reset();
     }
+  } else if( src->type == TYPE_MAT_INT && dest->type == TYPE_MAT_FLOAT ){
+    
+  } else {
+    ret =get_addr( src );
+    if(src->is_const)
+      fprintf(stderr, "Sem conversao para %f\n",  src->fval);
+    else
+      fprintf(stderr, "Sem conversao para %s\n", src->symEntry->id);    
   }
-  else {
-
-  }
-  // return temp;
+  return ret;
 }
-
+char* narrow(No* src, No* dest) {
+  char * ret;
+  if(src->type == dest->type) ret = get_addr(src);
+  else if (src->type == TYPE_FLOAT && dest->type == TYPE_INT) {
+    int temp;
+    temp = temp_next();
+    char* temp_addr = calloc(8, sizeof(char));
+    temp_addr[0] = '$';
+    char* temp_as_str = itoa(temp, calloc(6, sizeof(char)));  // numero maximo de temporario eh 1023
+    memcpy(temp_addr + 1, temp_as_str, strlen(temp_as_str) + 1);
+    ret = temp_addr;
+    if(src->is_const) { 
+      // Conversao de constante:
+      // - pegar novo temporario, salvar nele o resultado da conversao.
+      // - retornar string com esse temporario      
+      CODESHOW(printf("fltoint %s, %d\n", temp_addr, src->ival));
+    } else {
+      CODESHOW(printf("fltoint %s, %s\n", temp_addr, get_addr(src)));
+    }
+  } else if( src->type == TYPE_MAT_INT && dest->type == TYPE_MAT_FLOAT ){
+    
+  } else {
+    ret =get_addr( src );
+    if(src->is_const)
+      fprintf(stderr, "Sem conversao para %f\n",  src->fval);
+    else
+      fprintf(stderr, "Sem conversao para %s\n", src->symEntry->id);    
+  }
+  return ret;
+  
+}
 // Utilizado para promocao de tipo nas operacoes de:
 // +
 // -

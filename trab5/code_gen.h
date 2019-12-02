@@ -28,8 +28,8 @@ void Code_Destroy(Code* code);
 char* str_ptr_clone(const char* src);
 
 // Provavelmente serah deprecated
-char* widen(char* src, Type t_src ,Type t_dest);
-
+char* widen(No* no_src , No* no_dest);
+char* narrow(No* src, No* dest);
 
 char* widen_basic(char* src, Type t_src ,Type t_dest);
 

@@ -7,10 +7,10 @@ extern char* GLOBAL_SCOPE;
 extern int numlines;
 extern int currCol;
 
-int gambs_tam = 0;
-int gambs_qtd = 0;
+int BLUE_tam = 0;
+int BLUE_qtd = 0;
 
-SymEntry** gambs;
+SymEntry** BLUE;
 // Retorna 1 se a lista da match.
 // -2 se ambos sao NULL
 // -1 se noh eh NULL
@@ -64,7 +64,6 @@ void set_type_and_uni_link(SymEntry** old, No** tok) {
 
 //  Retorna TYPE_UNDEFINED nos casos:
 // - left/right ser TYPE_UNDEFINED
-// - left/right ser TYPE_VOID
 // - left/right ser TYPE_ARRAY
 // - expressão mal formada como por exemplo divisão de 
 // escalar por matriz
@@ -76,47 +75,40 @@ Type bin_expr_type(Type left, Type right, int op) {
     printf("[Semantico] ERRO: TIPO CHAR NAO PODE SER USADO PARA REALIZACAO DE OPERACOES\n");
     return TYPE_UNDEFINED;
   }
-  if(left == TYPE_UNDEFINED || right == TYPE_UNDEFINED) return TYPE_UNDEFINED;// erro de inicializacao...
-  else if(left == TYPE_VOID || right == TYPE_VOID ) return TYPE_VOID;// tentando usar retorno de funcao VOID
+  if(left == TYPE_UNDEFINED || right == TYPE_UNDEFINED) return TYPE_UNDEFINED;
   else if(leftClass == TYPE_ARRAY || rightClass == TYPE_ARRAY) return TYPE_UNDEFINED;
   // NAO SE PODE OPERAR SOBRE ARRAYS.
   printf("**** %s %s\n\n", type2string(leftClass), type2string(rightClass));  
   switch (op)  {
     case '%': 
       if(left == right && left == TYPE_INT) return TYPE_INT;
-      else return TYPE_UNDEFINED;
-    case '+': case '-':
-      if(leftClass == rightClass) return max(left, right);
-      else if(leftClass == TYPE_SCALAR && rightClass == TYPE_MAT) return right;
+      else if (left == TYPE_MAT_INT && left == right) return TYPE_MAT_INT;
+      else if (left == TYPE_MAT_INT && right == TYPE_INT) return TYPE_MAT_INT;
       else {
+        printf("[Semantico] Erro: operandos invahlidos para operador %%: %s e %s. Ambos devem ser TYPE_INT ou TYPE_MAT_INT\n", type2string(left), type2string(right));
         return TYPE_UNDEFINED;
       }
-    case '*':
-      if(leftClass == rightClass) max(left, right);
-      else if(leftClass == TYPE_SCALAR && rightClass == TYPE_MAT) return right;
-      else return TYPE_UNDEFINED;
-    case '/':
-      if(leftClass == rightClass) max(left, right);
-      else if(leftClass == TYPE_MAT && rightClass ==  TYPE_SCALAR ) return left;
-      else return TYPE_UNDEFINED;
+    case '+': case '-':  case '*': case '/':  return max(left, right);
     case '@':
       if(leftClass == TYPE_MAT && rightClass == TYPE_MAT) return max(left, right);
-      else return TYPE_UNDEFINED;
+      else {
+        printf("[Semantico] Erro: operandos invahlidos para operador @: %s e %s. Ambos devem ser do tipo matriz\n", type2string(left), type2string(right));
+        return TYPE_UNDEFINED;
+      }
       /* code */
     case MAT_POW:
-      if(leftClass == TYPE_MAT && rightClass == TYPE_SCALAR) {
-        return left;
-      }
-      else
+      if(leftClass == TYPE_MAT && right == TYPE_INT)  return left;
+      else {
+        printf("[Semantico] Erro: operandos invahlidos para operador %%: %s e %s \n", type2string(left), type2string(right));
         return TYPE_UNDEFINED;
+      }
     case EQ:  case NEQ:
     case GE:  case LE:
     case '<':  case '>':
     case AND:  case OR:
-      return left == right ? TYPE_INT : TYPE_UNDEFINED;
-    default:
-      printf("[Semantico] Expressao com tipos %s, %s e operacao %c sem tipo definido!",
-        type2string(left), type2string(right), op); 
+      return TYPE_INT;
+    default:  // NAO EH PRA ENTRAR AQUI
+      printf("[Semantico] Expressao com tipos %s, %s e operacao %c sem tipo definido!", type2string(left), type2string(right), op); 
       return TYPE_UNDEFINED;
   }
 }
@@ -220,16 +212,16 @@ int can_cast(Type t1, Type t2) {
 }
 
 
-void delGambs() {
-  printf("QTD : %d\n", gambs_qtd);
-  for(int i = 0;i < gambs_qtd;i++){
-    printf("id, addr: %s, %p\n", (gambs[i])->id, gambs[i]);
-    SymEntry_Destroy(gambs[i]);
-    gambs[i] = NULL;
+void delBLUE() {
+  printf("QTD : %d\n", BLUE_qtd);
+  for(int i = 0;i < BLUE_qtd;i++){
+    printf("id, addr: %s, %p\n", (BLUE[i])->id, BLUE[i]);
+    SymEntry_Destroy(BLUE[i]);
+    BLUE[i] = NULL;
   }
-  if(gambs)
-    free(gambs);
-  gambs = NULL;
+  if(BLUE)
+    free(BLUE);
+  BLUE = NULL;
 }
 
 void delete_all(SymEntry* tab) {
