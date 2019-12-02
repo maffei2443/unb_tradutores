@@ -513,7 +513,6 @@ localStmtList : localStmtList localStmt {
   $$ = NULL;
   // MAKE_NODE(localStmtList);
 }
-
 localStmt : call ';' {
   MAKE_NODE(localStmt);
   add_Node_Child_If_Not_Null($$, $call);
@@ -528,9 +527,11 @@ localStmt : call ';' {
   add_Node_Child_If_Not_Null($$, $lvalue);
   add_Node_Child_If_Not_Null($$, $rvalue);
 }
-| flowControl {
+| {/* pilha.push( int_label ); */} flowControl {
   MAKE_NODE(localStmt);
   add_Node_Child_If_Not_Null($$, $flowControl);
+  printf("__afterElse");
+
 }
 | loop {
   MAKE_NODE(localStmt);
@@ -583,23 +584,23 @@ localStmt : call ';' {
   $$ = NULL;
 }
 
-flowControl : IF '(' expr ')' block ELSE flowControl {
+flowControl : IF '(' expr ')' {/*branch_condicional _afterIf */}  block {/* __afterIf: */} ELSE flowControl {
   MAKE_NODE(flowControl);
   add_Node_Child_If_Not_Null($$, Token_New("IF","if"));
   add_Node_Child_If_Not_Null($$, $expr);
   add_Node_Child_If_Not_Null($$, $block);
   add_Node_Child_If_Not_Null($$, Token_New("ELSE","else"));
-  add_Node_Child_If_Not_Null($$, $7);
+  add_Node_Child_If_Not_Null($$, yyvsp[0].no);
 }
-| IF '(' expr ')' block ELSE block {
+| IF '(' expr ')'  {/*branch_condicional _afterIf */} block {/* __afterIf: */} ELSE block {
   MAKE_NODE(flowControl);
   add_Node_Child_If_Not_Null($$, Token_New("IF","if"));
   add_Node_Child_If_Not_Null($$, $expr);
-  add_Node_Child_If_Not_Null($$, $5);
+  add_Node_Child_If_Not_Null($$, $6);
   add_Node_Child_If_Not_Null($$, Token_New("ELSE","else"));
-  add_Node_Child_If_Not_Null($$, $7);
+  add_Node_Child_If_Not_Null($$, yyvsp[0].no);
 }
-| IF '(' expr ')' block {
+| IF '(' expr ')' {/*branch_condicional _afterIf */} block {/* __afterIf: */} {
   MAKE_NODE(flowControl);
   add_Node_Child_If_Not_Null($$, Token_New("IF","if"));
   add_Node_Child_If_Not_Null($$, $expr);
@@ -617,7 +618,7 @@ flowControl : IF '(' expr ')' block ELSE flowControl {
   printf("Falta ABRIR parentese\n");  
   $$ = NULL;  
 }
-| IF '(' error ')' block {
+| IF '(' error ')' {} block {
   printf("Erro : IF ( error ) block ELSE block\n");
   printf("Expressao mal formada\n");  
   $$ = NULL;  
