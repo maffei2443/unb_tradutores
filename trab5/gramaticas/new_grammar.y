@@ -19,7 +19,7 @@
 #define PARAM_RPT_NAME_CHECK(__baseType, __id) \
   if(!neoEntry) {\
     neoEntry = last_decl(&reshi, yyvsp[__id]._id);    \
-    printf("[Semantico] Parametros de mesmo nome! Arvore vai ficar inconsistente..\n");\
+    ERRSHOW(printf("[Semantico] Parametros de mesmo nome! Arvore vai ficar inconsistente..\n"));\
   }\
   else {\
     neoEntry->type = yyvsp[__baseType].type;\
@@ -155,7 +155,7 @@ declFun : AHEAD BASE_TYPE ID {
     err = 0;    
   }
   else {
-    printf("[Semantico] |%s| nao pode ser declarado pois jah o foi em l.%d, c.%d\n", tmp->id, tmp->local.line, tmp->local.col);
+    ERRSHOW(printf("[Semantico] |%s| nao pode ser declarado pois jah o foi em l.%d, c.%d\n", tmp->id, tmp->local.line, tmp->local.col));
   }
   currScope = $ID;
 } '(' paramListVoid ')' {
@@ -194,7 +194,7 @@ declOrdeclInitVar : typeAndNameSign ';'
 | typeAndNameSign '=' rvalue ';' {
   if($1 == NULL || $3 == NULL) {
     $$ = NULL;
-    printf("[Semantico] NAo foi possivel construir <declOrdeclInitVar> devido a erro semantico.\n");
+    ERRSHOW(printf("[Semantico] NAo foi possivel construir <declOrdeclInitVar> devido a erro semantico.\n"));
   }
   else {
     MAKE_NODE(declOrdeclInitVar);
@@ -244,7 +244,7 @@ declOrdeclInitVar : typeAndNameSign ';'
           printf("Atibuicao entre escalares ok\n");
         }
         else {
-          printf("[Semantico] Erro de Atribuicao: %s = %s\n!", type2string(t1), type2string(t2));
+          ERRSHOW(printf("[Semantico] Erro de Atribuicao: %s = %s\n!", type2string(t1), type2string(t2)));
         }
       } else if ( left_class == TYPE_MAT ) {
         if(right_class == TYPE_MAT) {
@@ -252,7 +252,7 @@ declOrdeclInitVar : typeAndNameSign ';'
         }
       } else if( left_class == TYPE_MAT) {
         if ($rvalue->type != TYPE_LIST_LIST) {
-          printf("[Semantico] Erro: inicializacao de matriz com %s\n", type2string($rvalue->type));
+          ERRSHOW(printf("[Semantico] Erro: inicializacao de matriz com %s\n", type2string($rvalue->type)));
         }
         else {
         }
@@ -271,7 +271,7 @@ typeAndNameSign : BASE_TYPE ID {
   char err = 0;
   if(oldEntry) {
     if( !strcmp(oldEntry->escopo, currScope) ) {
-      printf("[Semantico] Erro: Redeclaracao de %s:%s!\n", oldEntry->escopo, oldEntry->id);
+      ERRSHOW(printf("[Semantico] Erro: Redeclaracao de %s:%s!\n", oldEntry->escopo, oldEntry->id));
       err = 1;
     }
     else {
@@ -312,7 +312,7 @@ typeAndNameSign : BASE_TYPE ID {
   char err = 0;
   if(oldEntry) {
     if( !strcmp(oldEntry->escopo, currScope) ) {
-      printf("[Semantico] Erro: Redeclaracao de %s:%s!\n", oldEntry->escopo, oldEntry->id);
+      ERRSHOW(printf("[Semantico] Erro: Redeclaracao de %s:%s!\n", oldEntry->escopo, oldEntry->id));
       err = 1;
     }
     else {
@@ -322,10 +322,10 @@ typeAndNameSign : BASE_TYPE ID {
 
   if (!err) {
     if ($num->type != TYPE_INT) {
-      printf("[Semantico] Erro: Tamanho de vetor deve ser um inteiro! Encontrado: %s\n", type2string($num->type));
+      ERRSHOW(printf("[Semantico] Erro: Tamanho de vetor deve ser um inteiro! Encontrado: %s\n", type2string($num->type)));
       $$ = NULL;
     }  else if ($num->ival < 0) {
-      printf("[Semantico] Erro: Tamanho deve ser >= 0\n");
+      ERRSHOW(printf("[Semantico] Erro: Tamanho deve ser >= 0\n"));
     }  else {   // DEU TUDO CERTO! 
       SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_UNDEFINED);
       Type type = $BASE_TYPE == TYPE_FLOAT ? TYPE_ARRAY_FLOAT : TYPE_ARRAY_INT;
@@ -354,7 +354,7 @@ typeAndNameSign : BASE_TYPE ID {
   }
 
   if(!$$) {
-    printf("  [Semantico] Nao adicionou (%s) aa tabela de simbolos (redeclaracao, tamanho nao inteiro, algo deu errado).\n", $ID);
+    ERRSHOW(printf("[Semantico] Nao adicionou (%s) aa tabela de simbolos (redeclaracao, tamanho nao inteiro, algo deu errado).\n", $ID));
   }
   free($ID);$ID = NULL;
 }
@@ -367,7 +367,7 @@ typeAndNameSign : BASE_TYPE ID {
   char err = 0;
   if(oldEntry) {
     if( !strcmp(oldEntry->escopo, currScope) ) {
-      printf("[Semantico] Erro: Redeclaracao de %s:%s!\n", oldEntry->escopo, oldEntry->id);
+      ERRSHOW(printf("[Semantico] Erro: Redeclaracao de %s:%s!\n", oldEntry->escopo, oldEntry->id));
       err = 1;
     }
     else {
@@ -380,10 +380,10 @@ typeAndNameSign : BASE_TYPE ID {
     char secNum = $8->type != TYPE_INT;
     if(firstNum || secNum) {
       if(firstNum) {
-        printf("[Semantico] ERRO[2]: Quantidade de linhas de matriz deve ser um inteiro. (%s encontrado)\n", type2string($5->type));
+        ERRSHOW(printf("[Semantico] ERRO[2]: Quantidade de linhas de matriz deve ser um inteiro. (%s encontrado)\n", type2string($5->type)));
       }
       if(secNum) {
-        printf("[Semantico] ERRO[2]: Quantidade de colunas de matriz deve ser um inteiro. (%s encontrado)\n", type2string($8->type));
+        ERRSHOW(printf("[Semantico] ERRO[2]: Quantidade de colunas de matriz deve ser um inteiro. (%s encontrado)\n", type2string($8->type)));
       }
       $$ = NULL;
     }
@@ -525,7 +525,7 @@ localStmt : call ';' {
   MAKE_NODE(localStmt);
   if($lvalue->type != $rvalue->type ||
     $lvalue->type == $rvalue->type && $lvalue->type == TYPE_UNDEFINED) {
-    printf("[Semantico] Warning de tipo em atribuicao: <%s> = <%s>\n", type2string($lvalue->type), type2string($rvalue->type));
+    WARSHOW(printf("[Semantico] Warning de tipo em atribuicao: <%s> = <%s>\n", type2string($lvalue->type), type2string($rvalue->type)));
   }
   add_Node_Child_If_Not_Null($$, $lvalue);
   add_Node_Child_If_Not_Null($$, $rvalue);
@@ -552,7 +552,7 @@ localStmt : call ';' {
   add_Node_Child_If_Not_Null($$, iread_no);
   add_Node_Child_If_Not_Null($$, $lvalue);
   if($lvalue->type != TYPE_INT) {
-    printf("[Semantico] Erro: Leitura de inteiro sobre tipo |%s|\n", type2string($lvalue->type));
+    ERRSHOW(printf("[Semantico] Erro: Leitura de inteiro sobre tipo |%s|\n", type2string($lvalue->type)));
   }
 }
 | FREAD '(' lvalue ')' ';' {
@@ -561,7 +561,7 @@ localStmt : call ';' {
   add_Node_Child_If_Not_Null($$, fread_no);
   add_Node_Child_If_Not_Null($$, $lvalue);
   if($lvalue->type != TYPE_FLOAT) {
-    printf("[Semantico] Erro: Leitura de inteiro sobre tipo |%s|\n", type2string($lvalue->type));
+    ERRSHOW(printf("[Semantico] Erro: Leitura de inteiro sobre tipo |%s|\n", type2string($lvalue->type)));
   }  
 }
 | PRINT '(' rvalue ')' ';' {
@@ -946,7 +946,7 @@ expr : expr '+' expr {
   MAKE_NODE(expr);
   // CHECAR SE EH LVAL; SE NAO FOR, TEM QUE DAR ERRO
   if(strcmp($2->tname, "lvalue")) {
-    printf("[Semantico] Erro: operando de & deve ser lvalue.\n");
+    ERRSHOW(printf("[Semantico] Erro: operando de & deve ser lvalue.\n"));
   }
   $$->type = TYPE_POINTER;
   $$->ival = '&';
@@ -960,8 +960,9 @@ expr : expr '+' expr {
   add_Node_Child_If_Not_Null($$, Token_New("ICAST", "ICAST"));
   add_Node_Child_If_Not_Null($$, $3);
   if(Type_Class($3->type) != TYPE_SCALAR) {
-    printf("[Semantico] Erro: nao pode converter nao-escalar (e.g %s) para inteiro.\n",
-      type2string($3->type));
+    ERRSHOW(
+      printf("[Semantico] Erro: nao pode converter nao-escalar (e.g %s) para inteiro.\n", type2string($3->type))
+      );
   }
 }
 | FCAST '(' expr ')' {
@@ -971,8 +972,8 @@ expr : expr '+' expr {
   add_Node_Child_If_Not_Null($$, Token_New("FCAST", "FCAST"));
   add_Node_Child_If_Not_Null($$, $3);
   if(Type_Class($3->type) != TYPE_SCALAR) {
-    printf("[Semantico] Erro: nao pode converter nao-escalar (e.g %s) para inteiro.\n",
-      type2string($3->type));
+    ERRSHOW(printf("[Semantico] Erro: nao pode converter nao-escalar (e.g %s) para inteiro.\n",
+      type2string($3->type)));
   }  
 }
 | lvalue
@@ -1075,14 +1076,14 @@ arg : lvalue {
   // SEMANTICO    
   // SymEntry* entry = last_decl(&reshi, $ID);
   if(!entry) {  // var na odeclarada
-    printf("[Semantico] Erro: Variavel %s, l.%d nao declarada\n", $ID, numlines);    
+    ERRSHOW(printf("[Semantico] Erro: Variavel %s, l.%d nao declarada\n", $ID, numlines);   );
   }
   else {
     if(is_fun(entry->tag)) {
-      printf("[Semantico] Erro: Uso inadequado de funcao %s, l.%d\n", $ID, numlines);
+      ERRSHOW(printf("[Semantico] Erro: Uso inadequado de funcao %s, l.%d\n", $ID, numlines));
     }
     else if(Type_Class(entry->type) != TYPE_MAT ) {
-      printf("[Semantico] Erro: Variavel %s, l.%d nao eh matriz\n", $ID, numlines);    
+      ERRSHOW(printf("[Semantico] Erro: Variavel %s, l.%d nao eh matriz\n", $ID, numlines);   );
     }
     else {
       $$->type = entry->type;
@@ -1150,7 +1151,7 @@ lvalue : ID {
   }
   else {
     if(old->col == -1) {
-      printf("[Semantico] Erro: %s nao eh indexavel!\n",  old->id);
+      ERRSHOW(printf("[Semantico] Erro: %s nao eh indexavel!\n",  old->id));
     }
     else {
       point_no_symentry(&old, &$$);
@@ -1173,7 +1174,7 @@ lvalue : ID {
   if(!old){
     printf("Variavel %s, l.%d nao declarada!\n", $ID, numlines);
   } else if(Type_Class(old->type) != TYPE_MAT) {
-    printf("[Semantico] Variavel (%s:%s) nao eh matriz para ser indexada duplamente!\n", old->escopo, old->id);
+    ERRSHOW(printf("[Semantico] Variavel (%s:%s) nao eh matriz para ser indexada duplamente!\n", old->escopo, old->id));
   } else {
       point_no_symentry(&old, &$$);
       point_no_symentry(&old, &tok);    

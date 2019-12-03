@@ -14,6 +14,7 @@ static Type expr_div(Type, Type);
 static Type expr_mat_mul(Type, Type);
 static Type expr_mat_pow(Type, Type);
 static Type expr_bool(Type, Type, int op);
+static Type expr_attr(Type, Type);
 
 SymEntry* add_entry(SymEntry** reshi, char* id, int tag);
 SymEntry* last_decl(SymEntry** reshi, char* id);

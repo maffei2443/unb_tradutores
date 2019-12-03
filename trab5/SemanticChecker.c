@@ -71,7 +71,7 @@ Type bin_expr_type(Type left, Type right, int op) {
   Type leftClass = Type_Class(left);
   Type rightClass = Type_Class(right);
   DBG(printf("\n[bin_expr_type] tipos:  = %s <<%c>> %s\n", type2string(left),op, type2string(right)));
-  DBG(printf("\n[bin_expr_type] classes:  = %s <<%c>> %s\n", type2string(leftClass),op, type2string(rightClass)));
+  DBG(printf("[bin_expr_type] classes:  = %s <<%c>> %s\n", type2string(leftClass),op, type2string(rightClass)));
   if(left == TYPE_CHAR || right == TYPE_CHAR){
     ERRSHOW(printf("ERRO: TIPO <CHAR> NAO PODE SER USADO PARA REALIZACAO DE OPERACOES\n"));
     return TYPE_UNDEFINED;
@@ -98,9 +98,9 @@ Type bin_expr_type(Type left, Type right, int op) {
     case '/': return expr_div(left, right);
     case '@': return expr_mat_mul(left, right);
     case MAT_POW: return expr_mat_pow(left, right);
-    default:  // NAO EH PRA ENTRAR AQUI
-      printf("[Semantico] Expressao com tipos %s, %s e operacao %c sem tipo definido!", type2string(left), type2string(right), op); 
-      return TYPE_UNDEFINED;
+    case '=': return expr_attr(left, right);
+    default:  return expr_bool(left, right, op);
+
   }
 }
 
@@ -110,8 +110,8 @@ Type expr_mod(Type le, Type ri){
   if(le == ri && le == TYPE_INT) return TYPE_INT;
   // else if (le == TYPE_MAT_INT && ri == TYPE_INT) return TYPE_MAT_INT;
   else {
-    printf("[Semantico] Erro: operandos invahlidos para operador %%: %s e %s. Ambos devem ser TYPE_INT ou TYPE_MAT_INT\n", 
-    type2string(le), type2string(ri));
+    ERRSHOW(printf(" Erro: operandos invahlidos para operador %%: %s e %s. Ambos devem ser TYPE_INT ou TYPE_MAT_INT\n",
+    type2string(le), type2string(ri)));
     return TYPE_UNDEFINED;
   }
 }
@@ -121,7 +121,7 @@ Type expr_add(Type le, Type ri){
   if(le_class == ri_class) return max(le_class, ri_class);
   critical_error++;
   BoldRed();
-  printf("[Semantico] Soma/subtracao soh eh possivel entre mat/mat ou escalar/escalar\n");
+  ERRSHOW(printf(" Soma/subtracao soh eh possivel entre mat/mat ou escalar/escalar\n"));
   printf("\t encontrado: %s [+-] %s\n", type2string(le), type2string(ri));
   Reset();
   return TYPE_UNDEFINED;
@@ -141,7 +141,7 @@ Type expr_mul(Type le, Type ri){
       if(le == TYPE_FLOAT) return TYPE_MAT_FLOAT;
       else return ri;
   }
-  printf("[Semantico] Erro: divisao %s / %s\n", type2string(le), type2string(ri));
+  ERRSHOW(printf(" Erro: divisao %s / %s\n", type2string(le), type2string(ri)));
   return TYPE_UNDEFINED;  
 }
 
@@ -155,8 +155,8 @@ Type expr_div(Type le, Type ri){
       if(ri == TYPE_FLOAT) return TYPE_MAT_FLOAT;
       else return ri;
   }
-  ERRSHOW(
-    printf("[Semantico] Erro: multiplicacao %s * %s\n", type2string(le), type2string(ri));
+  ERRSHOW(printf(" Erro: multiplicacao %s * %s\n",
+      type2string(le), type2string(ri))
   );
   return TYPE_UNDEFINED;
 
@@ -166,8 +166,8 @@ Type expr_mat_mul(Type le, Type ri){
   Type le_class = Type_Class(le), ri_class = Type_Class(ri);
   if(le_class == TYPE_MAT && ri_class == TYPE_MAT) return max(le, ri);
   else {
-    printf("[Semantico] Erro: operandos invahlidos para operador @: %s e %s. Ambos devem ser do tipo matriz\n",
-     type2string(le), type2string(ri));
+    ERRSHOW(printf(" Erro: operandos invahlidos para operador @: %s e %s. Ambos devem ser do tipo matriz\n",
+     type2string(le), type2string(ri)));
     return TYPE_UNDEFINED;
   }
 }
@@ -175,7 +175,8 @@ Type expr_mat_mul(Type le, Type ri){
 Type expr_mat_pow(Type le, Type ri){
   if( Type_Class(le) == TYPE_MAT && ri == TYPE_INT)  return ri;
   else {
-    printf("[Semantico] Erro: operandos invahlidos para operador @@: %s e %s (esperado matriz e int)\n", type2string(le), type2string(ri));
+    ERRSHOW(printf(" Erro: operandos invahlidos para operador @@: %s e %s (esperado matriz e int)\n",
+     type2string(le), type2string(ri)));
     return TYPE_UNDEFINED;
   }
 }
@@ -192,13 +193,27 @@ Type expr_bool(Type le, Type ri, int op){
       }
       else {
         critical_error++;
-        printf("[Semantico] Erro: comparacao entre %s <?> %s\n", 
-          type2string(le), type2string(ri));
+        ERRSHOW(printf(" Erro: comparacao entre %s <?> %s\n", 
+          type2string(le), type2string(ri)));
         return TYPE_UNDEFINED;
       }
+    default:
+    critical_error++;
+      ERRSHOW(printf(" Expressao com tipos %s, %s e operacao %c sem tipo definido!",
+        type2string(le), type2string(ri), op));
+      return TYPE_UNDEFINED;
   }
 }
 
+Type expr_attr(Type le, Type ri) {
+  Type le_class = Type_Class(le), ri_class = Type_Class(ri);
+  if(le_class != ri_class) {
+    ERRSHOW(printf(" Erro: operandos invahlidos para operador =: %s e %s (esperado operadores de mesma classe)\n",
+     type2string(le), type2string(ri)));
+    return TYPE_UNDEFINED;
+  }
+  return max(le, ri);
+}
 
 
 // Retorna NULL caso nao o tenha sido;senao,
@@ -326,6 +341,6 @@ void delete_all(SymEntry* tab) {
 // msg_erros
 
 void mensagem_redeclaracao(SymEntry* s) {
-    printf("[Semantico] Identificador %s jah foi definida em l.%d, c.%d como nao-funcao!\n",
-      s->id, s->local.line, s->local.col);
+    ERRSHOW(printf(" Identificador %s jah foi definida em l.%d, c.%d como nao-funcao!\n",
+      s->id, s->local.line, s->local.col));
 }

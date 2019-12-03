@@ -17,10 +17,10 @@ lex.yy.o: lexico.l new_grammar.tab.o
 
 new_grammar.tab.o: new_grammar.y Common.o Common.h
 	bison $(BFLAGS) new_grammar.y
-	gcc -c new_grammar.tab.c Common.h
+	gcc -c new_grammar.tab.c
 
 SemanticChecker.tab.o: SemanticChecker.c SemanticChecker.h new_grammar.tab.h Common.o
-	gcc $(FLAGS) -c SemanticChecker.c Common.h
+	gcc $(FLAGS) -c SemanticChecker.c
 
 
 tree: Tree.o simTree.c
@@ -41,7 +41,7 @@ Array.o: Array.h Array.c
 code_gen.o: code_gen.h code_gen.c Array.o Common.h
 	gcc $(FLAGS) -c code_gen.c
 
-Common.o: Common.h Common.c Colorfy.h
+Common.o: Common.h Common.c
 	gcc $(FLAGS) -c Common.c
 
 Stack.o: Stack.h Stack.c
