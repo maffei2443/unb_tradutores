@@ -10,8 +10,6 @@
 }
 
 %{
-
-#define STR(x) #x
 #define INITNODE(x) \
   {yyval.no = No_New(nodeCounter++);\
   if(!yyval.no) abort();\
@@ -41,6 +39,7 @@ static int BLANK_INT_SIZE = strlen(BLANK_INT);
 #include "code_gen.h"
 #include "Common.h"
 #include "Colorfy.h"
+#include "Stack.h"
 extern int yylineno;
 extern int currCol;
 extern int numlines;
@@ -52,8 +51,6 @@ extern void yylex_destroy();
 // 
 unsigned nodeCounter;
 
-extern int gambs_tam;
-extern int gambs_qtd;
 char* GLOBAL_SCOPE = "0global";
 
 SymEntry* reshi;
@@ -66,6 +63,10 @@ int declared_curr_fun = 0;
 int check_parameters = 0;
 int err = 0;
 int aborta = 0;
+
+extern Stack* new_flow_stack;
+extern Stack* after_if_stack;
+
 
 %}
 %define parse.error verbose
@@ -106,7 +107,8 @@ int aborta = 0;
 
 %type<no> program
 %type<no> globalStmtList globalStmt declFun param declOrdeclInitVar paramListVoid 
-%type<no> paramList localStmtList localStmt flowControl 
+%type<no> paramList localStmtList localStmt flowControl
+%type<no> newFlowControl
 %type<no> loop defFun numListList
 %type<no> numList block declList expr call argList 
 %type<no> arg rvalue lvalue num typeAndNameSign
@@ -527,9 +529,9 @@ localStmt : call ';' {
   add_Node_Child_If_Not_Null($$, $lvalue);
   add_Node_Child_If_Not_Null($$, $rvalue);
 }
-| {/* pilha.push( int_label ); */} flowControl {
+| newFlowControl {
   MAKE_NODE(localStmt);
-  add_Node_Child_If_Not_Null($$, $flowControl);
+  add_Node_Child_If_Not_Null($$, yyvsp[0].no);
   printf("__afterElse");
 
 }
@@ -573,18 +575,35 @@ localStmt : call ';' {
   add_Node_Child_If_Not_Null($$, Token_New("PRINT","PRINT"));
 }
 | COPY '(' lvalue lvalue ')' ';' {
+  // TODO: SOH DEVE FUNCIONAR PARA MATRIZ! PARA QQER OUTRO CASO, ERRO!
+  Type t1 = $3->type, t2 = $4->type;
+  Type c1 = Type_Class(t1), c2 = Type_Class(t2) ;
+
+  if(t1 == t2 && t1 == TYPE_MAT) {
+    // gerar o cohdigo
+  } else {  // erro semantico critico; soh mostra erro
+    critical_error++;
+  }
   MAKE_NODE(localStmt);
   No* copy_no = Token_New("COPY","COPY");
   add_Node_Child_If_Not_Null( $$, copy_no );
   add_Node_Child_If_Not_Null( $$, $3 );
   add_Node_Child_If_Not_Null( $$, $4 );
 }
-| ';' {
-  // Nao faz mal, mas nao eh util!
-  $$ = NULL;
-}
 
-flowControl : IF '(' expr ')' {/*branch_condicional _afterIf */}  block {/* __afterIf: */} ELSE flowControl {
+newFlowControl : {/* setar label */} flowControl {$$ = yyvsp[0].no;}
+
+flowControl :  IF '(' expr ')'
+{
+  int label = Stack_After_If_Push();
+  CODESHOW(printf("jump __after_if%d:\n", label ) ) ;
+}
+block 
+{
+  int label = Stack_After_If_Pop();
+  CODESHOW( printf("__afterIf%d:\n", label ) );
+}
+ELSE {} flowControl {
   MAKE_NODE(flowControl);
   add_Node_Child_If_Not_Null($$, Token_New("IF","if"));
   add_Node_Child_If_Not_Null($$, $expr);
@@ -592,22 +611,9 @@ flowControl : IF '(' expr ')' {/*branch_condicional _afterIf */}  block {/* __af
   add_Node_Child_If_Not_Null($$, Token_New("ELSE","else"));
   add_Node_Child_If_Not_Null($$, yyvsp[0].no);
 }
-| IF '(' expr ')'  {/*branch_condicional _afterIf */} block {/* __afterIf: */} ELSE block {
-  MAKE_NODE(flowControl);
-  add_Node_Child_If_Not_Null($$, Token_New("IF","if"));
-  add_Node_Child_If_Not_Null($$, $expr);
-  add_Node_Child_If_Not_Null($$, $6);
-  add_Node_Child_If_Not_Null($$, Token_New("ELSE","else"));
-  add_Node_Child_If_Not_Null($$, yyvsp[0].no);
-}
-| IF '(' expr ')' {/*branch_condicional _afterIf */} block {/* __afterIf: */} {
-  MAKE_NODE(flowControl);
-  add_Node_Child_If_Not_Null($$, Token_New("IF","if"));
-  add_Node_Child_If_Not_Null($$, $expr);
-  add_Node_Child_If_Not_Null($$, $block);
-
-}
-
+// block e ';' foram movidos para cah de modo a nao haver conflito na gramatica
+| block
+| ';' {$$ = NULL;}
 | IF '(' expr error block ELSE block {
   printf("Erro : IF ( expr error block ELSE block\n");
   printf("Falta FECHAR parentese\n");  
@@ -621,9 +627,8 @@ flowControl : IF '(' expr ')' {/*branch_condicional _afterIf */}  block {/* __af
 | IF '(' error ')' {} block {
   printf("Erro : IF ( error ) block ELSE block\n");
   printf("Expressao mal formada\n");  
-  $$ = NULL;  
+  $$ = NULL; 
 }
-
 loop : WHILE '(' expr ')' block {
   MAKE_NODE(loop);
   add_Node_Child_If_Not_Null($$, Token_New("WHILE","while"));

@@ -27,3 +27,6 @@
 
 - passagem de dimensão de matriz requer agora apenas 1 parâmetro
   (bem como em *C*, para vetores de 2 dimensões)
+
+- alteração da regra **flowControl** e **localStmt**, de modo a 
+permitir ações semânticas no meio da regra de produção do _if_
