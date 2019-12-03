@@ -314,6 +314,46 @@ int can_cast(Type t1, Type t2) {
   
 }
 
+Type to_base_type(Type t) {
+  assert(t != TYPE_LIST && t != TYPE_LIST_LIST);
+  switch(t) {
+    case TYPE_SCALAR:
+    case TYPE_MAT:
+    case TYPE_ARRAY:
+      printf("Impossivel enferir tipo base a partir de <%s>:/\n", type2string(t));
+      return TYPE_UNDEFINED;
+    case TYPE_MAT_CHAR:
+    case TYPE_ARRAY_CHAR:
+    case TYPE_CHAR:
+      return TYPE_CHAR;
+    case TYPE_MAT_INT:
+    case TYPE_ARRAY_INT:
+    case TYPE_INT:
+      return TYPE_INT;
+    case TYPE_ARRAY_FLOAT:
+    case TYPE_MAT_FLOAT:
+    case TYPE_FLOAT:
+      return TYPE_FLOAT;
+  }
+}
+
+// Problema: como lidar com indexacao dupla (matriz) ?
+// Talvez seja melhor fazer isso direto no .y mesmo.
+Type reduce_dim_type(Type t) {
+  Type t_class = Type_Class(t);
+  if(t_class != TYPE_MAT && t_class != TYPE_ARRAY) {
+    printf("Nao pode reduzir dimensao de tipo <%s>\n", type2string(t) );
+  }
+  switch(t) {
+    case TYPE_ARRAY_CHAR: return TYPE_CHAR;
+    case TYPE_ARRAY_INT: return TYPE_INT;
+    case TYPE_ARRAY_FLOAT: return TYPE_FLOAT;
+
+    default:
+      ERRSHOW(printf("TENTANDO REDUZIR DIMENSAO DE %s", type2string(t)));
+    return TYPE_UNDEFINED;
+  }
+}
 
 void delBLUE() {
   printf("QTD : %d\n", BLUE_qtd);

@@ -32,6 +32,11 @@ Type Type_Class(Type type) {
     case TYPE_MAT_FLOAT:
       return TYPE_MAT;
     
+    case TYPE_UMAT_CHAR:
+    case TYPE_UMAT_INT:
+    case TYPE_UMAT_FLOAT:
+      return TYPE_UMAT;
+  
     default:
       return TYPE_UNDEFINED;
   }
@@ -336,12 +341,19 @@ char* type2string(Type t) {
     case TYPE_POINTER: return "pointer";
     case TYPE_LIST: return "list(num)";
     case TYPE_LIST_LIST: return "list(list(num))";
+    case TYPE_UMAT: return "mat_umat";
+    case TYPE_UMAT_CHAR: return "mat_umat_char";
+    case TYPE_UMAT_INT: return "mat_umat_int";
+    case TYPE_UMAT_FLOAT: return "mat_umat_float";
     default:
       switch (t) {
       case TAG_DECL_FUN: return "fun-decl";
       case TAG_DEF_FUN: return "fun-def";
       case TAG_PARAM: return "param";
+      printf("\nHIIIIIT\n");
+      abort();
     }
+    return "";
   }
 }
 static char* t2s(Type t) {

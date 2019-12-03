@@ -78,6 +78,14 @@ typedef enum {
   TYPE_ARRAY_INT = 40,
   TYPE_ARRAY_FLOAT = 50,
   TYPE_ARRAY = 60,
+
+/******/
+  // Para diferenciar linha de matriz de array
+  TYPE_UMAT_CHAR = -1,
+  TYPE_UMAT_INT = -2,
+  TYPE_UMAT_FLOAT = -3,
+  TYPE_UMAT = -4,
+/******/
   TYPE_MAT_CHAR = 70,
   TYPE_MAT_INT = 80,
   TYPE_MAT_FLOAT = 90,

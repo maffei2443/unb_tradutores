@@ -525,7 +525,14 @@ localStmt : call ';' {
   MAKE_NODE(localStmt);
   if($lvalue->type != $rvalue->type ||
     $lvalue->type == $rvalue->type && $lvalue->type == TYPE_UNDEFINED) {
-    WARSHOW(printf("[Semantico] Warning de tipo em atribuicao: <%s> = <%s>\n", type2string($lvalue->type), type2string($rvalue->type)));
+    // printf("lvalue: %p\n", $lvalue);
+    // printf("rvalue: %p\n", $rvalue);
+
+    // printf("lvalue->type: %d\n", $lvalue->type);
+    // printf("rvalue->type: %d\n", $rvalue->type);
+    
+    WARSHOW(printf("[Semantico] Warning de tipo em atribuicao: <%s> = <%s>\n",
+     type2string($lvalue->type), type2string($rvalue->type)));
   }
   add_Node_Child_If_Not_Null($$, $lvalue);
   add_Node_Child_If_Not_Null($$, $rvalue);
@@ -1155,6 +1162,17 @@ lvalue : ID {
     }
     else {
       point_no_symentry(&old, &$$);
+      switch( old->type ) {
+        case TYPE_MAT_INT: $$->type = TYPE_UMAT_INT; break;
+        case TYPE_MAT_FLOAT: $$->type = TYPE_UMAT_FLOAT; break;
+        case TYPE_MAT_CHAR: $$->type = TYPE_UMAT_CHAR; break;
+        case TYPE_ARRAY_CHAR: $$->type = TYPE_CHAR; break;
+        case TYPE_ARRAY_INT: $$->type = TYPE_INT; break;
+        case TYPE_ARRAY_FLOAT: $$->type = TYPE_CHAR; break;
+        default:
+          // nao deve entrar aqui...
+          ERRSHOW(printf("[Semantico] Erro: %s nao eh indexavel!\n",  old->id));
+      }
       point_no_symentry(&old, &tok);
     }
   }
@@ -1167,7 +1185,7 @@ lvalue : ID {
   
   No* tok = Token_New("ID", $ID);
   add_Node_Child_If_Not_Null($$, tok);
-  add_Node_Child_If_Not_Null($$, $3);	    add_Node_Child_If_Not_Null($$, $3);
+  add_Node_Child_If_Not_Null($$, $3);
   add_Node_Child_If_Not_Null($$, $6);
   // SEMANTICO    
   SymEntry* old = last_decl(&reshi, $ID);
@@ -1177,6 +1195,14 @@ lvalue : ID {
     ERRSHOW(printf("[Semantico] Variavel (%s:%s) nao eh matriz para ser indexada duplamente!\n", old->escopo, old->id));
   } else {
       point_no_symentry(&old, &$$);
+      switch( old->type ) {
+        case TYPE_MAT_INT: $$->type = TYPE_INT; break;
+        case TYPE_MAT_FLOAT: $$->type = TYPE_FLOAT; break;
+        case TYPE_MAT_CHAR: $$->type = TYPE_CHAR; break;
+        default:
+          // nao deve entrar aqui...
+          ERRSHOW(printf("[Semantico] Erro: %s nao eh indexavel!\n",  old->id));
+      }
       point_no_symentry(&old, &tok);    
   }
   free($ID); $ID = NULL;

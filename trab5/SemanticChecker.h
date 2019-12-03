@@ -29,7 +29,7 @@ void set_type_and_uni_link(No* p, SymEntry* old, No* tok) ;
 
 int id_has_type(SymEntry** reshi, char* id, Type type);
 int can_cast(Type t1, Type t2);
-
+Type to_base_type(Type);
 void delBLUE();
 
 void mensagem_redeclaracao(SymEntry* s);
