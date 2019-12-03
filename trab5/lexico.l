@@ -315,19 +315,20 @@ achar '([a-zA-Z0-9_]?)'
   currCol += yyleng;
   char yy0 = yytext[0], yy1 = yytext[1];
   if(yyleng < 2) {  // '<' ou '>'
-    return yy0;
+    yylval.ival = yy0;
     }  
   else
     switch(yy0) {
-      case '>': return GE;
+      case '>': yylval.ival = GE; break;
       ;
-      case '<': return LE;
+      case '<': yylval.ival = LE; break;
       ;
-      case '=': return EQ;
+      case '=': yylval.ival = EQ; break;
       ;
-      case '!': return NEQ;
+      case '!': yylval.ival = NEQ; break;
       ;
     }
+    return REL_OP;
 }
 {binMathOp} {
   // showBinMathOp();  
@@ -337,7 +338,8 @@ achar '([a-zA-Z0-9_]?)'
     ;
   }
   else {
-    return yytext[0];
+    yylval.ival = yytext[0];
+    return ARITM;
     ;
   }
 }

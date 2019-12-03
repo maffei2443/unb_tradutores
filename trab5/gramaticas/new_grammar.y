@@ -76,6 +76,7 @@ extern Stack* after_if_stack;
 %token-table
 %locations
 
+%left ARITM REL_OP
 %left EQ NEQ GE LE
 %left AND
 %left OR
@@ -95,6 +96,8 @@ extern Stack* after_if_stack;
   No* no;
   Type type;
 }
+%type<ival> ARITM REL_OP
+%token ARITM REL_OP
 
 %token BASE_TYPE WHILE V_INT V_FLOAT V_ASCII AHEAD
 %token MAT_TYPE IF ID ICAST FCAST ELSE
@@ -779,18 +782,22 @@ declList : declList declOrdeclInitVar {
   $$ = NULL;
 }
 //  TODO: CHECAR TIPO EM TODOS OS CASOS
-expr : expr '+' expr {
+// Em todos os casos, faz-se:
+//  1 - infere o tipo da expressao final ($$)
+//  2 - verifica se ambos os operandos podem ser convertidos para tal tipo
+expr : expr ARITM expr {
+
   MAKE_NODE(expr);
-  $$->ival = '+';
+  $$->ival = $ARITM;
   No* e = $$, *e1 = $1, *e2 = $3;
   Type t1 = e1->type, t2 = e2->type;
-  printf("ADDRs: ");
+  printf("ARTM_OP: ");
   char* e2_addr, *e1_addr, *e_addr;
   e2_addr = get_addr(e2);
   e1_addr = get_addr(e1);
   e_addr = get_addr(e);
 
-  CODESHOW(printf("add %s, %s, %s\n", e_addr, e1_addr, e2_addr));
+  CODESHOW(printf("%c %s, %s, %s\n",$$->ival , e_addr, e1_addr, e2_addr));
   free(e2_addr);
   free(e1_addr);
   free(e_addr);
@@ -808,35 +815,7 @@ expr : expr '+' expr {
 
   // GERACO DE CODIGO
 }
-| expr '-' expr {
-  MAKE_NODE(expr);
 
-  $$->ival = '-';
-  add_Node_Child_If_Not_Null($$, $1);
-  add_Node_Child_If_Not_Null($$, $3);
-  // SEMANTICO
-  $$->type = bin_expr_type( $1->type, $3->type, '-');
-}
-| expr '*' expr {
-  MAKE_NODE(expr);
-
-  $$->ival = '*';
-  add_Node_Child_If_Not_Null($$, $1);
-  add_Node_Child_If_Not_Null($$, $3);
-  // SEMANTICO
-  $$->type = bin_expr_type( $1->type, $3->type, '*');
-  printf("tipoResultante: %s\n", type2string($$->type));
-
-}
-| expr '/' expr {
-  MAKE_NODE(expr);
-
-  $$->ival = '/';
-  add_Node_Child_If_Not_Null($$, $1);
-  add_Node_Child_If_Not_Null($$, $3);
-  // SEMANTICO
-  $$->type = bin_expr_type( $1->type, $3->type, '/');
-}
 | expr '%' expr {
   MAKE_NODE(expr);
 
@@ -870,60 +849,36 @@ expr : expr '+' expr {
   // SEMANTICO
   $$->type = bin_expr_type( $1->type, $3->type, MAT_POW);
 }
-| expr EQ expr {
+
+| expr REL_OP expr {
   MAKE_NODE(expr);
 
-  $$->ival = EQ;
+  $$->ival = $REL_OP;
   add_Node_Child_If_Not_Null($$, $1);
   add_Node_Child_If_Not_Null($$, $3);
   // SEMANTICO
-  $$->type = bin_expr_type( $1->type, $3->type, EQ);
-}
-| expr NEQ expr {
-  MAKE_NODE(expr);
+  $$->type = bin_expr_type( $1->type, $3->type, $$->ival);
 
-  $$->ival = NEQ;
-  add_Node_Child_If_Not_Null($$, $1);
-  add_Node_Child_If_Not_Null($$, $3);
-  // SEMANTICO
-  $$->type = bin_expr_type( $1->type, $3->type, NEQ);
-}
-| expr GE expr {
-  MAKE_NODE(expr);
+  // GERADOR 
+  No* e = $$, *e1 = $1, *e2 = $3;
+  Type t1 = e1->type, t2 = e2->type;
+  printf("REL_OP: ");
+  char* e2_addr, *e1_addr, *e_addr;
+  e2_addr = get_addr(e2);
+  e1_addr = get_addr(e1);
+  e_addr = get_addr(e);
 
-  $$->ival = GE;
-  add_Node_Child_If_Not_Null($$, $1);
-  add_Node_Child_If_Not_Null($$, $3);
-  // SEMANTICO
-  $$->type = bin_expr_type( $1->type, $3->type, GE);
-}
-| expr LE expr {
-  MAKE_NODE(expr);
+  if( $$->ival <= 127 ) 
+    CODESHOW(
+      printf("|%c| %s, %s, %s\n", $$->ival ,
+        e_addr, e1_addr, e2_addr))
+  else
+    CODESHOW(
+      printf("|%d| %s, %s, %s\n", $$->ival ,
+        e_addr, e1_addr, e2_addr))
 
-  $$->ival = LE;
-  add_Node_Child_If_Not_Null($$, $1);
-  add_Node_Child_If_Not_Null($$, $3);
-  // SEMANTICO
-  $$->type = bin_expr_type( $1->type, $3->type, LE);
 }
-| expr '>' expr {
-  MAKE_NODE(expr);
 
-  $$->ival = '>';
-  add_Node_Child_If_Not_Null($$, $1);
-  add_Node_Child_If_Not_Null($$, $3);
-  // SEMANTICO
-  $$->type = bin_expr_type( $1->type, $3->type, '>');
-}
-| expr '<' expr {
-  MAKE_NODE(expr);
-
-  $$->ival = '<';
-  add_Node_Child_If_Not_Null($$, $1);
-  add_Node_Child_If_Not_Null($$, $3);
-  // SEMANTICO
-  $$->type = bin_expr_type( $1->type, $3->type, '<');
-}
 | expr AND expr {
   MAKE_NODE(expr);
 
