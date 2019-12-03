@@ -65,53 +65,141 @@ void set_type_and_uni_link(SymEntry** old, No** tok) {
 //  Retorna TYPE_UNDEFINED nos casos:
 // - left/right ser TYPE_UNDEFINED
 // - left/right ser TYPE_ARRAY
-// - expressão mal formada como por exemplo divisão de 
+// - expressão mal formada (definida nas funcoes expr_*)
 // escalar por matriz
 Type bin_expr_type(Type left, Type right, int op) {
-  printf("\n[bin_expr_type] tipos:  = %s <<%c>> %s\n", type2string(left),op, type2string(right));
   Type leftClass = Type_Class(left);
   Type rightClass = Type_Class(right);
+  DBG(printf("\n[bin_expr_type] tipos:  = %s <<%c>> %s\n", type2string(left),op, type2string(right)));
+  DBG(printf("\n[bin_expr_type] classes:  = %s <<%c>> %s\n", type2string(leftClass),op, type2string(rightClass)));
   if(left == TYPE_CHAR || right == TYPE_CHAR){
-    printf("[Semantico] ERRO: TIPO CHAR NAO PODE SER USADO PARA REALIZACAO DE OPERACOES\n");
+    ERRSHOW(printf("ERRO: TIPO <CHAR> NAO PODE SER USADO PARA REALIZACAO DE OPERACOES\n"));
     return TYPE_UNDEFINED;
   }
-  if(left == TYPE_UNDEFINED || right == TYPE_UNDEFINED) return TYPE_UNDEFINED;
-  else if(leftClass == TYPE_ARRAY || rightClass == TYPE_ARRAY) return TYPE_UNDEFINED;
+  if(left == TYPE_UNDEFINED || right == TYPE_UNDEFINED) {
+    ERRSHOW(printf("Erro cascata... \n"));
+    return TYPE_UNDEFINED;
+  }
+  else if(leftClass == TYPE_ARRAY || rightClass == TYPE_ARRAY) {
+    ERRSHOW(printf("ERRO: TIPO <ARRAY> NAO PODE SER USADO PARA REALIZACAO DE OPERACOES\n"));
+    return TYPE_UNDEFINED;
+  }
+  else if(left == TYPE_MAT_CHAR || right == TYPE_MAT_CHAR) {
+    ERRSHOW(printf("ERRO: TIPO <MAT_CHAR> NAO PODE SER USADO PARA REALIZACAO DE OPERACOES\n"));
+    return TYPE_UNDEFINED;
+  }
   // NAO SE PODE OPERAR SOBRE ARRAYS.
-  printf("**** %s %s\n\n", type2string(leftClass), type2string(rightClass));  
+  // printf("**** %s %s\n\n", type2string(leftClass), type2string(rightClass));  
   switch (op)  {
-    case '%': 
-      if(left == right && left == TYPE_INT) return TYPE_INT;
-      else if (left == TYPE_MAT_INT && left == right) return TYPE_MAT_INT;
-      else if (left == TYPE_MAT_INT && right == TYPE_INT) return TYPE_MAT_INT;
-      else {
-        printf("[Semantico] Erro: operandos invahlidos para operador %%: %s e %s. Ambos devem ser TYPE_INT ou TYPE_MAT_INT\n", type2string(left), type2string(right));
-        return TYPE_UNDEFINED;
-      }
-    case '+': case '-':  case '*': case '/':  return max(left, right);
-    case '@':
-      if(leftClass == TYPE_MAT && rightClass == TYPE_MAT) return max(left, right);
-      else {
-        printf("[Semantico] Erro: operandos invahlidos para operador @: %s e %s. Ambos devem ser do tipo matriz\n", type2string(left), type2string(right));
-        return TYPE_UNDEFINED;
-      }
-      /* code */
-    case MAT_POW:
-      if(leftClass == TYPE_MAT && right == TYPE_INT)  return left;
-      else {
-        printf("[Semantico] Erro: operandos invahlidos para operador %%: %s e %s \n", type2string(left), type2string(right));
-        return TYPE_UNDEFINED;
-      }
-    case EQ:  case NEQ:
-    case GE:  case LE:
-    case '<':  case '>':
-    case AND:  case OR:
-      return TYPE_INT;
+    case '%': return expr_mod(left, right);
+    case '+': return expr_sub(left, right);
+    case '-': return expr_add(left, right);
+    case '*': return expr_mul(left, right);
+    case '/': return expr_div(left, right);
+    case '@': return expr_mat_mul(left, right);
+    case MAT_POW: return expr_mat_pow(left, right);
     default:  // NAO EH PRA ENTRAR AQUI
       printf("[Semantico] Expressao com tipos %s, %s e operacao %c sem tipo definido!", type2string(left), type2string(right), op); 
       return TYPE_UNDEFINED;
   }
 }
+
+// Decisao: nada de tirar modulo de matriz
+// Operacao modulo se aplica apenas a dois inteiros
+Type expr_mod(Type le, Type ri){
+  if(le == ri && le == TYPE_INT) return TYPE_INT;
+  // else if (le == TYPE_MAT_INT && ri == TYPE_INT) return TYPE_MAT_INT;
+  else {
+    printf("[Semantico] Erro: operandos invahlidos para operador %%: %s e %s. Ambos devem ser TYPE_INT ou TYPE_MAT_INT\n", 
+    type2string(le), type2string(ri));
+    return TYPE_UNDEFINED;
+  }
+}
+
+Type expr_add(Type le, Type ri){
+  Type le_class = Type_Class(le), ri_class = Type_Class(ri);
+  if(le_class == ri_class) return max(le_class, ri_class);
+  critical_error++;
+  BoldRed();
+  printf("[Semantico] Soma/subtracao soh eh possivel entre mat/mat ou escalar/escalar\n");
+  printf("\t encontrado: %s [+-] %s\n", type2string(le), type2string(ri));
+  Reset();
+  return TYPE_UNDEFINED;
+}
+
+Type expr_sub(Type le, Type ri){
+  return expr_add(le, ri);
+}
+
+Type expr_mul(Type le, Type ri){
+  Type le_class = Type_Class(le), ri_class = Type_Class(ri);  
+  if(le_class == ri_class) {
+    if(le_class = TYPE_SCALAR) {
+      return max(le, ri);
+    }
+  } else if (le_class == TYPE_SCALAR && ri_class == TYPE_MAT){
+      if(le == TYPE_FLOAT) return TYPE_MAT_FLOAT;
+      else return ri;
+  }
+  printf("[Semantico] Erro: divisao %s / %s\n", type2string(le), type2string(ri));
+  return TYPE_UNDEFINED;  
+}
+
+Type expr_div(Type le, Type ri){
+  Type le_class = Type_Class(le), ri_class = Type_Class(ri);  
+  if(le_class == ri_class) {
+    if(le_class = TYPE_SCALAR) {
+      return max(le, ri);
+    }
+  } else if (le_class == TYPE_MAT && ri_class == TYPE_SCALAR){
+      if(ri == TYPE_FLOAT) return TYPE_MAT_FLOAT;
+      else return ri;
+  }
+  ERRSHOW(
+    printf("[Semantico] Erro: multiplicacao %s * %s\n", type2string(le), type2string(ri));
+  );
+  return TYPE_UNDEFINED;
+
+}
+
+Type expr_mat_mul(Type le, Type ri){
+  Type le_class = Type_Class(le), ri_class = Type_Class(ri);
+  if(le_class == TYPE_MAT && ri_class == TYPE_MAT) return max(le, ri);
+  else {
+    printf("[Semantico] Erro: operandos invahlidos para operador @: %s e %s. Ambos devem ser do tipo matriz\n",
+     type2string(le), type2string(ri));
+    return TYPE_UNDEFINED;
+  }
+}
+
+Type expr_mat_pow(Type le, Type ri){
+  if( Type_Class(le) == TYPE_MAT && ri == TYPE_INT)  return ri;
+  else {
+    printf("[Semantico] Erro: operandos invahlidos para operador @@: %s e %s (esperado matriz e int)\n", type2string(le), type2string(ri));
+    return TYPE_UNDEFINED;
+  }
+}
+
+Type expr_bool(Type le, Type ri, int op){
+  Type c1 = Type_Class(le), c2 = Type_Class(ri);
+  switch(op) {
+    case GE:  case LE:
+    case '<':  case '>':
+    case AND:  case OR:
+      if(c1 == c2) {
+        if(c1 == TYPE_SCALAR) return TYPE_INT;
+        else return TYPE_MAT_INT;
+      }
+      else {
+        critical_error++;
+        printf("[Semantico] Erro: comparacao entre %s <?> %s\n", 
+          type2string(le), type2string(ri));
+        return TYPE_UNDEFINED;
+      }
+  }
+}
+
+
 
 // Retorna NULL caso nao o tenha sido;senao,
 // retorna ponteiro para declracao mais prohxima.

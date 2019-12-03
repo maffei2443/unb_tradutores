@@ -5,6 +5,16 @@
 int match_paramList(No* , No*);
 void link_symentry_no(SymEntry** sym, No** no);
 Type bin_expr_type(Type left, Type right, int op);
+
+static Type expr_mod(Type, Type);
+static Type expr_add(Type, Type);
+static Type expr_sub(Type, Type);
+static Type expr_mul(Type, Type);
+static Type expr_div(Type, Type);
+static Type expr_mat_mul(Type, Type);
+static Type expr_mat_pow(Type, Type);
+static Type expr_bool(Type, Type, int op);
+
 SymEntry* add_entry(SymEntry** reshi, char* id, int tag);
 SymEntry* last_decl(SymEntry** reshi, char* id);
 int was_declared(SymEntry** reshi, char* id);

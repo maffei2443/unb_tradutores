@@ -16,12 +16,22 @@ Type Type_Class(Type type) {
       return TYPE_CHAR;
     case TYPE_UNDEFINED:
       return TYPE_UNDEFINED;
+    
     case TYPE_INT:
     case TYPE_FLOAT:
       return TYPE_SCALAR;      
+
+    case TYPE_ARRAY:
+    case TYPE_ARRAY_CHAR:
+    case TYPE_ARRAY_INT:
+    case TYPE_ARRAY_FLOAT:
+      return TYPE_ARRAY;
+
+    case TYPE_MAT:
     case TYPE_MAT_INT:
     case TYPE_MAT_FLOAT:
       return TYPE_MAT;
+    
     default:
       return TYPE_UNDEFINED;
   }

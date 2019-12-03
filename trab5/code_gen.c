@@ -5,7 +5,7 @@
 #include "Tree.h"
 #include "Colorfy.h"
 //////
-unsigned long critical_error = 0;
+
 short int local_pos = 0;
 
 /* https://stackoverflow.com/questions/9655202/how-to-convert-integer-to-string-in-c */

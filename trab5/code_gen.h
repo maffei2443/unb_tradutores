@@ -42,8 +42,6 @@ char* wrapper(char);
 //    identificador local.
 // LEMBRAR DE DESALOCAR APOHS USAR O RESULTADO!
 char* get_addr(No*);
-
-unsigned long critical_error;
 // int sprintf ( char * str, const char * format, ... );
 
 #endif

@@ -206,10 +206,11 @@ declOrdeclInitVar : typeAndNameSign ';'
     Type left_class = Type_Class(t1);
     Type right_class = Type_Class(t2);
 
-    printf("[type-left] %s\n", type2string(t1));
-    printf("[type-right] %s\n", type2string(t2));
-    printf("[CLASS-left] %s\n", type2string(left_class));
-    printf("[CLASS-right] %s\n", type2string(right_class));
+/*     fprintf(stderr, "[type-left] %s\n", type2string(t1));
+    fprintf(stderr, "[type-right] %s\n", type2string(t2));
+    fprintf(stderr, "[CLASS-left] %s\n", type2string(left_class));
+    fprintf(stderr, "[CLASS-right] %s\n", type2string(right_class));
+ */
     char* r;
     char* l = get_addr($1);
 
@@ -222,17 +223,17 @@ declOrdeclInitVar : typeAndNameSign ';'
           printf("[Warning] Conversao %s -> %s vai perder informacao\n", type2string(t1), type2string(t2));
           // r = narrow(rval,decl);
           switch(left_class) {
-            case TYPE_MAT: BLUE(printf("Converter para matriz de int\n")); break;
+            case TYPE_MAT: CODESHOW(printf("Converter para matriz de int\n")); break;
             case TYPE_ARRAY: CODESHOW(printf("Nao se pode operar sobre arrays %d\n", 2)); break;
             case TYPE_SCALAR: CODESHOW(printf("Converter float -> int\n")); break;
           } 
         } else {  // conversao widen
-          BLUE(printf("Widening ..."));
+          CODESHOW(printf("Widening ..."));
           r = widen(rval,decl);
           switch(left_class) {
-            case TYPE_MAT: BLUE(printf("Convertes para matriz de float\n")); break;
+            case TYPE_MAT: CODESHOW(printf("Convertes para matriz de float\n")); break;
             case TYPE_ARRAY: CODESHOW(printf("Nao se pode operar sobre arrays %d\n", 2)); break;
-            case TYPE_SCALAR: { BLUE(printf("Convertendo... "));break;}
+            case TYPE_SCALAR: { CODESHOW(printf("Convertendo... "));break;}
           }
           CODESHOW(printf("mov %s, %s\n", l, r));
         }        
@@ -531,7 +532,7 @@ localStmt : call ';' {
 }
 | newFlowControl {
   MAKE_NODE(localStmt);
-  add_Node_Child_If_Not_Null($$, yyvsp[0].no);
+  add_Node_Child_If_Not_Null($$, $newFlowControl);
   printf("__afterElse");
 
 }
@@ -591,26 +592,27 @@ localStmt : call ';' {
   add_Node_Child_If_Not_Null( $$, $4 );
 }
 
-newFlowControl : {/* setar label */} flowControl {$$ = yyvsp[0].no;}
+newFlowControl : {/* setar label */ BLUE("new if-context\n"); } flowControl {$$ = yyvsp[0].no;}
 
 flowControl :  IF '(' expr ')'
-{
-  int label = Stack_After_If_Push();
-  CODESHOW(printf("jump __after_if%d:\n", label ) ) ;
-}
-block 
-{
-  int label = Stack_After_If_Pop();
-  CODESHOW( printf("__afterIf%d:\n", label ) );
-}
-ELSE {} flowControl {
-  MAKE_NODE(flowControl);
-  add_Node_Child_If_Not_Null($$, Token_New("IF","if"));
-  add_Node_Child_If_Not_Null($$, $expr);
-  add_Node_Child_If_Not_Null($$, $block);
-  add_Node_Child_If_Not_Null($$, Token_New("ELSE","else"));
-  add_Node_Child_If_Not_Null($$, yyvsp[0].no);
-}
+  {
+    int label = Stack_After_If_Push();
+    BLUE("CHECAR-EXPR-TRUE-IF\n");
+    CODESHOW(printf("jump __after_if%d:\n", label ) ) ;
+  }
+    block 
+  {
+    int label = Stack_After_If_Pop();
+    CODESHOW( printf("__afterIf%d:\n", label ) );
+  }
+    ELSE {} flowControl {
+      MAKE_NODE(flowControl);
+      add_Node_Child_If_Not_Null($$, Token_New("IF","if"));
+      add_Node_Child_If_Not_Null($$, $expr);
+      add_Node_Child_If_Not_Null($$, $block);
+      add_Node_Child_If_Not_Null($$, Token_New("ELSE","else"));
+      add_Node_Child_If_Not_Null($$, yyvsp[0].no);
+    }
 // block e ';' foram movidos para cah de modo a nao haver conflito na gramatica
 | block
 | ';' {$$ = NULL;}
@@ -776,20 +778,26 @@ expr : expr '+' expr {
   No* e = $$, *e1 = $1, *e2 = $3;
   Type t1 = e1->type, t2 = e2->type;
   printf("ADDRs: ");
-  BoldCyan();
-  printf("add %s, %s, %s\n", get_addr(e), get_addr(e1), get_addr(e2));
-  Reset();
+  char* e2_addr, *e1_addr, *e_addr;
+  e2_addr = get_addr(e2);
+  e1_addr = get_addr(e1);
+  e_addr = get_addr(e);
+
+  CODESHOW(printf("add %s, %s, %s\n", e_addr, e1_addr, e2_addr));
+  free(e2_addr);
+  free(e1_addr);
+  free(e_addr);
   // abort();
   add_Node_Child_If_Not_Null($$, e1);
   add_Node_Child_If_Not_Null($$, e2);
   // SEMANTICO
   $$->type = bin_expr_type( t1, t2, '+');
-  printf("RESULT TYPE: %s\n", type2string(e->type));
-  printf("\tfrom: %s + %s\n", type2string(e1->type), type2string(e2->type));
-  printf("\t    : %d + %d\n", e1->is_const, e2->is_const);
+  printf("RESULT TYPE: %s", type2string(e->type));
+  printf(" from: %s + %s\n", type2string(e1->type), type2string(e2->type));
+  // printf("\t    : (is_const)%d + (is_const)%d\n", e1->is_const, e2->is_const);
 
-  printf("%s\n", widen($1 ,$$));
-  printf("%s\n", widen($3, $$));
+  // printf("%s\n", widen($1 ,$$));
+  // printf("%s\n", widen($3, $$));
 
   // GERACO DE CODIGO
 }
@@ -1201,8 +1209,8 @@ int main(){
   nodeCounter = 0;
   yyparse();
   if(root) {
-    show_Sub_Tree(root, 1, SVAL);
-    show_Lis(root,SVAL);
+    // show_Sub_Tree(root, 1, SVAL);
+    // show_Lis(root,SVAL);
   }
   print_reshi(reshi);
   yylex_destroy();

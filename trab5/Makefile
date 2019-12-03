@@ -38,10 +38,10 @@ Colorfy.o: Colorfy.h Colorfy.c
 Array.o: Array.h Array.c
 	gcc $(FLAGS) -c Array.c
 
-code_gen.o: code_gen.h code_gen.c Array.o Common.o
-	gcc $(FLAGS) -c code_gen.c Common.o
+code_gen.o: code_gen.h code_gen.c Array.o Common.h
+	gcc $(FLAGS) -c code_gen.c
 
-Common.o: Common.h Common.c 
+Common.o: Common.h Common.c Colorfy.h
 	gcc $(FLAGS) -c Common.c
 
 Stack.o: Stack.h Stack.c

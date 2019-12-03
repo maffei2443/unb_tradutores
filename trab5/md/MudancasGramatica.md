@@ -30,3 +30,5 @@
 
 - alteração da regra **flowControl** e **localStmt**, de modo a 
 permitir ações semânticas no meio da regra de produção do _if_
+  - foi adicionada uma nova regra de produção: **newFlowControl**,
+  para saber onde colocar o label que finaliza uma cadeia de _if/else_
