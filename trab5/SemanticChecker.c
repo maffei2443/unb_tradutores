@@ -66,12 +66,18 @@ void set_type_and_uni_link(SymEntry** old, No** tok) {
 // - left/right ser TYPE_UNDEFINED
 // - left/right ser TYPE_ARRAY
 // - expressão mal formada (definida nas funcoes expr_*)
+// Otherwise, infere tipo da expressao
 // escalar por matriz
 Type bin_expr_type(Type left, Type right, int op) {
   Type leftClass = Type_Class(left);
   Type rightClass = Type_Class(right);
-  DBG(printf("\n[bin_expr_type] tipos:  = %s <<%c>> %s\n", type2string(left),op, type2string(right)));
-  DBG(printf("[bin_expr_type] classes:  = %s <<%c>> %s\n", type2string(leftClass),op, type2string(rightClass)));
+  if(op <= 127){
+    DBG(printf("\n[bin_expr_type] tipos:  = %s <<%c>> %s\n", type2string(left),op, type2string(right)));
+    DBG(printf("[bin_expr_type] classes:  = %s <<%c>> %s\n", type2string(leftClass),op, type2string(rightClass)));
+  } else {
+    DBG(printf("\n[bin_expr_type] tipos:  = %s <<%d>> %s\n", type2string(left),op, type2string(right)));
+    DBG(printf("[bin_expr_type] classes:  = %s <<%d>> %s\n", type2string(leftClass),op, type2string(rightClass)));
+  }
   if(left == TYPE_CHAR || right == TYPE_CHAR){
     ERRSHOW(printf("ERRO: TIPO <CHAR> NAO PODE SER USADO PARA REALIZACAO DE OPERACOES\n"));
     return TYPE_UNDEFINED;
@@ -199,7 +205,7 @@ Type expr_bool(Type le, Type ri, int op){
       }
     default:
     critical_error++;
-      ERRSHOW(printf(" Expressao com tipos %s, %s e operacao %c sem tipo definido!",
+      ERRSHOW(printf(" Expressao com tipos %s, %s e operacao %c sem tipo definido!\n",
         type2string(le), type2string(ri), op));
       return TYPE_UNDEFINED;
   }
@@ -213,6 +219,51 @@ Type expr_attr(Type le, Type ri) {
     return TYPE_UNDEFINED;
   }
   return max(le, ri);
+}
+
+// Cast pode ser feito APENAS entre coisas de mesma class.
+// Ex: scalar/saclar, array/array, umat/umat/, mat/mat
+int can_cast(Type from, Type to) {
+  return Type_Class(from) == Type_Class(to);
+}
+
+// Retorna true sse le == re == TYPE_INT
+int can_cast_mod(Type le, Type ri) {
+  Type le_class = Type_Class(le), ri_class = Type_Class(ri);
+  if(le == ri && ri == TYPE_INT) return 1;
+  return 0;
+}
+
+int can_cast_add(Type le, Type ri) {
+
+}
+
+int can_cast_sub(Type le, Type ri) {
+
+}
+
+int can_cast_mul(Type le, Type ri) {
+
+}
+
+int can_cast_div(Type le, Type ri) {
+
+}
+
+int can_cast_mat_mul(Type le, Type ri) {
+
+}
+
+int can_cast_mat_pow(Type le, Type ri) {
+
+}
+
+int can_cast_bool(Type le, Type ri, int op) {
+
+}
+
+int can_cast_attr(Type le, Type ri) {
+
 }
 
 
@@ -310,9 +361,6 @@ int id_has_type(SymEntry** reshi, char* id, Type type) {
 }
 
 // Retorna 1 de t1 pode ser promovido a t2, e 0 caso contrario
-int can_cast(Type t1, Type t2) {
-  
-}
 
 Type to_base_type(Type t) {
   assert(t != TYPE_LIST && t != TYPE_LIST_LIST);

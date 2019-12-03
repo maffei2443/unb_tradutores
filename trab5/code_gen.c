@@ -4,6 +4,7 @@
 #include <assert.h>
 #include "Tree.h"
 #include "Colorfy.h"
+#include "SemanticChecker.h"
 //////
 
 short int local_pos = 0;
@@ -58,7 +59,7 @@ char* str_ptr_clone(const char* src) {
   return ret;
 }
 
-// Retorna NULL caso nao seja necessario conversao.
+// Retorna endereco de src, caso nao seja necessario conversao.
 // Noutro caso, retorna o local de onde estah o valor convertido.
 // OBS: dever ser dado FREE pela funcao chamadora.
 // PROBLEMAS POSSIVEIS: se src nao for passivel de dar free.
@@ -67,6 +68,10 @@ char* str_ptr_clone(const char* src) {
 char* widen(No* src ,No* dest) {
   char * ret;
   if(src->type == dest->type) ret = get_addr(src);
+  // Senao, tem tipos distintos e ASSUME 
+  if (!can_cast(src->type, dest->type)) {
+    return "";
+  }
   else if (src->type == TYPE_INT && dest->type == TYPE_FLOAT) {
     int temp;
     temp = temp_next();
@@ -76,19 +81,12 @@ char* widen(No* src ,No* dest) {
     memcpy(temp_addr + 1, temp_as_str, strlen(temp_as_str) + 1);
     ret = temp_addr;
     if(src->is_const) { 
-      // Conversao de constante:
-      // - pegar novo temporario, salvar nele o resultado da conversao.
-      // - retornar string com esse temporario      
-      BoldCyan();
-      printf("inttofl %s, %d\n", temp_addr, src->ival);
-      Reset();
+      CODESHOW(printf("inttofl %s, %d\n", temp_addr, src->ival));
     } else {
-      BoldCyan();
-      printf("inttofl %s, %s\n", temp_addr, get_addr(src));
-      Reset();
+      CODESHOW(printf("inttofl %s, %s\n", temp_addr, get_addr(src)));
     }
   } else if( src->type == TYPE_MAT_INT && dest->type == TYPE_MAT_FLOAT ){
-    
+    CODESHOW(printf("FAZER CONVERSAO MAT_INT --> MAT_FLOAT"));
   } else {
     ret =get_addr( src );
     if(src->is_const)
@@ -98,6 +96,8 @@ char* widen(No* src ,No* dest) {
   }
   return ret;
 }
+
+
 char* narrow(No* src, No* dest) {
   char * ret;
   if(src->type == dest->type) ret = get_addr(src);

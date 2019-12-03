@@ -76,7 +76,7 @@ extern Stack* after_if_stack;
 %token-table
 %locations
 
-%left ARITM REL_OP
+%left ARITM REL_OP BIN_LOGI
 %left EQ NEQ GE LE
 %left AND
 %left OR
@@ -96,8 +96,8 @@ extern Stack* after_if_stack;
   No* no;
   Type type;
 }
-%type<ival> ARITM REL_OP
-%token ARITM REL_OP
+%type<ival> ARITM REL_OP BIN_LOGI
+%token ARITM REL_OP BIN_LOGI
 
 %token BASE_TYPE WHILE V_INT V_FLOAT V_ASCII AHEAD
 %token MAT_TYPE IF ID ICAST FCAST ELSE
@@ -526,17 +526,39 @@ localStmt : call ';' {
 | lvalue '=' rvalue ';'  {
   // TODO: CHECAR TIPOS!
   MAKE_NODE(localStmt);
-  if($lvalue->type != $rvalue->type ||
-    $lvalue->type == $rvalue->type && $lvalue->type == TYPE_UNDEFINED) {
-    // printf("lvalue: %p\n", $lvalue);
-    // printf("rvalue: %p\n", $rvalue);
+  char* leftAddr, *rightAddr = NULL;
+  leftAddr = get_addr($lvalue);
 
-    // printf("lvalue->type: %d\n", $lvalue->type);
-    // printf("rvalue->type: %d\n", $rvalue->type);
-    
+  Type t1 = $lvalue->type, t2 = $rvalue->type;
+  Type c1 = Type_Class(t1), c2 = Type_Class(t2);
+  const char* s1 = type2string(t1), *s2 = type2string(t2);
+  // ################# VAI VIRAR FUNCAO
+  int to_cast = 0;
+  if(t1 == TYPE_UNDEFINED || t2 == TYPE_UNDEFINED ||
+    to_base_type(t1) == TYPE_CHAR || to_base_type(t1) == TYPE_CHAR) {
+    to_cast = 0;
+    ERRSHOW(printf("Erro: UNDEFINED/char em atribuicao: %s = %s\n", s1, s2));
+  } else if ( c1 == TYPE_MAT || c1 == TYPE_ARRAY || c2 == TYPE_ARRAY || c2 == TYPE_MAT  ) {
+    to_cast = 0;
+    ERRSHOW(printf("Erro: Atribuicao soh eh possivel entre escalares. %s = %s\n", type2string(t1), type2string(t2)));
+  } else{ 
+    to_cast = 1;
     WARSHOW(printf("[Semantico] Warning de tipo em atribuicao: <%s> = <%s>\n",
-     type2string($lvalue->type), type2string($rvalue->type)));
+     type2string(t1), type2string(t2)));
   }
+  if(to_cast) {
+    if( t1 < t2 ) {
+      ERRSHOW(printf("Nao eh possivel a atribuicao %s = %s : narrow casting\n", s1, s2));      
+    } else {
+      if(can_cast(t2, t1)) {
+        rightAddr = widen( $rvalue, $lvalue );
+      } else {
+        ERRSHOW(printf("Nao eh possivel a atribuicao %s = %s : cast inexistente\n", s1, s2));
+      }
+    }
+  }
+  CODESHOW(pf("mov %s, %s", leftAddr, rightAddr));
+  // ################# VAI VIRAR FUNCAO
   add_Node_Child_If_Not_Null($$, $lvalue);
   add_Node_Child_If_Not_Null($$, $rvalue);
 }
@@ -805,7 +827,7 @@ expr : expr ARITM expr {
   add_Node_Child_If_Not_Null($$, e1);
   add_Node_Child_If_Not_Null($$, e2);
   // SEMANTICO
-  $$->type = bin_expr_type( t1, t2, '+');
+  $$->type = bin_expr_type( t1, t2, $$->ival);
   printf("RESULT TYPE: %s", type2string(e->type));
   printf(" from: %s + %s\n", type2string(e1->type), type2string(e2->type));
   // printf("\t    : (is_const)%d + (is_const)%d\n", e1->is_const, e2->is_const);
@@ -879,24 +901,49 @@ expr : expr ARITM expr {
 
 }
 
-| expr AND expr {
+| expr BIN_LOGI expr {
   MAKE_NODE(expr);
 
-  $$->ival = AND;
+  $$->ival = $BIN_LOGI;
+  $$->type = bin_expr_type( $1->type, $3->type, $$->ival);
+
+  No* e = $$, *e1 = $1, *e2 = $3;
+  Type t1 = e1->type, t2 = e2->type;
+  DBG(printf("BIN_LOGI\n"));
+  char* e2_addr, *e1_addr, *e_addr;
+  e2_addr = get_addr(e2);
+  e1_addr = get_addr(e1);
+  e_addr = get_addr(e);
+
+  CODESHOW(printf("%c %s, %s, %s\n",$$->ival , e_addr, e1_addr, e2_addr));
+  free(e2_addr);
+  free(e1_addr);
+  free(e_addr);
+
+
+  
   add_Node_Child_If_Not_Null($$, $1);
   add_Node_Child_If_Not_Null($$, $3);
   // SEMANTICO
-  $$->type = bin_expr_type( $1->type, $3->type, AND);
 }
-| expr OR expr {
-  MAKE_NODE(expr);
+// | expr AND expr {
+//   MAKE_NODE(expr);
 
-  $$->ival = OR;
-  add_Node_Child_If_Not_Null($$, $1);
-  add_Node_Child_If_Not_Null($$, $3);
-  // SEMANTICO
-  $$->type = bin_expr_type( $1->type, $3->type, OR);
-}
+//   $$->ival = AND;
+//   add_Node_Child_If_Not_Null($$, $1);
+//   add_Node_Child_If_Not_Null($$, $3);
+//   // SEMANTICO
+//   $$->type = bin_expr_type( $1->type, $3->type, AND);
+// }
+// | expr OR expr {
+//   MAKE_NODE(expr);
+
+//   $$->ival = OR;
+//   add_Node_Child_If_Not_Null($$, $1);
+//   add_Node_Child_If_Not_Null($$, $3);
+//   // SEMANTICO
+//   $$->type = bin_expr_type( $1->type, $3->type, OR);
+// }
 | '!' expr {
   MAKE_NODE(expr);
   // TODO: RECLAMAR SE NAO "BOOL"
@@ -904,16 +951,7 @@ expr : expr ARITM expr {
   $$->ival = '!';
   add_Node_Child_If_Not_Null($$, $2);
 }
-| '&' expr {
-  MAKE_NODE(expr);
-  // CHECAR SE EH LVAL; SE NAO FOR, TEM QUE DAR ERRO
-  if(strcmp($2->tname, "lvalue")) {
-    ERRSHOW(printf("[Semantico] Erro: operando de & deve ser lvalue.\n"));
-  }
-  $$->type = TYPE_POINTER;
-  $$->ival = '&';
-  add_Node_Child_If_Not_Null($$, $2);
-}
+
 | '(' expr ')' {$$ = $2;}
 | ICAST '(' expr ')' {
   MAKE_NODE(expr);
@@ -1022,7 +1060,7 @@ arg : lvalue {
   printf("param $%d (%s)\n", $1->symEntry->addr, $1->symEntry->id);
   $$ = $1;
 }
-| ID '(' ')' '(' expr ')' {
+| ID '(' expr ')' '(' expr ')' {
   SymEntry* entry = last_decl(&reshi, $ID);
   assert( entry );
   

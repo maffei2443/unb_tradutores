@@ -349,12 +349,13 @@ achar '([a-zA-Z0-9_]?)'
   currCol += yyleng;
   if(yyleng == 2) {
     switch(yytext[0]) {
-      case '&': return AND;
+      case '&': yylval.ival = AND; break;
       ;
-      case '|': return OR;
+      case '|': yylval.ival = OR;  break;
       ;
     }
   }
+  return BIN_LOGI;
 }
 
 {FLOAT}    {

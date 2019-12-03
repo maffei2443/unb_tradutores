@@ -14,7 +14,8 @@
   X;\
   Reset();}
 #define ERRSHOW(X) \
-  {BoldRed(); \
+  { critical_error++;\
+  BoldRed(); \
   X;\
   Reset();}
 #define WARSHOW(X) \
@@ -31,6 +32,7 @@
   printf(X);\
   Reset();}
 #define STR(x) #x
+#define pf printf
 /// Modulo contendo estruturas de dados livres de dependencias
 /// e que portanto podem ser utilizadas por qualquer outro arquivo.
 

@@ -4,8 +4,8 @@
 
 int match_paramList(No* , No*);
 void link_symentry_no(SymEntry** sym, No** no);
-Type bin_expr_type(Type left, Type right, int op);
 
+Type bin_expr_type(Type left, Type right, int op);
 static Type expr_mod(Type, Type);
 static Type expr_add(Type, Type);
 static Type expr_sub(Type, Type);
@@ -15,6 +15,18 @@ static Type expr_mat_mul(Type, Type);
 static Type expr_mat_pow(Type, Type);
 static Type expr_bool(Type, Type, int op);
 static Type expr_attr(Type, Type);
+
+int can_cast(Type src, Type dest);
+static int can_cast_mod(Type, Type);
+static int can_cast_add(Type, Type);
+static int can_cast_sub(Type, Type);
+static int can_cast_mul(Type, Type);
+static int can_cast_div(Type, Type);
+static int can_cast_mat_mul(Type, Type);
+static int can_cast_mat_pow(Type, Type);
+static int can_cast_bool(Type, Type, int op);
+static int can_cast_attr(Type, Type);
+
 
 SymEntry* add_entry(SymEntry** reshi, char* id, int tag);
 SymEntry* last_decl(SymEntry** reshi, char* id);
@@ -28,7 +40,6 @@ void point_no_symentry(SymEntry** sym, No** no);
 void set_type_and_uni_link(No* p, SymEntry* old, No* tok) ;
 
 int id_has_type(SymEntry** reshi, char* id, Type type);
-int can_cast(Type t1, Type t2);
 Type to_base_type(Type);
 void delBLUE();
 
