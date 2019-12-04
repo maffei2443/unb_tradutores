@@ -5,6 +5,7 @@
 #include "Tree.h"
 #include "Colorfy.h"
 #include "SemanticChecker.h"
+#include "Common.h"
 //////
 
 short int local_pos = 0;
@@ -219,16 +220,15 @@ char* get_no_addr(No* no) {
 char* get_mat_size(No* no) {
   assert(no->sym_entry);
   WARSHOW(printf("[get_mat_size] %p->is_param = %d\n",no, no->is_param));
-  WARSHOW(printf("[get_mat_size] %p->has_aux = %d\n",no, no->has_aux));
-  WARSHOW(printf("[get_mat_size] %p->tname = %s\n",no, no->tname));
-  WARSHOW(printf("[get_mat_size] %p->sval = %s\n",no, no->sval));
-  WARSHOW(printf("[get_mat_size] %p->is_arg = %d\n",no, no->is_arg));
-  WARSHOW(printf("[get_mat_size] %p->sym_entry->is_arg = %d\n",no, no->sym_entry->is_arg));
-  // abort();
-  char* addr = get_no_val(no);   // garante que no possui endereco
-  if(no->is_arg) {    // computar em tempo de execucao, pois eh argumento
+  free(get_no_val(no));   // garante que no possui endereco
+  if(no->sym_entry->line == -1 && no->sym_entry->col == -1) {    // computar em tempo de execucao, pois eh argumento
     CODESHOW(printf("TODO: COMPUTAR TAMANHO DA MATRIZ EM TEMPO DE EXECUCAO [%p->is_param == %d]\n", no, no->is_param));    
-    return "BIZARRO";
+    int mat_addr = no->sym_entry->addr;
+    int temp = temp_next();
+    CODESHOW(printf("mul $%d, $%d, $%d // tamanho da matriz, em tempo de execucao\n", temp,mat_addr+1 ,mat_addr+2));
+    char* ret = calloc(20, sizeof(char));
+    sprintf(ret, "$%d", temp);
+    return ret;
   } else {  // possui valores estaticos para as dimensoes
     SymEntry* s = no->sym_entry;
     printf("%p !!! \n", s);/*  abort(); */

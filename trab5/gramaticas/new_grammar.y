@@ -523,11 +523,17 @@ param : BASE_TYPE ID {
 
 | MAT_TYPE BASE_TYPE ID {
   // TODO: checar por declaracao previa de parametro!
-
+  
   $param = Token_New(STR(param), $ID);
   DBG(printf("%p eh parametro!\n id == %s\n", $param, $ID));
   $$->is_param = 1;
+  
   SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_PARAM);
+  // enderecos para os dois temporarios que guardam tamanho da matriz!
+  // IMPORTANTE CHAMAR DEPOIS de ter inserido na tabela de simbolos
+  temp_next();
+  temp_next();
+
   printf("!!! %p, %s: param @@@\n", neoEntry, $ID);
   // Semantico
   PARAM_RPT_NAME_CHECK(-1, 0);
@@ -598,11 +604,16 @@ localStmt : call ';' {
     to_cast = 1;
     WARSHOW(printf("Conversao entre matrizes. %s = %s\n", t2s(t1), t2s(t2)));
 
+    SymEntry* sym = $rvalue->sym_entry;
+    printf("lines: %d, colunas: %d\n", sym->line, sym->line);
+    show_entry(sym);
     // abort();
 
     BLUE("AQUI O CAST DE MATRIZES\n");
     CODESHOW(printf("param %s\n", get_no_addr($rvalue)));
-    CODESHOW(printf("\tparam %s\n", get_mat_size($rvalue)));
+    char* m_sz = get_mat_size($rvalue);
+    CODESHOW(printf("param %s\n", m_sz ));
+    free(m_sz);
     CODESHOW(printf("call mat_i2f_temp, 2\n"));
     int temp = temp_next();
     CODESHOW(printf("pop $%d\n", temp));
