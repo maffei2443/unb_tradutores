@@ -722,7 +722,7 @@ newFlowControl : countFlow
  flowControl {
    $$ = yyvsp[0].no;
    __new_flow--;
-   if($flowControl != NULL && $flowControl->is_token)
+   if($flowControl != NULL && !strcmp($flowControl->tname, "flowControl") )
     LABELSHOW(printf("__endFlow%d:\n", $countFlow->ival));
 }
 countFlow : %empty {
