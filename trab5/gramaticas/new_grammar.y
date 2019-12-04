@@ -217,10 +217,11 @@ declOrdeclInitVar : typeAndNameSign ';'
 
     char* r;
     char* l = get_no_addr($1);
-
+    DBG(printf("[lvalue = rvalue] %s = %s\n", t2s(t1), t2s(t2)));
     if(left_class == right_class) {
       if(t1 == t2) {
           CODESHOW( printf("mov %s, %s\n", get_no_addr(decl), get_no_addr(rval)) );
+          abort();
       } else {  // efetuar conversoes, jah que sao de mesma classe
         // Converter do tipo de rvalue -> declOrInitVar 
         if(left_class < right_class) {
@@ -611,7 +612,8 @@ localStmt : call ';' {
   Reset();*/
 
   // ################# VAI VIRAR FUNCAO
-  SHOWGRAY(printf("lvalue = rvalue : %s = %s\n", s1, s2));
+  // SHOWGRAY(printf("lvalue = rvalue : %s = %s\n", s1, s2));
+
   int to_cast = 0;
   if(t1 == TYPE_UNDEFINED || t2 == TYPE_UNDEFINED ||
     to_base_type(t1) == TYPE_CHAR || to_base_type(t1) == TYPE_CHAR) {
@@ -658,7 +660,9 @@ localStmt : call ';' {
       ERRSHOW(printf("Nao eh possivel a atribuicao %s = %s : narrow casting\n", s1, s2));    
       rightAddr = "impossivel";  
     } else {
-      if(can_cast(t2, t1));
+      if(can_cast(t2, t1)) {
+        rightAddr = get_no_addr( $rvalue );
+      }
       else {
         ERRSHOW(printf("Nao eh possivel a atribuicao %s = %s : cast inexistente\n", s1, s2));
       }

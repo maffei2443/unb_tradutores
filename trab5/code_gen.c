@@ -180,13 +180,11 @@ char* widen_basic(char* src, Type t_src, Type t_dest) {
 // Em caso de variahvel global, retorna seu nome.
 // NAO POSSUI GERA COHDIGO, MAS PODE MODIFICAR temp pois chama temp_next
 char* get_no_val(No* no) {
-  // DBG(printf("[getAddr] with %p->is_param = %d...\n", no, no->is_param));
-  if(no->sym_entry && no->sym_entry->is_global) {  // eh identificador GLOBAL
+  if(no->sym_entry && no->sym_entry->is_global) {  // eh identificador GLOBAL    
     return str_ptr_clone(no->sym_entry->id);
   } 
   else {
     char* buf = calloc(22, sizeof(char));
-    
     if (no->is_const) {  // se eh constante, nao precisa de temporario associado
       switch(no->type){
         case TYPE_INT:  sprintf(buf, "%d",  no->ival); break;
@@ -203,7 +201,6 @@ char* get_no_val(No* no) {
     else {  // jah tem endereco temporario associado
       sprintf(buf, "$%d", no->addr);
     }
-    
     return buf;
   }
 }
