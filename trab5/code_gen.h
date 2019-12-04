@@ -41,7 +41,20 @@ char* wrapper(char);
 // SE eh um identificador parametro, deve cair no mesmo caso de 
 //    identificador local.
 // LEMBRAR DE DESALOCAR APOHS USAR O RESULTADO!
+// OBS: pode modificar objeto, caso precise atribuir um endereco 
+// temporario a ele
 char* get_addr(No*);
+
+// Retorna string contendo tamanho da matriz.
+// Dois casos:
+// 1 - matriz eh global/local. Entao, eh uma constante
+// 2 - matriz eh um PARAMETRO
+// 3 - nesse caso, vai pegar os temporarios que devem
+//    armazenar suas dimensoes, multiplicar e salvar
+//    num temporario cuja representacao serah retornada 
+
+char* get_mat_size(No*);
+
 // int sprintf ( char * str, const char * format, ... );
 
 #endif

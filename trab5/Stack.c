@@ -38,7 +38,7 @@ Stack* Stack_Pop(Stack* stack) {
 	}
 }
 
-int Stack_Flow_Push() {
+int Stack_New_Flow_Push() {
   __new_flow_stack = Stack_Push(__new_flow_stack, ++__new_flow);
   return __new_flow;
 }

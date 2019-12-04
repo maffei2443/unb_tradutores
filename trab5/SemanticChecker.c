@@ -19,13 +19,15 @@ int match_paramList(No* oldParam, No* param) {
   // printf("sym: %p vs no: %p\n", sym, no);
   if(!oldParam && !param) return 1;   // ambas funcoes sem argumento
   if(!oldParam || !param) return 0;   // apenas 1 eh sem argumento
-  // printf("oldParam: %p vs param: %p\n", oldParam, param);
-  // printf("oldParam: %s vs param: %s OK\n", type2string(oldParam->type), type2string(no->type));
   printf("%s vs %s\n", type2string(oldParam->type), type2string(param->type));
   printf("%s vs %s\n", oldParam->sval, param->sval);
   while (oldParam && param){
-    if(oldParam->type != param->type)
+    if(oldParam->type != param->type){
+      printf("[match_paramList]%s vs %s\n", 
+        type2string(oldParam->type), type2string(param->type)
+      );
       break;
+    }
     else {
       printf("pametro igual!\n");
       // Alterar os ponteiros por fora, aqui nao estah dando nada certo.
@@ -34,6 +36,7 @@ int match_paramList(No* oldParam, No* param) {
     param = param->nextAux;
   }
   printf("OK, FOI mach_paramList\n");
+  printf("\t %p %p\n", oldParam, param);
   return !oldParam && !param;
 }
 
@@ -72,11 +75,11 @@ Type bin_expr_type(Type left, Type right, int op) {
   Type leftClass = Type_Class(left);
   Type rightClass = Type_Class(right);
   if(op <= 127){
-    DBG(printf("\n[bin_expr_type] tipos:  = %s <<%c>> %s\n", type2string(left),op, type2string(right)));
-    DBG(printf("[bin_expr_type] classes:  = %s <<%c>> %s\n", type2string(leftClass),op, type2string(rightClass)));
+    // DBG(printf("\n[bin_expr_type] tipos:  = %s <<%c>> %s\n", type2string(left),op, type2string(right)));
+    // DBG(printf("[bin_expr_type] classes:  = %s <<%c>> %s\n", type2string(leftClass),op, type2string(rightClass)));
   } else {
-    DBG(printf("\n[bin_expr_type] tipos:  = %s <<%d>> %s\n", type2string(left),op, type2string(right)));
-    DBG(printf("[bin_expr_type] classes:  = %s <<%d>> %s\n", type2string(leftClass),op, type2string(rightClass)));
+    // DBG(printf("\n[bin_expr_type] tipos:  = %s <<%d>> %s\n", type2string(left),op, type2string(right)));
+    // DBG(printf("[bin_expr_type] classes:  = %s <<%d>> %s\n", type2string(leftClass),op, type2string(rightClass)));
   }
   if(left == TYPE_CHAR || right == TYPE_CHAR){
     ERRSHOW(printf("ERRO: TIPO <CHAR> NAO PODE SER USADO PARA REALIZACAO DE OPERACOES\n"));
@@ -98,8 +101,8 @@ Type bin_expr_type(Type left, Type right, int op) {
   // printf("**** %s %s\n\n", type2string(leftClass), type2string(rightClass));  
   switch (op)  {
     case '%': return expr_mod(left, right);
-    case '+': return expr_sub(left, right);
-    case '-': return expr_add(left, right);
+    case '+': return expr_add(left, right);
+    case '-': return expr_sub(left, right);
     case '*': return expr_mul(left, right);
     case '/': return expr_div(left, right);
     case '@': return expr_mat_mul(left, right);
@@ -124,7 +127,7 @@ Type expr_mod(Type le, Type ri){
 
 Type expr_add(Type le, Type ri){
   Type le_class = Type_Class(le), ri_class = Type_Class(ri);
-  if(le_class == ri_class) return max(le_class, ri_class);
+  if(le_class == ri_class) return max(le, ri);
   critical_error++;
   BoldRed();
   ERRSHOW(printf(" Soma/subtracao soh eh possivel entre mat/mat ou escalar/escalar\n"));
@@ -234,39 +237,6 @@ int can_cast_mod(Type le, Type ri) {
   return 0;
 }
 
-int can_cast_add(Type le, Type ri) {
-
-}
-
-int can_cast_sub(Type le, Type ri) {
-
-}
-
-int can_cast_mul(Type le, Type ri) {
-
-}
-
-int can_cast_div(Type le, Type ri) {
-
-}
-
-int can_cast_mat_mul(Type le, Type ri) {
-
-}
-
-int can_cast_mat_pow(Type le, Type ri) {
-
-}
-
-int can_cast_bool(Type le, Type ri, int op) {
-
-}
-
-int can_cast_attr(Type le, Type ri) {
-
-}
-
-
 // Retorna NULL caso nao o tenha sido;senao,
 // retorna ponteiro para declracao mais prohxima.
 SymEntry* last_decl(SymEntry** reshi, char* id){
@@ -318,18 +288,18 @@ SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
         printf("%s:%s com $%d associado\n", neoEntry->id, currScope, neoEntry->addr);
 
       }
-      printf("\t\tNEO_ENTRY: %p\n", neoEntry);
-      printf("<<<<<< add (%p) id, tag: %s, %s\n", neoEntry, id, type2string(tag));
+      // printf("\t\tNEO_ENTRY: %p\n", neoEntry);
+      // printf("<<<<<< add (%p) id, tag: %s, %s\n", neoEntry, id, type2string(tag));
       neoEntry->local.line = numlines;
       neoEntry->local.col = currCol;
       HASH_ADD_STR( (*reshi), id, neoEntry );/* id: name of key field */
     }
     else {    // Checar se eh declaracao no msm escopo. Se for, nao adiciona e dah pau (retorna NULL);
-      printf("Possivel conflito com %s:%s\n", id, neoEntry->escopo);
+      // printf("Possivel conflito com %s:%s\n", id, neoEntry->escopo);
       for(;neoEntry->next;neoEntry = neoEntry->next) {
         if(strcmp(id, neoEntry->id) == 0 && strcmp(currScope, neoEntry->escopo)) {
-          printf("[Semantico1] Erro: redeclaracao de %s:%s em l.%d, r.%d\n",
-            currScope, id, neoEntry->local.line, neoEntry->local.col);
+          ERRSHOW(printf("[Semantico1] Erro: redeclaracao de %s:%s em l.%d, r.%d\n",
+            currScope, id, neoEntry->local.line, neoEntry->local.col));
           return NULL;
         }
       }

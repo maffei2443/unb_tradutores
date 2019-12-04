@@ -18,7 +18,7 @@ Stack* Stack_Push(Stack* stack, int v);
 
 Stack* Stack_Pop(Stack* stack);
 
-int Stack_Flow_Push();
+int Stack_New_Flow_Push();
 int Stack_New_Flow_Pop();
 
 int Stack_After_If_Push();

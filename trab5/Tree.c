@@ -54,6 +54,7 @@ void show_Spaces(int qtd){
 // obs: NÃO INICIALIZA code
 No* No_New(int v) {
   No* no = (No*)calloc(1,sizeof(No));
+  // printf("[NO_NEW] %p\n", no);
   // NOTA: em teoria, nada (exceto inicializacao de ival) abaixo eh necessario por conta do calloc.
   no->type = TYPE_UNDEFINED;
   // Aqui ficarah o cohdigo associado a cada variavel, tal qual no livro
@@ -77,6 +78,9 @@ No* No_New(int v) {
   // no->fval = 0.0;
   // no->is_const = 0;
   no->addr = -1;  // seta como sem temporario associado!
+  no->is_param = 0;
+  // printf("\t%d\n", no->is_param);
+
   return no;
 }
 
@@ -293,7 +297,7 @@ int ListSize(No* no) {
 // Estava em common
 SymEntry* SymEntry_New(char* id, int tag, char* escopo){
   SymEntry* neo = (SymEntry*)calloc(1, sizeof(SymEntry));
-  printf("CONSTRUINDO <<<>>>>>> %s\n", id);
+  // printf("CONSTRUINDO <<<>>>>>> %s\n", id);
   neo->line = -1;
   neo->col = -1;
   memcpy(neo->id, id, strlen(id));

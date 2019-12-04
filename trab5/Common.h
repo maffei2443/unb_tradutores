@@ -22,7 +22,7 @@
   {BoldYellow(); \
   X;\
   Reset();}
-#define DBG(X) \
+#define  DBG(X) \
   {BoldGreen(); \
   X;\
   Reset();}
@@ -149,6 +149,7 @@ typedef struct No {
   char sval_alloc;
   char tname_alloc;
   char code_alloc;
+  char is_param;
   Type type;
   char isToken;    // nesse modo, usa-se mesmo noh para token e regra
   char hasAux;
