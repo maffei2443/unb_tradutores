@@ -668,7 +668,15 @@ localStmt : call ';' {
       }
     }
   }
-  CODESHOW(pf("mov %s, %s\n", leftAddr, rightAddr));
+  if( c1 == c2 && c1 == TYPE_SCALAR ){
+    CODESHOW(pf("mov %s, %s\n", leftAddr, rightAddr));
+  }
+  else ( c1 == c2 && c1 == TYPE_MAT ){  // supor que eh matriz
+    
+  }
+  else {
+    ERRSHOW(printf("Atribuicao entre vetores nao eh permitida!"));
+  }
   // ################# VAI VIRAR FUNCAO
 
 
