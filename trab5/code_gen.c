@@ -165,7 +165,7 @@ char* widen_basic(char* src, Type t_src, Type t_dest) {
   }
   else {
     critical_error++;
-    printf("[Erro] Tipo %s ou %s nao suporta opecao +|*|-|/\n", type2string(t_src), type2string(t_src));
+    printf("[Erro] Tipo %s ou %s nao suporta opecao +|*|-|/\n", t2s(t_src), t2s(t_src));
   }
   return addr;
 }

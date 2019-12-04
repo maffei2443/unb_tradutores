@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 int __new_flow = 0;
+int __new_while = 0;
 int __after_if = 0;
 // Devem ser usados como prefixos de labels
 Stack* __new_flow_stack = NULL;

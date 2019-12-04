@@ -11,7 +11,7 @@ int main() {
   // f = 8.9;
   // mi = mf;
   // mf = mi;
-  if (a){  	
+  if (a){
   	a = a + 5;
   	if( a + 2 ) {
   		a = a + 5;
@@ -21,6 +21,10 @@ int main() {
   } else{
   	a = a  * a;
   }
+  a = a % a;
 
+  if(a){
+  	if(a) {} else {}
+  }else{a = a + 44;}
   // if (a) {} else {}
 }

@@ -339,7 +339,12 @@ achar '([a-zA-Z0-9_]?)'
   }
   else {
     yylval.ival = yytext[0];
-    return ARITM;
+    switch(yylval.ival) {
+      case '@': return '@';
+      case '%': return '%';
+      default:
+        return ARITM;
+    }
     ;
   }
 }

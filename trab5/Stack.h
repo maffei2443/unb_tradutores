@@ -8,7 +8,7 @@ typedef struct Stack{
 
 int __new_flow;
 int __after_if;
-
+int __new_while;
 Stack* __new_flow_stack;
 Stack* __after_if_stack;
 

@@ -67,7 +67,10 @@ int aborta = 0;
 extern Stack* new_flow_stack;
 extern Stack* after_if_stack;
 
-
+unsigned if_counter = 0;
+unsigned while_counter = 0;
+unsigned newFlow_counter = 0;
+unsigned closest_flow = 0;
 %}
 %define parse.error verbose
 %define parse.lac none
@@ -115,6 +118,8 @@ extern Stack* after_if_stack;
 %type<no> loop defFun numListList
 %type<no> numList block declList expr call argList 
 %type<no> arg rvalue lvalue num typeAndNameSign
+
+%type<no> IF ELSE WHILE countFlow
 
 %type<_id> ID 
 %type<type> BASE_TYPE
@@ -178,7 +183,7 @@ declFun : AHEAD BASE_TYPE ID {
     tmp->type = $BASE_TYPE;
   }
   
-  add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
+  add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", t2s($BASE_TYPE)));
   add_Node_Child_If_Not_Null($$, Token_New(STR(ID), $ID));
   printf("[%s] pre-declarou-se!\n", $ID);
   
@@ -218,7 +223,7 @@ declOrdeclInitVar : typeAndNameSign ';'
       } else {  // efetuar conversoes, jah que sao de mesma classe
         // Converter do tipo de rvalue -> declOrInitVar 
         if(left_class < right_class) {
-          printf("[Warning] Conversao %s -> %s vai perder informacao\n", type2string(t1), type2string(t2));
+          printf("[Warning] Conversao %s -> %s vai perder informacao\n", t2s(t1), t2s(t2));
           // r = narrow(rval,decl);
           switch(left_class) {
             case TYPE_MAT: CODESHOW(printf("Converter para matriz de int\n")); break;
@@ -242,16 +247,16 @@ declOrdeclInitVar : typeAndNameSign ';'
           printf("Atibuicao entre escalares ok\n");
         }
         else {
-          ERRSHOW(printf("[Semantico] Erro de Atribuicao: %s = %s\n!", type2string(t1), type2string(t2)));
+          ERRSHOW(printf("[Semantico] Erro de Atribuicao: %s = %s\n!", t2s(t1), t2s(t2)));
         }
       } else if ( left_class == TYPE_MAT ) {
         if(right_class == TYPE_MAT) {
           CODESHOW(printf("TODO: atribuicao de matriz para matriz: %s <- %s\n", 
-            type2string(t1), type2string(t2)));
+            t2s(t1), t2s(t2)));
         }
       } else if( left_class == TYPE_MAT) {
         if ($rvalue->type != TYPE_LIST_LIST) {
-          ERRSHOW(printf("[Semantico] Erro: inicializacao de matriz com %s\n", type2string($rvalue->type)));
+          ERRSHOW(printf("[Semantico] Erro: inicializacao de matriz com %s\n", t2s($rvalue->type)));
         }
         else {
           CODESHOW(printf("INICIALIZAR MATRIZ COM NUMEROS\n"));
@@ -267,7 +272,7 @@ declOrdeclInitVar : typeAndNameSign ';'
 typeAndNameSign : BASE_TYPE ID {
   SymEntry* oldEntry = last_decl(&reshi, $ID);
   // printf("Recuperado da tabela de simbolos: %p\n", oldEntry);
-  // printf("base_type: %s\n", type2string($BASE_TYPE));
+  // printf("base_type: %s\n", t2s($BASE_TYPE));
   char err = 0;
   if(oldEntry) {
     if( !strcmp(oldEntry->escopo, currScope) ) {
@@ -285,7 +290,7 @@ typeAndNameSign : BASE_TYPE ID {
       neoEntry->type = $BASE_TYPE;
       MAKE_NODE(typeAndNameSign);
       link_symentry_no(&neoEntry, &$$);      
-      add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
+      add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", t2s($BASE_TYPE)));
       add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
       
       // para facilitar geracao de cohdigo
@@ -323,7 +328,7 @@ typeAndNameSign : BASE_TYPE ID {
 
   if (!err) {
     if ($num->type != TYPE_INT) {
-      ERRSHOW(printf("[Semantico] Erro: Tamanho de vetor deve ser um inteiro! Encontrado: %s\n", type2string($num->type)));
+      ERRSHOW(printf("[Semantico] Erro: Tamanho de vetor deve ser um inteiro! Encontrado: %s\n", t2s($num->type)));
       $$ = NULL;
     }  else if ($num->ival < 0) {
       ERRSHOW(printf("[Semantico] Erro: Tamanho deve ser >= 0\n"));
@@ -337,7 +342,7 @@ typeAndNameSign : BASE_TYPE ID {
         neoEntry->col = $num->ival;      
         MAKE_NODE(typeAndNameSign);
         link_symentry_no(&neoEntry, &$$);      
-        add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string($BASE_TYPE)));
+        add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", t2s($BASE_TYPE)));
         add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
         add_Node_Child_If_Not_Null($$, $num);
 
@@ -381,10 +386,10 @@ typeAndNameSign : BASE_TYPE ID {
     char secNum = $8->type != TYPE_INT;
     if(firstNum || secNum) {
       if(firstNum) {
-        ERRSHOW(printf("[Semantico] ERRO[2]: Quantidade de linhas de matriz deve ser um inteiro. (%s encontrado)\n", type2string($5->type)));
+        ERRSHOW(printf("[Semantico] ERRO[2]: Quantidade de linhas de matriz deve ser um inteiro. (%s encontrado)\n", t2s($5->type)));
       }
       if(secNum) {
-        ERRSHOW(printf("[Semantico] ERRO[2]: Quantidade de colunas de matriz deve ser um inteiro. (%s encontrado)\n", type2string($8->type)));
+        ERRSHOW(printf("[Semantico] ERRO[2]: Quantidade de colunas de matriz deve ser um inteiro. (%s encontrado)\n", t2s($8->type)));
       }
       $$ = NULL;
     }
@@ -398,7 +403,7 @@ typeAndNameSign : BASE_TYPE ID {
         // link_symentry_no(&neoEntry, &$$);
         // [ WARNING ] todo: testar!  Nao deve dar problema... eh soh pra facilitar geracao de codigo
 
-        // add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", type2string(type)));
+        // add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", t2s(type)));
         add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
         add_Node_Child_If_Not_Null($$, $5);
         add_Node_Child_If_Not_Null($$, $8);
@@ -436,7 +441,7 @@ paramListVoid : paramList {
   $1->childLast = NULL;
   $$ = $1;
   printf("[paramListVoid] %p\n", $paramListVoid);
-  printf("[paramListVoid->type] %s\n", type2string($paramListVoid->type));
+  printf("[paramListVoid->type] %s\n", t2s($paramListVoid->type));
 
 }
 | %empty {$$ = NULL;}
@@ -546,7 +551,7 @@ localStmt : call ';' {
 
   Type t1 = $lvalue->type, t2 = $rvalue->type;
   Type c1 = Type_Class(t1), c2 = Type_Class(t2);
-  const char* s1 = type2string(t1), *s2 = type2string(t2);
+  const char* s1 = t2s(t1), *s2 = t2s(t2);
   
   /*   BoldGray();
   printf("%s -- %s\n", s1, s2);
@@ -560,17 +565,17 @@ localStmt : call ';' {
     ERRSHOW(printf("Erro: UNDEFINED/char em atribuicao: %s = %s\n", s1, s2));
   } else if ( c1 == c2 && c1 == TYPE_MAT && t1 != t2 ) {
     to_cast = 1;
-    WARSHOW(printf("Conversao entre matrizes. %s = %s\n", type2string(t1), type2string(t2)));
+    WARSHOW(printf("Conversao entre matrizes. %s = %s\n", t2s(t1), t2s(t2)));
   } else if (c1 == TYPE_ARRAY && c2 == TYPE_ARRAY) {
     if(to_base_type(t1) > to_base_type(t2)) {
       to_cast = 1;
     } else {
-      ERRSHOW(printf("Erro de tipo. %s = %s\n", type2string(t1), type2string(t2)));
+      ERRSHOW(printf("Erro de tipo. %s = %s\n", t2s(t1), t2s(t2)));
     }
   } else if (c1 == c2 && t1 != t2){ 
     to_cast = 1;
     WARSHOW(printf("[Semantico] Warning de tipo em atribuicao: <%s> = <%s>\n",
-     type2string(t1), type2string(t2)));
+     t2s(t1), t2s(t2)));
   } else to_cast = 1;
   if(to_cast) {
     if( t1 < t2 ) {
@@ -611,7 +616,7 @@ localStmt : call ';' {
   add_Node_Child_If_Not_Null($$, iread_no);
   add_Node_Child_If_Not_Null($$, $lvalue);
   if($lvalue->type != TYPE_INT) {
-    ERRSHOW(printf("[Semantico] Erro: Leitura de inteiro sobre tipo |%s|\n", type2string($lvalue->type)));
+    ERRSHOW(printf("[Semantico] Erro: Leitura de inteiro sobre tipo |%s|\n", t2s($lvalue->type)));
   }
 }
 | FREAD '(' lvalue ')' ';' {
@@ -620,7 +625,7 @@ localStmt : call ';' {
   add_Node_Child_If_Not_Null($$, fread_no);
   add_Node_Child_If_Not_Null($$, $lvalue);
   if($lvalue->type != TYPE_FLOAT) {
-    ERRSHOW(printf("[Semantico] Erro: Leitura de inteiro sobre tipo |%s|\n", type2string($lvalue->type)));
+    ERRSHOW(printf("[Semantico] Erro: Leitura de inteiro sobre tipo |%s|\n", t2s($lvalue->type)));
   }  
 }
 | PRINT '(' rvalue ')' ';' {
@@ -635,23 +640,33 @@ localStmt : call ';' {
   add_Node_Child_If_Not_Null($$, Token_New("PRINT","PRINT"));
 }
 
-newFlowControl : {WARSHOW(printf("__newFlow%d:\n", __new_flow )); __new_flow++; }
+newFlowControl : countFlow
  flowControl {
    $$ = yyvsp[0].no;
    __new_flow--;
-   WARSHOW(printf("endFlow%d:\n", __new_flow));
+   WARSHOW(printf("__endFlow%d:\n", $countFlow->ival));
 }
+countFlow : %empty {
+  $$ = No_New( newFlow_counter );
+  closest_flow = newFlow_counter;
 
+  newFlow_counter++;
+  WARSHOW(printf("__newFlow%d:\n", $$->ival ));
+}
 flowControl :  IF '(' expr ')' {
     char* expr_addr = get_addr($expr);
+    $1 = No_New(if_counter);
+    if_counter++;
+
+
     __after_if++;
-    CODESHOW(printf("brz __afterIf%d, %s\n", __after_if, expr_addr));
+    CODESHOW(printf("brz __afterIfBlock%d, %s\n", $1->ival, expr_addr));
     free(expr_addr);    
   } block {
-    CODESHOW(printf("jump __endFlow%d\n", __new_flow-1 ) ) ;
-    WARSHOW( printf("__afterIf%d:\n",  __after_if) );
+    CODESHOW(printf("jump __endFlow%d\n", closest_flow ) ) ;
+    WARSHOW( printf("__afterIfBlock%d:\n",  $1->ival) );
   }
-  ELSE {} flowControl {
+  ELSE flowControl {
       MAKE_NODE(flowControl);
       add_Node_Child_If_Not_Null($$, Token_New("IF","if"));
       add_Node_Child_If_Not_Null($$, $expr);
@@ -659,11 +674,18 @@ flowControl :  IF '(' expr ')' {
       add_Node_Child_If_Not_Null($$, Token_New("ELSE","else"));
       add_Node_Child_If_Not_Null($$, yyvsp[0].no);
       __after_if--;
-      WARSHOW(printf("__afterElse%d:\n", __after_if+1 ) ) ;
+      WARSHOW(printf("__afterElseBlock%d:\n", $1->ival ) ) ;
+
+      No_Destroy($1); // usado como temporario (pilha)
     }
 // block e ';' foram movidos para cah de modo a nao haver conflito na gramatica
-| block
-| ';' {$$ = NULL;}
+| block {
+  closest_flow--;
+}
+| ';' {
+  $$ = NULL;
+  closest_flow--;
+}
 | IF '(' expr error block ELSE block {
   printf("Erro : IF ( expr error block ELSE block\n");
   printf("Falta FECHAR parentese\n");  
@@ -679,7 +701,9 @@ flowControl :  IF '(' expr ')' {
   printf("Expressao mal formada\n");  
   $$ = NULL; 
 }
-loop : WHILE '(' expr ')' block {
+loop : WHILE '(' expr ')' {
+  
+} block {
   MAKE_NODE(loop);
   add_Node_Child_If_Not_Null($$, Token_New("WHILE","while"));
   add_Node_Child_If_Not_Null($$, $expr);
@@ -772,7 +796,7 @@ defFun : BASE_TYPE ID '('{
   }
   else
     aborta = 0;
-  No* _BASE_TYPE = Token_New(STR(BASE_TYPE), type2string($BASE_TYPE));
+  No* _BASE_TYPE = Token_New(STR(BASE_TYPE), t2s($BASE_TYPE));
   No* _ID = Token_New(STR(ID), $ID);
   add_Node_Child_If_Not_Null($$, _BASE_TYPE);
   add_Node_Child_If_Not_Null($$, _ID);
@@ -850,8 +874,8 @@ expr : expr ARITM expr {
   add_Node_Child_If_Not_Null($$, e2);
   // SEMANTICO
   $$->type = bin_expr_type( t1, t2, $$->ival);
-  // DBG(printf("RESULT TYPE: %s", type2string(e->type)));
-  // DBG(printf(" from: %s + %s\n", type2string(e1->type), type2string(e2->type)));
+  // DBG(printf("RESULT TYPE: %s", t2s(e->type)));
+  // DBG(printf(" from: %s + %s\n", t2s(e1->type), t2s(e2->type)));
   // printf("\t    : (is_const)%d + (is_const)%d\n", e1->is_const, e2->is_const);
 
   // printf("%s\n", widen($1 ,$$));
@@ -862,7 +886,6 @@ expr : expr ARITM expr {
 
 | expr '%' expr {
   MAKE_NODE(expr);
-
   $$->ival = '%';
   add_Node_Child_If_Not_Null($$, $1);
   add_Node_Child_If_Not_Null($$, $3);
@@ -874,6 +897,11 @@ expr : expr ARITM expr {
   else if ($1->type != TYPE_INT) {
     printf("[Erro] Operador aa esquerda de mohdulo deve ser INTEIRO\n");
   }
+  if($1->type == TYPE_INT && $3->type == TYPE_INT) {
+    char *addr1 = get_addr($1), *addr2 = get_addr($3);
+    CODESHOW(printf("mod $%d, %s, %s\n", temp_next() ,addr1, addr2));
+  } else {ERRSHOW(printf("mod com operandos nao inteiros! %s %% %s",
+    t2s($1->type), t2s($3->type)));}
 }
 | expr '@' expr {
   MAKE_NODE(expr);
@@ -965,7 +993,7 @@ expr : expr ARITM expr {
   add_Node_Child_If_Not_Null($$, $3);
   if(Type_Class($3->type) != TYPE_SCALAR) {
     ERRSHOW(
-      printf("[Semantico] Erro: nao pode converter nao-escalar (e.g %s) para inteiro.\n", type2string($3->type))
+      printf("[Semantico] Erro: nao pode converter nao-escalar (e.g %s) para inteiro.\n", t2s($3->type))
       );
   }
 }
@@ -977,7 +1005,7 @@ expr : expr ARITM expr {
   add_Node_Child_If_Not_Null($$, $3);
   if(Type_Class($3->type) != TYPE_SCALAR) {
     ERRSHOW(printf("[Semantico] Erro: nao pode converter nao-escalar (e.g %s) para inteiro.\n",
-      type2string($3->type)));
+      t2s($3->type)));
   }  
 }
 | lvalue
@@ -991,9 +1019,9 @@ call : ID '(' argList ')' {
   // SEMANTICO  
   // TODO: checar se ID eh mesmo funcao. Depois, checar os PARAMETROS, ver se os tipos batem
   SymEntry* aux = last_decl(&reshi, $ID);
-  printf("type of %s: %s\n", $ID, type2string(aux->type));
+  printf("type of %s: %s\n", $ID, t2s(aux->type));
   printf("%s 1st param: %p\n", $ID, aux->astNode->param);
-  printf("type of %s param: %s\n", $ID, type2string(aux->astNode->param->type));
+  printf("type of %s param: %s\n", $ID, t2s(aux->astNode->param->type));
   if(!aux){
     printf("Funcao %s, l.%d c.%lu nao declarada!\n", $ID, numlines, currCol - (strlen($ID) + 2));
   }
@@ -1107,7 +1135,7 @@ arg : lvalue {
     }
     else {
       $$->type = entry->type;
-      printf("argType: %s\n", type2string($$->type));
+      printf("argType: %s\n", t2s($$->type));
       // TODO: checar dimensoes, mas isso eh em tempo de excucao
     }
   }
@@ -1136,9 +1164,9 @@ lvalue : ID {
   add_Node_Child_If_Not_Null($$, tok);
   // SEMANTICO
   SymEntry* entry = last_decl(&reshi, $ID);
-  // DBG(printf("[lvalue] RECOVERY-type: %s\n", type2string(entry->type)));
+  // DBG(printf("[lvalue] RECOVERY-type: %s\n", t2s(entry->type)));
   // CHECK FOR NULL (== nao declarado)
-  // printf("[ID: %s]entry->type: %s\n", $ID, type2string(entry->type));
+  // printf("[ID: %s]entry->type: %s\n", $ID, t2s(entry->type));
   if(entry) {
     if(is_fun(entry->tag)) {
       printf("Identificador %s, l.%d c.%lu DECLARADO PREVIAMENTE como funcao em l.%d, c.%d!\n",
@@ -1148,14 +1176,14 @@ lvalue : ID {
       point_no_symentry(&entry, &$$);
       point_no_symentry(&entry, &tok);
       $$->type = entry->type;
-      // DBG(printf("lvalue %s type: %s\n", $ID, type2string($$->type)));
+      // DBG(printf("lvalue %s type: %s\n", $ID, t2s($$->type)));
     }
   }
   else {
     $$->type = TYPE_UNDEFINED;
     printf("Variavel %s, l.%d c.%lu nao declarada!\n", $ID, numlines, currCol - (strlen($ID) + 2));
   }
-  // printf("lvalue->type=%s \n", type2string( $$->type ));
+  // printf("lvalue->type=%s \n", t2s( $$->type ));
   free($ID), $ID = NULL;
 }
 | ID '[' expr ']' {

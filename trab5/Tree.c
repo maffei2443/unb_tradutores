@@ -237,7 +237,7 @@ void show_Lis(No* head, Field field) {
       No* aux = head;
       while(aux) {
         auxCount++;
-        printf("<%s, %s> ", aux->sval, type2string(aux->type));
+        printf("<%s, %s> ", aux->sval, t2s(aux->type));
         aux = aux->nextAux;
       }
     }
@@ -252,10 +252,10 @@ void show_Lis(No* head, Field field) {
       printf("%s ", head->sval);
     }
     else if(head->tname && !strcmp(head->tname, "expr")) {
-      printf("<%s, %s> ",head->tname, type2string(head->type));
+      printf("<%s, %s> ",head->tname, t2s(head->type));
     }
     else if(head->tname && !strcmp(head->tname, "lvalue")) {
-      printf("<lvalue, %s> ", type2string(head->type));
+      printf("<lvalue, %s> ", t2s(head->type));
     }
     else if(field == IVAL) {
       printf("%d ",head->ival);
@@ -329,7 +329,7 @@ void* SymEntry_Destroy(void* p){
   return NULL;
 }
 
-char* type2string(Type t) {
+char* t2s(Type t) {
   switch (t) {
     case TYPE_CHAR: return "char";
     case TYPE_UNDEFINED: return "undefined";
@@ -360,9 +360,7 @@ char* type2string(Type t) {
     return "";
   }
 }
-static char* t2s(Type t) {
-  return type2string(t);
-}
+
 void print_reshi(SymEntry* reshi) {
     SymEntry *s;
     SymEntry *nexti;
@@ -383,10 +381,10 @@ void show_entry(SymEntry* s) {
   if(s->tag) {
     switch(s->tag) {
       case TAG_DECL_FUN: case TAG_DEF_FUN:
-        printf("< fun(%s), %s>", type2string(s->type), s->id);
+        printf("< fun(%s), %s>", t2s(s->type), s->id);
         break;
       case TAG_PARAM:
-        printf("< param, %s, %s>", s->id, type2string(s->type));
+        printf("< param, %s, %s>", s->id, t2s(s->type));
         break;
     }
   }
@@ -395,12 +393,12 @@ void show_entry(SymEntry* s) {
       case TYPE_MAT_INT:
       case TYPE_MAT_FLOAT:
       case TYPE_MAT:
-        printf("< %s[%d][%d], %s>", type2string(s->type), s->line, s->col, s->id);
+        printf("< %s[%d][%d], %s>", t2s(s->type), s->line, s->col, s->id);
         break;
       case  TYPE_ARRAY_INT:
       case  TYPE_ARRAY_FLOAT:
       case  TYPE_ARRAY:
-        printf("< %s[%d], %s>", type2string(s->type), s->col, s->id);
+        printf("< %s[%d], %s>", t2s(s->type), s->col, s->id);
         break;
 
       case  TYPE_CHAR:
@@ -409,10 +407,10 @@ void show_entry(SymEntry* s) {
       case  TYPE_FLOAT:
       case  TYPE_SCALAR:
       case  TYPE_POINTER:
-        printf("< %s, %s>", type2string(s->type), s->id);
+        printf("< %s, %s>", t2s(s->type), s->id);
         break;        
       default:
-        printf("NOT FOUND TYPE FOR: %s", type2string(s->type));
+        printf("NOT FOUND TYPE FOR: %s", t2s(s->type));
     }
   }  
   printf("\t(%p)l. %d, c. %d ", s,s->local.line, s->local.col);

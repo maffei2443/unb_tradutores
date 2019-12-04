@@ -19,12 +19,12 @@ int match_paramList(No* oldParam, No* param) {
   // printf("sym: %p vs no: %p\n", sym, no);
   if(!oldParam && !param) return 1;   // ambas funcoes sem argumento
   if(!oldParam || !param) return 0;   // apenas 1 eh sem argumento
-  printf("%s vs %s\n", type2string(oldParam->type), type2string(param->type));
+  printf("%s vs %s\n", t2s(oldParam->type), t2s(param->type));
   printf("%s vs %s\n", oldParam->sval, param->sval);
   while (oldParam && param){
     if(oldParam->type != param->type){
       printf("[match_paramList]%s vs %s\n", 
-        type2string(oldParam->type), type2string(param->type)
+        t2s(oldParam->type), t2s(param->type)
       );
       break;
     }
@@ -75,11 +75,11 @@ Type bin_expr_type(Type left, Type right, int op) {
   Type leftClass = Type_Class(left);
   Type rightClass = Type_Class(right);
   if(op <= 127){
-    // DBG(printf("\n[bin_expr_type] tipos:  = %s <<%c>> %s\n", type2string(left),op, type2string(right)));
-    // DBG(printf("[bin_expr_type] classes:  = %s <<%c>> %s\n", type2string(leftClass),op, type2string(rightClass)));
+    // DBG(printf("\n[bin_expr_type] tipos:  = %s <<%c>> %s\n", t2s(left),op, t2s(right)));
+    // DBG(printf("[bin_expr_type] classes:  = %s <<%c>> %s\n", t2s(leftClass),op, t2s(rightClass)));
   } else {
-    // DBG(printf("\n[bin_expr_type] tipos:  = %s <<%d>> %s\n", type2string(left),op, type2string(right)));
-    // DBG(printf("[bin_expr_type] classes:  = %s <<%d>> %s\n", type2string(leftClass),op, type2string(rightClass)));
+    // DBG(printf("\n[bin_expr_type] tipos:  = %s <<%d>> %s\n", t2s(left),op, t2s(right)));
+    // DBG(printf("[bin_expr_type] classes:  = %s <<%d>> %s\n", t2s(leftClass),op, t2s(rightClass)));
   }
   if(left == TYPE_CHAR || right == TYPE_CHAR){
     ERRSHOW(printf("ERRO: TIPO <CHAR> NAO PODE SER USADO PARA REALIZACAO DE OPERACOES\n"));
@@ -98,7 +98,7 @@ Type bin_expr_type(Type left, Type right, int op) {
     return TYPE_UNDEFINED;
   }
   // NAO SE PODE OPERAR SOBRE ARRAYS.
-  // printf("**** %s %s\n\n", type2string(leftClass), type2string(rightClass));  
+  // printf("**** %s %s\n\n", t2s(leftClass), t2s(rightClass));  
   switch (op)  {
     case '%': return expr_mod(left, right);
     case '+': return expr_add(left, right);
@@ -120,7 +120,7 @@ Type expr_mod(Type le, Type ri){
   // else if (le == TYPE_MAT_INT && ri == TYPE_INT) return TYPE_MAT_INT;
   else {
     ERRSHOW(printf(" Erro: operandos invahlidos para operador %%: %s e %s. Ambos devem ser TYPE_INT ou TYPE_MAT_INT\n",
-    type2string(le), type2string(ri)));
+    t2s(le), t2s(ri)));
     return TYPE_UNDEFINED;
   }
 }
@@ -131,7 +131,7 @@ Type expr_add(Type le, Type ri){
   critical_error++;
   BoldRed();
   ERRSHOW(printf(" Soma/subtracao soh eh possivel entre mat/mat ou escalar/escalar\n"));
-  printf("\t encontrado: %s [+-] %s\n", type2string(le), type2string(ri));
+  printf("\t encontrado: %s [+-] %s\n", t2s(le), t2s(ri));
   Reset();
   return TYPE_UNDEFINED;
 }
@@ -150,7 +150,7 @@ Type expr_mul(Type le, Type ri){
       if(le == TYPE_FLOAT) return TYPE_MAT_FLOAT;
       else return ri;
   }
-  ERRSHOW(printf(" Erro: divisao %s / %s\n", type2string(le), type2string(ri)));
+  ERRSHOW(printf(" Erro: divisao %s / %s\n", t2s(le), t2s(ri)));
   return TYPE_UNDEFINED;  
 }
 
@@ -165,7 +165,7 @@ Type expr_div(Type le, Type ri){
       else return ri;
   }
   ERRSHOW(printf(" Erro: multiplicacao %s * %s\n",
-      type2string(le), type2string(ri))
+      t2s(le), t2s(ri))
   );
   return TYPE_UNDEFINED;
 
@@ -176,7 +176,7 @@ Type expr_mat_mul(Type le, Type ri){
   if(le_class == TYPE_MAT && ri_class == TYPE_MAT) return max(le, ri);
   else {
     ERRSHOW(printf(" Erro: operandos invahlidos para operador @: %s e %s. Ambos devem ser do tipo matriz\n",
-     type2string(le), type2string(ri)));
+     t2s(le), t2s(ri)));
     return TYPE_UNDEFINED;
   }
 }
@@ -185,7 +185,7 @@ Type expr_mat_pow(Type le, Type ri){
   if( Type_Class(le) == TYPE_MAT && ri == TYPE_INT)  return ri;
   else {
     ERRSHOW(printf(" Erro: operandos invahlidos para operador @@: %s e %s (esperado matriz e int)\n",
-     type2string(le), type2string(ri)));
+     t2s(le), t2s(ri)));
     return TYPE_UNDEFINED;
   }
 }
@@ -203,13 +203,13 @@ Type expr_bool(Type le, Type ri, int op){
       else {
         critical_error++;
         ERRSHOW(printf(" Erro: comparacao entre %s <?> %s\n", 
-          type2string(le), type2string(ri)));
+          t2s(le), t2s(ri)));
         return TYPE_UNDEFINED;
       }
     default:
     critical_error++;
       ERRSHOW(printf(" Expressao com tipos %s, %s e operacao %c sem tipo definido!\n",
-        type2string(le), type2string(ri), op));
+        t2s(le), t2s(ri), op));
       return TYPE_UNDEFINED;
   }
 }
@@ -218,7 +218,7 @@ Type expr_attr(Type le, Type ri) {
   Type le_class = Type_Class(le), ri_class = Type_Class(ri);
   if(le_class != ri_class) {
     ERRSHOW(printf(" Erro: operandos invahlidos para operador =: %s e %s (esperado operadores de mesma classe)\n",
-     type2string(le), type2string(ri)));
+     t2s(le), t2s(ri)));
     return TYPE_UNDEFINED;
   }
   return max(le, ri);
@@ -289,7 +289,7 @@ SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
 
       }
       // printf("\t\tNEO_ENTRY: %p\n", neoEntry);
-      // printf("<<<<<< add (%p) id, tag: %s, %s\n", neoEntry, id, type2string(tag));
+      // printf("<<<<<< add (%p) id, tag: %s, %s\n", neoEntry, id, t2s(tag));
       neoEntry->local.line = numlines;
       neoEntry->local.col = currCol;
       HASH_ADD_STR( (*reshi), id, neoEntry );/* id: name of key field */
@@ -314,7 +314,7 @@ SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
       }
       else {
         neoEntry->next = SymEntry_New(id, tag, currScope);
-        printf(">>>>> add (%p) id, tag: %s, %s\n", neoEntry->next, id, type2string(tag));
+        printf(">>>>> add (%p) id, tag: %s, %s\n", neoEntry->next, id, t2s(tag));
         neoEntry->next->local.line = numlines;
         neoEntry->next->local.col = currCol;
         return neoEntry->next;
@@ -338,7 +338,7 @@ Type to_base_type(Type t) {
     case TYPE_SCALAR:
     case TYPE_MAT:
     case TYPE_ARRAY:
-      printf("Impossivel enferir tipo base a partir de <%s>:/\n", type2string(t));
+      printf("Impossivel enferir tipo base a partir de <%s>:/\n", t2s(t));
       return TYPE_UNDEFINED;
     case TYPE_MAT_CHAR:
     case TYPE_ARRAY_CHAR:
@@ -360,7 +360,7 @@ Type to_base_type(Type t) {
 Type reduce_dim_type(Type t) {
   Type t_class = Type_Class(t);
   if(t_class != TYPE_MAT && t_class != TYPE_ARRAY) {
-    printf("Nao pode reduzir dimensao de tipo <%s>\n", type2string(t) );
+    printf("Nao pode reduzir dimensao de tipo <%s>\n", t2s(t) );
   }
   switch(t) {
     case TYPE_ARRAY_CHAR: return TYPE_CHAR;
@@ -368,7 +368,7 @@ Type reduce_dim_type(Type t) {
     case TYPE_ARRAY_FLOAT: return TYPE_FLOAT;
 
     default:
-      ERRSHOW(printf("TENTANDO REDUZIR DIMENSAO DE %s", type2string(t)));
+      ERRSHOW(printf("TENTANDO REDUZIR DIMENSAO DE %s", t2s(t)));
     return TYPE_UNDEFINED;
   }
 }

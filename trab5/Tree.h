@@ -78,7 +78,7 @@ int ListSize(No* no);
 // extern int MAT_POW, EQ, NEQ, GE, LE, AND, OR;
 SymEntry* SymEntry_New(char* id, int tag, char*);
 void* SymEntry_Destroy(void*);
-char* type2string(Type t);
+char* t2s(Type t);
 
 void print_reshi(SymEntry*);
 void show_entry(SymEntry*);
