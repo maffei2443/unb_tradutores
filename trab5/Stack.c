@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-static int __new_flow = 0;
-static int __after_if = 0;
+int __new_flow = 0;
+int __after_if = 0;
 // Devem ser usados como prefixos de labels
 Stack* __new_flow_stack = NULL;
 Stack* __after_if_stack = NULL;
@@ -39,8 +39,10 @@ Stack* Stack_Pop(Stack* stack) {
 }
 
 int Stack_New_Flow_Push() {
-  __new_flow_stack = Stack_Push(__new_flow_stack, ++__new_flow);
-  return __new_flow;
+  int to_push = __new_flow;
+  __new_flow_stack = Stack_Push(__new_flow_stack, to_push);
+  __new_flow++;
+  return to_push;
 }
 
 int Stack_New_Flow_Pop() {
@@ -50,8 +52,10 @@ int Stack_New_Flow_Pop() {
 }
 
 int Stack_After_If_Push() {
-  __after_if_stack = Stack_Push(__after_if_stack, ++__after_if);
-  return __after_if;
+  int ret = __after_if;
+  __after_if_stack = Stack_Push(__after_if_stack, __after_if);
+  ret ++;
+  return ret;
 }
 
 int Stack_After_If_Pop() {

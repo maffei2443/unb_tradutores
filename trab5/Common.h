@@ -11,6 +11,11 @@
 
 #define CODESHOW(X) \
   {BoldCyan(); \
+  printf("\t");\
+  X;\
+  Reset();}
+#define LABELSHOW(X) \
+  {BoldCyan(); \
   X;\
   Reset();}
 #define ERRSHOW(X) \

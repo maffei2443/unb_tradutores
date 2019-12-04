@@ -6,8 +6,8 @@ typedef struct Stack{
 	struct Stack * next;
 } Stack;
 
-static int __new_flow;
-static int __after_if;
+int __new_flow;
+int __after_if;
 
 Stack* __new_flow_stack;
 Stack* __after_if_stack;

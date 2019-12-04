@@ -246,13 +246,15 @@ declOrdeclInitVar : typeAndNameSign ';'
         }
       } else if ( left_class == TYPE_MAT ) {
         if(right_class == TYPE_MAT) {
-
+          CODESHOW(printf("TODO: atribuicao de matriz para matriz: %s <- %s\n", 
+            type2string(t1), type2string(t2)));
         }
       } else if( left_class == TYPE_MAT) {
         if ($rvalue->type != TYPE_LIST_LIST) {
           ERRSHOW(printf("[Semantico] Erro: inicializacao de matriz com %s\n", type2string($rvalue->type)));
         }
         else {
+          CODESHOW(printf("INICIALIZAR MATRIZ COM NUMEROS\n"));
         }
       }
     }
@@ -408,7 +410,8 @@ typeAndNameSign : BASE_TYPE ID {
         $$->symEntry = neoEntry;
         $$->type = neoEntry->type;
         // ERRSHOW(printf("[typeAndNameSign] BEFORE %p->is_param = %d\n",$$, $$->is_param));
-        link_symentry_no(&reshi, &$$);
+        link_symentry_no(&neoEntry, &$$);
+        // printf("");
         // ERRSHOW(printf("[typeAndNameSign] AFTER %p->is_param = %d\n",$$, $$->is_param));
       }
       else {
@@ -591,8 +594,6 @@ localStmt : call ';' {
 | newFlowControl {
   MAKE_NODE(localStmt);
   add_Node_Child_If_Not_Null($$, $newFlowControl);
-  printf("__afterElse\n");
-
 }
 | loop {
   MAKE_NODE(localStmt);
@@ -633,37 +634,22 @@ localStmt : call ';' {
   $$->ival = $V_ASCII;
   add_Node_Child_If_Not_Null($$, Token_New("PRINT","PRINT"));
 }
-| COPY '(' lvalue lvalue ')' ';' {
-  // TODO: SOH DEVE FUNCIONAR PARA MATRIZ! PARA QQER OUTRO CASO, ERRO!
-  Type t1 = $3->type, t2 = $4->type;
-  Type c1 = Type_Class(t1), c2 = Type_Class(t2) ;
 
-  if(t1 == t2 && t1 == TYPE_MAT) {
-    // gerar o cohdigo
-  } else {  // erro semantico critico; soh mostra erro
-    critical_error++;
-  }
-  MAKE_NODE(localStmt);
-  No* copy_no = Token_New("COPY","COPY");
-  add_Node_Child_If_Not_Null( $$, copy_no );
-  add_Node_Child_If_Not_Null( $$, $3 );
-  add_Node_Child_If_Not_Null( $$, $4 );
-}
-
-newFlowControl : {Stack_New_Flow_Push(); WARSHOW("new if-context\n"); }
+newFlowControl : {WARSHOW(printf("__newFlow%d:\n", __new_flow )); __new_flow++; }
  flowControl {
    $$ = yyvsp[0].no;
-   CODESHOW(printf("__afterFlow%d:\n", Stack_New_Flow_Pop()));
+   __new_flow--;
+   WARSHOW(printf("endFlow%d:\n", __new_flow));
 }
 
 flowControl :  IF '(' expr ')' {
-    $expr->ival = Stack_After_If_Push();
     char* expr_addr = get_addr($expr);
-    CODESHOW(printf("brz __afterIf%d, %s\n", $expr->ival, expr_addr));
+    __after_if++;
+    CODESHOW(printf("brz __afterIf%d, %s\n", __after_if, expr_addr));
     free(expr_addr);    
   } block {
-    CODESHOW(printf("jump __afterFlow%d:\n", __new_flow_stack->label_sfx ) ) ;
-    CODESHOW( printf("__afterIf%d:\n",  __after_if_stack->label_sfx) );
+    CODESHOW(printf("jump __endFlow%d\n", __new_flow-1 ) ) ;
+    WARSHOW( printf("__afterIf%d:\n",  __after_if) );
   }
   ELSE {} flowControl {
       MAKE_NODE(flowControl);
@@ -672,6 +658,8 @@ flowControl :  IF '(' expr ')' {
       add_Node_Child_If_Not_Null($$, $block);
       add_Node_Child_If_Not_Null($$, Token_New("ELSE","else"));
       add_Node_Child_If_Not_Null($$, yyvsp[0].no);
+      __after_if--;
+      WARSHOW(printf("__afterElse%d:\n", __after_if+1 ) ) ;
     }
 // block e ';' foram movidos para cah de modo a nao haver conflito na gramatica
 | block
@@ -1237,6 +1225,17 @@ lvalue : ID {
       }
       point_no_symentry(&old, &tok);    
   }
+  int temp = temp_next();
+  printf("old->id: %s\n", old->id);
+  printf("old->astNode: %p\n", old->astNode);
+  CODESHOW(printf("mov $%d, %s\n", temp, get_addr(old->astNode)));
+
+  CODESHOW(printf("mul $%d, %s, %d\n", temp = temp_next(), get_addr($3), old->col  ));
+  
+  CODESHOW(printf("add $%d, $%d, %s\n", temp, temp, get_addr($6)));
+  temp = temp_next();
+  CODESHOW(printf("mov $%d, $%d[$%d]\n", temp,temp-2 , temp-1));
+  $$->addr = temp;
   free($ID); $ID = NULL;
 }
 

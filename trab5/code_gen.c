@@ -184,7 +184,7 @@ char* get_addr(No* no) {
         case TYPE_FLOAT: sprintf(buf, "%f",  no->fval); break;
         case TYPE_CHAR: sprintf(buf, "%c",  no->ival); break;
       }
-    } else if(no->symEntry) {  // eh variavel local
+    } else if(no->symEntry && no->addr == -1) {  // o && eh pra ficar mais facil pra gerar cohdigo de acesso aa matriz
       sprintf(buf, "$%d", no->symEntry->addr);
     } else if (no->addr == -1){  // atribuir endereco temporario
       int temp = temp_next();
