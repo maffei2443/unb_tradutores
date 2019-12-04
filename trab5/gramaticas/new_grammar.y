@@ -71,6 +71,7 @@ unsigned if_counter = 0;
 unsigned while_counter = 0;
 unsigned newFlow_counter = 0;
 unsigned closest_flow = 0;
+unsigned closest_while = 0;
 %}
 %define parse.error verbose
 %define parse.lac none
@@ -215,11 +216,11 @@ declOrdeclInitVar : typeAndNameSign ';'
     Type right_class = Type_Class(t2);
 
     char* r;
-    char* l = get_addr($1);
+    char* l = get_no_addr($1);
 
     if(left_class == right_class) {
       if(t1 == t2) {
-          CODESHOW( printf("mov %s, %s\n", get_addr(decl), get_addr(rval)) );
+          CODESHOW( printf("mov %s, %s\n", get_no_addr(decl), get_no_addr(rval)) );
       } else {  // efetuar conversoes, jah que sao de mesma classe
         // Converter do tipo de rvalue -> declOrInitVar 
         if(left_class < right_class) {
@@ -330,6 +331,7 @@ typeAndNameSign : BASE_TYPE ID {
     if ($num->type != TYPE_INT) {
       ERRSHOW(printf("[Semantico] Erro: Tamanho de vetor deve ser um inteiro! Encontrado: %s\n", t2s($num->type)));
       $$ = NULL;
+      // TODO: add robusteza :/
     }  else if ($num->ival < 0) {
       ERRSHOW(printf("[Semantico] Erro: Tamanho deve ser >= 0\n"));
     }  else {   // DEU TUDO CERTO! 
@@ -341,13 +343,20 @@ typeAndNameSign : BASE_TYPE ID {
         neoEntry->base_type = $BASE_TYPE;
         neoEntry->col = $num->ival;      
         MAKE_NODE(typeAndNameSign);
-        link_symentry_no(&neoEntry, &$$);      
+        // para facilitar geracao de codigo
+        point_no_symentry(&neoEntry, &$$);
         add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", t2s($BASE_TYPE)));
         add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
+        link_symentry_no(&neoEntry, &$$->child_last);
+        abort();      
+        // char* e = get_no_addr(  );
+        if(!neoEntry->is_global){
+          CODESHOW(printf("mema &%s, %d\n", $ID, $num->ival));
+        }
+        else {
+          BLUE("INSERIR NO .TABLE AS VARIAVEIS GLOBAIS!\n");
+        }
         add_Node_Child_If_Not_Null($$, $num);
-
-        // para facilitar geracao de cohdigo
-        point_no_symentry(&neoEntry, &$$);
       }
       else {
         printf("[BASE_TYPE ID '[' num ']'] ERRO LOGICO: NAO DEVERIA ENTRAR AQUI! %s:%s ...\n", neoEntry->escopo, $ID);
@@ -397,27 +406,37 @@ typeAndNameSign : BASE_TYPE ID {
       Type type = $BASE_TYPE == TYPE_FLOAT ? TYPE_MAT_FLOAT : TYPE_MAT_INT;
       SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_UNDEFINED);
       if(neoEntry) {
-        // TODO: checar se num eh inteiro. Se nao for, ERRO
-        MAKE_NODE(typeAndNameSign);
-        $$->type = type;
-        // link_symentry_no(&neoEntry, &$$);
-        // [ WARNING ] todo: testar!  Nao deve dar problema... eh soh pra facilitar geracao de codigo
-
-        // add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", t2s(type)));
-        add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
-        add_Node_Child_If_Not_Null($$, $5);
-        add_Node_Child_If_Not_Null($$, $8);
         neoEntry->line = $5->ival;
         neoEntry->col = $8->ival;
         neoEntry->type = type;
+
+        // TODO: checar se num eh inteiro. Se nao for, ERRO
+        MAKE_NODE(typeAndNameSign);
+/*  */
+        point_no_symentry(&neoEntry, &$$);
+        add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", t2s($BASE_TYPE)));
+        add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
+        link_symentry_no(&neoEntry, &$$->child_last);
+
+        int sz = yyvsp[-4].no->ival * yyvsp[-1].no->ival;
+        // char* e = get_no_addr();
+        if(neoEntry->is_global){
+          BLUE("INSERIR NO .TABLE AS VARIAVEIS GLOBAIS\n");
+          CODESHOW(printf("mema &%s, %d\n", $ID, sz));
+        }
+        else {          
+          char* e = get_no_addr( $$->child_last );
+          CODESHOW(printf("mema %s, %d\n", e, sz)); 
+          free(e);
+        }
+        add_Node_Child_If_Not_Null($$, yyvsp[-4].no);
+        add_Node_Child_If_Not_Null($$, yyvsp[-1].no);
+
+/*  */
+
         // para facilitar geracao de cohdigo
-        // point_no_symentry(&neoEntry, &$$);
-        $$->symEntry = neoEntry;
-        $$->type = neoEntry->type;
-        // ERRSHOW(printf("[typeAndNameSign] BEFORE %p->is_param = %d\n",$$, $$->is_param));
         link_symentry_no(&neoEntry, &$$);
-        // printf("");
-        // ERRSHOW(printf("[typeAndNameSign] AFTER %p->is_param = %d\n",$$, $$->is_param));
+        $$->type = neoEntry->type;
       }
       else {
         printf("[BASE_TYPE ID '[' num ']'] ERRO LOGICO: NAO DEVERIA ENTRAR AQUI! %s:%s ...\n", neoEntry->escopo, $ID);
@@ -437,8 +456,8 @@ typeAndNameSign : BASE_TYPE ID {
 
 
 paramListVoid : paramList {
-  // childLast eh usado como auxiliar para criar a lista na ordem correta ;)
-  $1->childLast = NULL;
+  // child_last eh usado como auxiliar para criar a lista na ordem correta ;)
+  $1->child_last = NULL;
   $$ = $1;
   printf("[paramListVoid] %p\n", $paramListVoid);
   printf("[paramListVoid->type] %s\n", t2s($paramListVoid->type));
@@ -448,14 +467,14 @@ paramListVoid : paramList {
 
 paramList : paramList ',' param {
   // Para mantes a ordem correta dos parametros
-  if(!$1->hasAux) {
-    $1->hasAux = 1;
-    $1->nextAux = $param;
-    $1->childLast = $param;
+  if(!$1->has_aux) {
+    $1->has_aux = 1;
+    $1->next_aux = $param;
+    $1->child_last = $param;
   }
   else {
-    $1->childLast->nextAux = $param;
-    $1->childLast = $param;
+    $1->child_last->next_aux = $param;
+    $1->child_last = $param;
   }
   $$ = $1;
 }
@@ -464,8 +483,8 @@ paramList : paramList ',' param {
 param : BASE_TYPE ID {
   $$ = Token_New(STR(param), $ID);
   $$->is_param = 1;
-  SymEntry* funEntry = last_decl(&reshi, $ID);
-  printf("!!! %p, %s: param @@@\n", funEntry, $ID);
+  SymEntry* neoEntry = last_decl(&reshi, $ID);
+  printf("!!! %p, %s: param @@@\n", neoEntry, $ID);
   if(!declared_curr_fun) {
     SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_PARAM);
     if(neoEntry) {
@@ -485,6 +504,7 @@ param : BASE_TYPE ID {
   $$->is_param = 1;
   // TODO: checar por declaracao previa de parametro!
   SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_PARAM );
+  printf("!!! %p, %s: param @@@\n", neoEntry, $ID);
   // SEMANTICO
   PARAM_RPT_NAME_CHECK(-3, -2);
   
@@ -503,9 +523,12 @@ param : BASE_TYPE ID {
 
 | MAT_TYPE BASE_TYPE ID {
   // TODO: checar por declaracao previa de parametro!
+
   $param = Token_New(STR(param), $ID);
+  DBG(printf("%p eh parametro!\n id == %s\n", $param, $ID));
   $$->is_param = 1;
   SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_PARAM);
+  printf("!!! %p, %s: param @@@\n", neoEntry, $ID);
   // Semantico
   PARAM_RPT_NAME_CHECK(-1, 0);
   Type tipo;
@@ -545,11 +568,18 @@ localStmt : call ';' {
 }
 | lvalue '=' rvalue ';'  {
   // TODO: CHECAR TIPOS!
+  // $rvalue->is_arg = 1;
   MAKE_NODE(localStmt);
+  add_Node_Child_If_Not_Null($$, $lvalue);
+  add_Node_Child_If_Not_Null($$, $rvalue);  
   char* leftAddr, *rightAddr = NULL;
-  leftAddr = get_addr($lvalue);
+  leftAddr = get_no_addr($lvalue);
 
   Type t1 = $lvalue->type, t2 = $rvalue->type;
+  if(t2 == TYPE_LIST || t2 == TYPE_LIST_LIST) {
+    WARSHOW("Divida: nao foi implementado inicalizacao com vetor\n");
+    
+  }
   Type c1 = Type_Class(t1), c2 = Type_Class(t2);
   const char* s1 = t2s(t1), *s2 = t2s(t2);
   
@@ -558,6 +588,7 @@ localStmt : call ';' {
   Reset();*/
 
   // ################# VAI VIRAR FUNCAO
+  SHOWGRAY(printf("lvalue = rvalue : %s = %s\n", s1, s2));
   int to_cast = 0;
   if(t1 == TYPE_UNDEFINED || t2 == TYPE_UNDEFINED ||
     to_base_type(t1) == TYPE_CHAR || to_base_type(t1) == TYPE_CHAR) {
@@ -566,6 +597,26 @@ localStmt : call ';' {
   } else if ( c1 == c2 && c1 == TYPE_MAT && t1 != t2 ) {
     to_cast = 1;
     WARSHOW(printf("Conversao entre matrizes. %s = %s\n", t2s(t1), t2s(t2)));
+
+    // abort();
+
+    BLUE("AQUI O CAST DE MATRIZES\n");
+    CODESHOW(printf("param %s\n", get_no_addr($rvalue)));
+    CODESHOW(printf("\tparam %s\n", get_mat_size($rvalue)));
+    CODESHOW(printf("call mat_i2f_temp, 2\n"));
+    int temp = temp_next();
+    CODESHOW(printf("pop $%d\n", temp));
+    char* laddr = get_no_addr($lvalue);
+    
+    if(0) { // Se eh global, COPIAR DIRETAMENTE PARA O .table
+      // empilhar referencia pra .table, e percorrer copiando para lah
+    }
+    else {
+      CODESHOW(printf("mov %s, $%d\n", laddr , temp));
+    }
+    rightAddr = widen( $rvalue, $lvalue );
+
+
   } else if (c1 == TYPE_ARRAY && c2 == TYPE_ARRAY) {
     if(to_base_type(t1) > to_base_type(t2)) {
       to_cast = 1;
@@ -582,9 +633,8 @@ localStmt : call ';' {
       ERRSHOW(printf("Nao eh possivel a atribuicao %s = %s : narrow casting\n", s1, s2));    
       rightAddr = "impossivel";  
     } else {
-      if(can_cast(t2, t1)) {
-        rightAddr = widen( $rvalue, $lvalue );
-      } else {
+      if(can_cast(t2, t1));
+      else {
         ERRSHOW(printf("Nao eh possivel a atribuicao %s = %s : cast inexistente\n", s1, s2));
       }
     }
@@ -593,8 +643,7 @@ localStmt : call ';' {
   // ################# VAI VIRAR FUNCAO
 
 
-  add_Node_Child_If_Not_Null($$, $lvalue);
-  add_Node_Child_If_Not_Null($$, $rvalue);
+
 }
 | newFlowControl {
   MAKE_NODE(localStmt);
@@ -644,22 +693,20 @@ newFlowControl : countFlow
  flowControl {
    $$ = yyvsp[0].no;
    __new_flow--;
-   WARSHOW(printf("__endFlow%d:\n", $countFlow->ival));
+   LABELSHOW(printf("__endFlow%d:\n", $countFlow->ival));
 }
 countFlow : %empty {
   $$ = No_New( newFlow_counter );
   closest_flow = newFlow_counter;
 
   newFlow_counter++;
-  WARSHOW(printf("__newFlow%d:\n", $$->ival ));
+  LABELSHOW(printf("__newFlow%d:\n", $$->ival ));
 }
 flowControl :  IF '(' expr ')' {
-    char* expr_addr = get_addr($expr);
+    char* expr_addr = get_no_addr($expr);
     $1 = No_New(if_counter);
     if_counter++;
 
-
-    __after_if++;
     CODESHOW(printf("brz __afterIfBlock%d, %s\n", $1->ival, expr_addr));
     free(expr_addr);    
   } block {
@@ -673,8 +720,7 @@ flowControl :  IF '(' expr ')' {
       add_Node_Child_If_Not_Null($$, $block);
       add_Node_Child_If_Not_Null($$, Token_New("ELSE","else"));
       add_Node_Child_If_Not_Null($$, yyvsp[0].no);
-      __after_if--;
-      WARSHOW(printf("__afterElseBlock%d:\n", $1->ival ) ) ;
+      LABELSHOW(printf("__afterElseBlock%d:\n", $1->ival ) ) ;
 
       No_Destroy($1); // usado como temporario (pilha)
     }
@@ -686,6 +732,8 @@ flowControl :  IF '(' expr ')' {
   $$ = NULL;
   closest_flow--;
 }
+
+
 | IF '(' expr error block ELSE block {
   printf("Erro : IF ( expr error block ELSE block\n");
   printf("Falta FECHAR parentese\n");  
@@ -701,19 +749,27 @@ flowControl :  IF '(' expr ')' {
   printf("Expressao mal formada\n");  
   $$ = NULL; 
 }
-loop : WHILE '(' expr ')' {
-  
+loop : WHILE {
+  $WHILE = No_New(while_counter);
+  while_counter++;
+  LABELSHOW(printf("__newWhile%d:\n", $WHILE->ival));
+}'(' expr ')' {
+  char* e = get_no_addr($expr);
+  CODESHOW(printf("brz __endWhile%d, %s\n", $WHILE->ival ,e));
+  free(e);
 } block {
   MAKE_NODE(loop);
   add_Node_Child_If_Not_Null($$, Token_New("WHILE","while"));
   add_Node_Child_If_Not_Null($$, $expr);
   add_Node_Child_If_Not_Null($$, $block);
+  CODESHOW(printf("jump __newWhile%d\n", $WHILE->ival));
+  LABELSHOW(printf("__endWhile%d:\n", $WHILE->ival));
 }
 
 defFun : BASE_TYPE ID '('{
 
   new_context();
-
+  FUNLABEL(printf("%s:\n", $ID));
   def_fun_rule = 1;
   SymEntry* old = last_decl(&reshi, $ID);
   // CHECAGEM DE REDECLARACAO FEITA AQUI. CHECAGEM DE PARAMETROS,
@@ -759,8 +815,8 @@ defFun : BASE_TYPE ID '('{
         $$ = NULL;
       }
       else {
-        fprintf(stderr,"entry->astNode: %p, $paramListVoid: %p \n", entry->astNode, $paramListVoid);
-        int match = match_paramList(entry->astNode->param, $paramListVoid);
+        fprintf(stderr,"entry->ast_node: %p, $paramListVoid: %p \n", entry->ast_node, $paramListVoid);
+        int match = match_paramList(entry->ast_node->param, $paramListVoid);
         if(match > 0){
           printf("DEFINICAO de %s BATE COM DECLARACAO!\n", $ID);
           // TODO: ATUALIZAR NOME DOS PARAMETROS PARA QUANDO FOR USAR A FUNCAO,
@@ -855,9 +911,9 @@ expr : expr ARITM expr {
   Type t1 = e1->type, t2 = e2->type;
   // printf("ARTM_OP: ");
   char* e2_addr, *e1_addr, *e_addr;
-  e2_addr = get_addr(e2);
-  e1_addr = get_addr(e1);
-  e_addr = get_addr(e);
+  e2_addr = get_no_addr(e2);
+  e1_addr = get_no_addr(e1);
+  e_addr = get_no_addr(e);
   char* op;
   switch($ARITM) {
     case '+': op = "add"; break;
@@ -898,7 +954,7 @@ expr : expr ARITM expr {
     printf("[Erro] Operador aa esquerda de mohdulo deve ser INTEIRO\n");
   }
   if($1->type == TYPE_INT && $3->type == TYPE_INT) {
-    char *addr1 = get_addr($1), *addr2 = get_addr($3);
+    char *addr1 = get_no_addr($1), *addr2 = get_no_addr($3);
     CODESHOW(printf("mod $%d, %s, %s\n", temp_next() ,addr1, addr2));
   } else {ERRSHOW(printf("mod com operandos nao inteiros! %s %% %s",
     t2s($1->type), t2s($3->type)));}
@@ -936,9 +992,9 @@ expr : expr ARITM expr {
   Type t1 = e1->type, t2 = e2->type;
   printf("REL_OP: ");
   char* e2_addr, *e1_addr, *e_addr;
-  e2_addr = get_addr(e2);
-  e1_addr = get_addr(e1);
-  e_addr = get_addr(e);
+  e2_addr = get_no_addr(e2);
+  e1_addr = get_no_addr(e1);
+  e_addr = get_no_addr(e);
 
   if( $$->ival <= 127 ) 
     CODESHOW(
@@ -961,9 +1017,9 @@ expr : expr ARITM expr {
   Type t1 = e1->type, t2 = e2->type;
   // DBG(printf("BIN_LOGI\n"));
   char* e2_addr, *e1_addr, *e_addr;
-  e2_addr = get_addr(e2);
-  e1_addr = get_addr(e1);
-  e_addr = get_addr(e);
+  e2_addr = get_no_addr(e2);
+  e1_addr = get_no_addr(e1);
+  e_addr = get_no_addr(e);
 
   CODESHOW(printf("%c %s, %s, %s\n",$$->ival , e_addr, e1_addr, e2_addr));
   free(e2_addr);
@@ -1019,9 +1075,9 @@ call : ID '(' argList ')' {
   // SEMANTICO  
   // TODO: checar se ID eh mesmo funcao. Depois, checar os PARAMETROS, ver se os tipos batem
   SymEntry* aux = last_decl(&reshi, $ID);
-  printf("type of %s: %s\n", $ID, t2s(aux->type));
-  printf("%s 1st param: %p\n", $ID, aux->astNode->param);
-  printf("type of %s param: %s\n", $ID, t2s(aux->astNode->param->type));
+  // fprintf(stderr,"type of %s: %s\n", $ID, t2s(aux->type));
+  // fprintf(stderr,"%s 1st param: %p\n", $ID, aux->ast_node->param);
+  // fprintf(stderr,"type of %s param: %s\n", $ID, t2s(aux->ast_node->param->type));
   if(!aux){
     printf("Funcao %s, l.%d c.%lu nao declarada!\n", $ID, numlines, currCol - (strlen($ID) + 2));
   }
@@ -1030,11 +1086,16 @@ call : ID '(' argList ')' {
     if(is_fun (aux->tag)) {
       // printf("%s eh uma funcao!.\n", aux->id);
       // Ver se assinatura bate com a declaracao!
-      if(aux->astNode) {
-        int match = match_paramList(aux->astNode->param, $argList);
+      if(aux->ast_node) {
+        int match = match_paramList(aux->ast_node->param, $argList);
         if(match > 0) {
           printf("[++++Semantico++++] Argumentos de %s corretos\n", $ID);
           CODESHOW(printf("call %s, %d\n", $ID, $argList->ival));
+          // Gambiarra para marcar todos os argumentos como has_aux;
+          // gambiarra pq nao parece nada legal, mas deve funcionar
+
+          // No* tmp = 
+
         }
         else
           printf("[----Semantico----] Uso indevido de %s\n", $ID); 
@@ -1061,9 +1122,9 @@ call : ID '(' argList ')' {
     $$->type = aux->type;
     if(is_fun (aux->tag)) {
       printf("%s eh uma funcao!.\n", aux->id);
-      printf("\t astNode: %p!.\n", aux->astNode);
+      printf("\t ast_node: %p!.\n", aux->ast_node);
       // Ver se assinatura bate com a declaracao!
-      int match = match_paramList(aux->astNode->param, NULL);
+      int match = match_paramList(aux->ast_node->param, NULL);
       if(match > 0) 
         printf("[++++Semantico++++] Argumentos de %s corretos\n", $ID);
       else
@@ -1079,44 +1140,61 @@ call : ID '(' argList ')' {
 
 argList : argList ',' arg {
   // Mesmo esquema da lista de parametros
-  if(!$1->hasAux) {
-    $1->hasAux = 1;
-    $1->nextAux = $arg;
-    $1->childLast = $arg;
+  $1->is_arg = 1;
+  if(!$1->has_aux) {
+    $1->has_aux = 1;
+    $1->next_aux = $arg;
+    $1->child_last = $arg;
   }
   else {
-    $1->childLast->nextAux = $arg;
-    $1->childLast = $arg;
+    $1->child_last->next_aux = $arg;
+    $1->child_last = $arg;
   }
   $$ = $1;
   $$->ival += 1;
 }
 | arg {
   $$ = $1;
-  $$->ival = 1;
+  $$->has_aux = 0;
+  $$->is_arg = 1;
 }
 
 arg : lvalue {
-  assert( $lvalue->symEntry );
-  printf("param $%d (%s)\n", $1->symEntry->addr, $1->symEntry->id);
+  assert( $lvalue->sym_entry );
+  printf("arg $%d (%s)\n", $1->sym_entry->addr, $1->sym_entry->id);
   $$ = $1;
+  SymEntry * sym = $lvalue->sym_entry;
+  sym->is_arg = 1;
+  $$->is_arg = 1;
 }
 | ID '(' expr ')' '(' expr ')' {
   SymEntry* entry = last_decl(&reshi, $ID);
+  printf("arg $%d (%s)\n", 
+    entry->addr, entry->id);
   assert( entry );
-  $$->type = entry->type;
-  
-  BoldCyan();
-  if(entry->is_global)
+  assert( entry->ast_node);
+  // BoldCyan();
+
+/*   if(entry->is_global)
     printf("param %s\n", entry->id);
   else
     printf("param $%d\n", entry->addr);
-
-  printf("param %s\n", get_addr($3));
-  printf("param %s\n", get_addr($6));
+ */
+  char *e = get_no_addr( entry->ast_node );
+  
+  CODESHOW(printf("param %s\n", e));
+  // Empilhar dimensoes da matriz
+  e = get_no_addr($3);
+  CODESHOW(printf("param %s\n", e)); free(e);
+  e = get_no_addr($6);
+  CODESHOW(printf("param %s\n", e)); free(e);
   Reset();
 
   MAKE_NODE(arg);
+  $$->type = entry->type;
+  $$->is_arg = 1;
+  entry->is_arg = 1;
+
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
   add_Node_Child_If_Not_Null($$, $3);
   add_Node_Child_If_Not_Null($$, $6);
@@ -1164,6 +1242,7 @@ lvalue : ID {
   add_Node_Child_If_Not_Null($$, tok);
   // SEMANTICO
   SymEntry* entry = last_decl(&reshi, $ID);
+  SHOWGRAY(printf("%s is arg? %d", $ID, entry->is_arg));
   // DBG(printf("[lvalue] RECOVERY-type: %s\n", t2s(entry->type)));
   // CHECK FOR NULL (== nao declarado)
   // printf("[ID: %s]entry->type: %s\n", $ID, t2s(entry->type));
@@ -1176,6 +1255,7 @@ lvalue : ID {
       point_no_symentry(&entry, &$$);
       point_no_symentry(&entry, &tok);
       $$->type = entry->type;
+      // $$->is_arg = 
       // DBG(printf("lvalue %s type: %s\n", $ID, t2s($$->type)));
     }
   }
@@ -1185,6 +1265,7 @@ lvalue : ID {
   }
   // printf("lvalue->type=%s \n", t2s( $$->type ));
   free($ID), $ID = NULL;
+  assert($$->sym_entry);
 }
 | ID '[' expr ']' {
   // TODO: CHECAR SE ID EH MATRIZ ou ARRAY. Senao, erro.
@@ -1207,7 +1288,7 @@ lvalue : ID {
     else {
       point_no_symentry(&old, &$$);
       $$->type = old->type;
-      $$->symEntry = old;
+      $$->sym_entry = old;
       switch( old->type ) {
         case TYPE_MAT_INT: $$->type = TYPE_UMAT_INT; break;
         case TYPE_MAT_FLOAT: $$->type = TYPE_UMAT_FLOAT; break;
@@ -1221,10 +1302,11 @@ lvalue : ID {
       }
       point_no_symentry(&old, &tok);
       tok->type = old->type;
-      tok->symEntry = old;      
+      tok->sym_entry = old;      
     }
   }
   free($ID); $ID = NULL;
+  assert($$->sym_entry);
 }
 | ID '[' expr ']' '[' expr ']' {
   // TODO: CHECAR SE ID EH MATRIZ. Senao, erro.
@@ -1255,22 +1337,26 @@ lvalue : ID {
   }
   int temp = temp_next();
   printf("old->id: %s\n", old->id);
-  printf("old->astNode: %p\n", old->astNode);
-  CODESHOW(printf("mov $%d, %s\n", temp, get_addr(old->astNode)));
+  printf("old->ast_node: %p\n", old->ast_node);
+  CODESHOW(printf("mov $%d, %s\n", temp, get_no_addr(old->ast_node)));
 
-  CODESHOW(printf("mul $%d, %s, %d\n", temp = temp_next(), get_addr($3), old->col  ));
+  CODESHOW(printf("mul $%d, %s, %d\n", temp = temp_next(), get_no_addr($3), old->col  ));
   
-  CODESHOW(printf("add $%d, $%d, %s\n", temp, temp, get_addr($6)));
+  CODESHOW(printf("add $%d, $%d, %s\n", temp, temp, get_no_addr($6)));
   temp = temp_next();
   CODESHOW(printf("mov $%d, $%d[$%d]\n", temp,temp-2 , temp-1));
   $$->addr = temp;
   free($ID); $ID = NULL;
+  assert($$->sym_entry);
 }
 
 rvalue : expr
 | '{' numList '}' {
   $$ = $2;
   $$->type = TYPE_LIST;
+  No* expr = yyvsp[0].no;
+  if(expr->sym_entry)
+    point_no_symentry(&(expr->sym_entry), &$$);
 }
 | '{' numListList '}' {
   $$ = $2;

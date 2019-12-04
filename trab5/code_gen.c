@@ -69,12 +69,12 @@ char* widen(No* src ,No* dest) {
   char * ret;
 
   Type t1, t2;
-  if(src->symEntry)t1 = src->symEntry->type;
+  if(src->sym_entry)t1 = src->sym_entry->type;
   else t1 = src->type;
-  if(dest->symEntry)t2 = dest->symEntry->type;
+  if(dest->sym_entry)t2 = dest->sym_entry->type;
   else t2 = dest->type;
 
-  if(t1 == t2) ret = get_addr(src);
+  if(t1 == t2) ret = get_no_val(src);
   // Senao, tem tipos distintos e ASSUME 
   if (!can_cast(t1, t2)) {
     return calloc(1, sizeof(char));
@@ -90,17 +90,17 @@ char* widen(No* src ,No* dest) {
     if(src->is_const) { 
       CODESHOW(printf("inttofl %s, %d\n", temp_addr, src->ival));
     } else {
-      CODESHOW(printf("inttofl %s, %s\n", temp_addr, get_addr(src)));
+      CODESHOW(printf("inttofl %s, %s\n", temp_addr, get_no_val(src)));
     }
   } else if( t1 == TYPE_MAT_INT && t2 == TYPE_MAT_FLOAT ){
     CODESHOW(printf("FAZER CONVERSAO MAT_INT --> MAT_FLOAT\n"));
     // O que fazer: checar se variavel eh global ou local.
-    CODESHOW(printf("param %s\n", get_addr(src)));
+    CODESHOW(printf("param %s\n", get_no_val(src)));
     CODESHOW(printf("param %s\n", get_mat_size(src)));
 
     ret = "DUMMY";
   } else {
-    ret =get_addr( src );
+    ret =get_no_val( src );
   }
   return ret;
 }
@@ -109,7 +109,7 @@ char* widen(No* src ,No* dest) {
 // obs: apenas para casting EXPLICITO
 char* narrow(No* src, No* dest) {
   char * ret;
-  if(src->type == dest->type) ret = get_addr(src);
+  if(src->type == dest->type) ret = get_no_val(src);
   else if (src->type == TYPE_FLOAT && dest->type == TYPE_INT) {
     int temp;
     temp = temp_next();
@@ -124,16 +124,16 @@ char* narrow(No* src, No* dest) {
       // - retornar string com esse temporario      
       CODESHOW(printf("fltoint %s, %d\n", temp_addr, src->ival));
     } else {
-      CODESHOW(printf("fltoint %s, %s\n", temp_addr, get_addr(src)));
+      CODESHOW(printf("fltoint %s, %s\n", temp_addr, get_no_val(src)));
     }
   } else if( src->type == TYPE_MAT_INT && dest->type == TYPE_MAT_FLOAT ){
     
   } else {
-    ret =get_addr( src );
+    ret =get_no_val( src );
     if(src->is_const)
       fprintf(stderr, "Sem conversao para %f\n",  src->fval);
     else
-      fprintf(stderr, "Sem conversao para %s\n", src->symEntry->id);    
+      fprintf(stderr, "Sem conversao para %s\n", src->sym_entry->id);    
   }
   return ret;
   
@@ -170,10 +170,15 @@ char* widen_basic(char* src, Type t_src, Type t_dest) {
   return addr;
 }
 
-char* get_addr(No* no) {
+// Retorna VALOR associado a um noh.
+// Em caso de constante, eh string contendo o valor.
+// Em caso de variavel local, eh string contendo o registrador
+// que armazena o valor
+// Em caso de variahvel global, retorna seu nome.
+char* get_no_val(No* no) {
   // DBG(printf("[getAddr] with %p->is_param = %d...\n", no, no->is_param));
-  if(no->symEntry && no->symEntry->is_global) {  // eh identificador GLOBAL
-    return str_ptr_clone(no->symEntry->id);
+  if(no->sym_entry && no->sym_entry->is_global) {  // eh identificador GLOBAL
+    return str_ptr_clone(no->sym_entry->id);
   } 
   else {
     char* buf = calloc(22, sizeof(char));
@@ -184,8 +189,8 @@ char* get_addr(No* no) {
         case TYPE_FLOAT: sprintf(buf, "%f",  no->fval); break;
         case TYPE_CHAR: sprintf(buf, "%c",  no->ival); break;
       }
-    } else if(no->symEntry && no->addr == -1) {  // o && eh pra ficar mais facil pra gerar cohdigo de acesso aa matriz
-      sprintf(buf, "$%d", no->symEntry->addr);
+    } else if(no->sym_entry && no->addr == -1) {  // o && eh pra ficar mais facil pra gerar cohdigo de acesso aa matriz
+      sprintf(buf, "$%d", no->sym_entry->addr);
     } else if (no->addr == -1){  // atribuir endereco temporario
       int temp = temp_next();
       no->addr = temp;
@@ -198,15 +203,34 @@ char* get_addr(No* no) {
     return buf;
   }
 }
-
+char* get_no_addr(No* no) {
+  if(!no) return calloc(10, sizeof(char));
+  char* tmp = get_no_val(no);
+  char* ret;
+  if( no->sym_entry && no->sym_entry->is_global ) {
+    ret = calloc(strlen(tmp) + 3, sizeof(char));
+    ret[0] = '&';
+    memcpy(ret+1, tmp, strlen(tmp));    
+  } else {
+    ret = tmp;
+  }
+  return ret;
+}
 char* get_mat_size(No* no) {
-  printf("[get_mat_size] %p->is_param = %d\n",no, no->is_param);
-  char* addr = get_addr(no);   // garante que no possui endereco
-  if(no->is_param) {    // computar em tempo de execucao
+  assert(no->sym_entry);
+  WARSHOW(printf("[get_mat_size] %p->is_param = %d\n",no, no->is_param));
+  WARSHOW(printf("[get_mat_size] %p->has_aux = %d\n",no, no->has_aux));
+  WARSHOW(printf("[get_mat_size] %p->tname = %s\n",no, no->tname));
+  WARSHOW(printf("[get_mat_size] %p->sval = %s\n",no, no->sval));
+  WARSHOW(printf("[get_mat_size] %p->is_arg = %d\n",no, no->is_arg));
+  WARSHOW(printf("[get_mat_size] %p->sym_entry->is_arg = %d\n",no, no->sym_entry->is_arg));
+  // abort();
+  char* addr = get_no_val(no);   // garante que no possui endereco
+  if(no->is_arg) {    // computar em tempo de execucao, pois eh argumento
     CODESHOW(printf("TODO: COMPUTAR TAMANHO DA MATRIZ EM TEMPO DE EXECUCAO [%p->is_param == %d]\n", no, no->is_param));    
     return "BIZARRO";
   } else {  // possui valores estaticos para as dimensoes
-    SymEntry* s = no->symEntry;
+    SymEntry* s = no->sym_entry;
     printf("%p !!! \n", s);/*  abort(); */
     return itoa( s->line * s->col , calloc(20, sizeof(char)));
   }

@@ -6,7 +6,7 @@ entre aspas.
 
 + em operações entre matriz/escalar, o ESCALAR SOFRE UPPER/DOWN cast conforme o tipo da matriz
 
-+ lista de parametros e de argumentos sao encadeadas pelo ponteiro *nextAux*
++ lista de parametros e de argumentos sao encadeadas pelo ponteiro *next_aux*
 
 + comparações booleanas apenas entre coisas de MESMO TIPO
 

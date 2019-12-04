@@ -14,19 +14,23 @@
   printf("\t");\
   X;\
   Reset();}
+
 #define LABELSHOW(X) \
-  {BoldCyan(); \
+  {BoldYellow(); \
   X;\
   Reset();}
+
+#define WARSHOW(X) \
+  {BoldYellow(); \
+  X;\
+  Reset();}
+
 #define ERRSHOW(X) \
   { critical_error++;\
   BoldRed(); \
   X;\
   Reset();}
-#define WARSHOW(X) \
-  {BoldYellow(); \
-  X;\
-  Reset();}
+
 #define  DBG(X) \
   {BoldGreen(); \
   X;\
@@ -36,6 +40,16 @@
   {BoldCyan(); \
   printf(X);\
   Reset();}
+#define FUNLABEL(X) \
+  {BoldMagenta(); \
+  X;\
+  Reset();}
+#define SHOWGRAY(X) \
+  {BoldGray(); \
+  X;\
+  Reset();}
+
+
 #define STR(x) #x
 #define pf printf
 /// Modulo contendo estruturas de dados livres de dependencias
@@ -125,11 +139,12 @@ typedef struct SymEntry{
   Type type;  // nao ideal, MAS fica mais facil...
   Base_Type base_type;
   char is_global;
+  char is_arg;  //    util pois quando eh matriz, os temporarios associados sao os dois proximos
   char* escopo;
   Local local;
   char def_fun;
   int line, col;
-  struct No* astNode;
+  struct No* ast_node;
   struct SymEntry* next; // encadeamento para caso de conflito
   UT_hash_handle hh;
 } SymEntry;
@@ -137,11 +152,11 @@ typedef struct SymEntry{
 typedef struct No {
   // struct No * p;   // ponteiro para pai
   struct No * child;
-  struct No * childLast;
+  struct No * child_last;
   struct No * n;
-  struct No * nextAux;
+  struct No * next_aux;
   struct No * param;  // usado apenas por entradas representando FUNCOES
-  SymEntry* symEntry;
+  SymEntry* sym_entry;
 
   char* sval;
   int ival;
@@ -155,9 +170,10 @@ typedef struct No {
   char tname_alloc;
   char code_alloc;
   char is_param;
+  char is_arg;
   Type type;
   char isToken;    // nesse modo, usa-se mesmo noh para token e regra
-  char hasAux;
+  char has_aux;
   Code* code;
   int addr;
    // campo utilizado basicamente por EXPRESSOES, para usar como temporario (ver. pgn 389)

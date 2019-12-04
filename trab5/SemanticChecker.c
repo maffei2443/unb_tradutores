@@ -26,14 +26,15 @@ int match_paramList(No* oldParam, No* param) {
       printf("[match_paramList]%s vs %s\n", 
         t2s(oldParam->type), t2s(param->type)
       );
+      return 0;
       break;
     }
     else {
       printf("pametro igual!\n");
       // Alterar os ponteiros por fora, aqui nao estah dando nada certo.
     }
-    oldParam = oldParam->nextAux;
-    param = param->nextAux;
+    oldParam = oldParam->next_aux;
+    param = param->next_aux;
   }
   printf("OK, FOI mach_paramList\n");
   printf("\t %p %p\n", oldParam, param);
@@ -43,8 +44,8 @@ int match_paramList(No* oldParam, No* param) {
 void link_symentry_no(SymEntry** sym, No** no) {
   assert(*no && *sym);
   // printf("(BI directional) linking... ( %p )%s <--> %p\n", *sym,(*sym)->id, *no);
-  (*no)->symEntry = *sym;
-  (*sym)->astNode = *no;
+  (*no)->sym_entry = *sym;
+  (*sym)->ast_node = *no;
   // fprintf(stderr, "\t[link_symentry_no]\t %p %p\n", *sym, *no);	  // fprintf(stderr, "\t[link_symentry_no]\t %p %p\n", *sym, *no);
 }
 
@@ -53,7 +54,7 @@ void link_symentry_no(SymEntry** sym, No** no) {
 void point_no_symentry(SymEntry** sym, No** no) {
   assert(*no && *sym);
   // printf("(UNI directional) linking... %s <--> %p\n", (*sym)->id, *no);
-  (*no)->symEntry = *sym;
+  (*no)->sym_entry = *sym;
   (*no)->type = (*sym)->type;
 }
 
@@ -281,11 +282,11 @@ SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
       neoEntry = SymEntry_New(id, tag, currScope);
       if( !strcmp(currScope, GLOBAL_SCOPE) ) {
         neoEntry->is_global = 1;
-        printf("\t\t%s eh GLOBAL!\n", id);
+        // printf("\t\t%s eh GLOBAL!\n", id);
       } else {
         neoEntry->is_global = 0;
         neoEntry->addr = temp_next();
-        printf("%s:%s com $%d associado\n", neoEntry->id, currScope, neoEntry->addr);
+        // printf("%s:%s com $%d associado\n", neoEntry->id, currScope, neoEntry->addr);
 
       }
       // printf("\t\tNEO_ENTRY: %p\n", neoEntry);
@@ -326,7 +327,7 @@ SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
 int id_has_type(SymEntry** reshi, char* id, Type type) {
   SymEntry* sym = last_decl(reshi, id);
   if(!sym) return -1;
-  assert(sym->type == sym->astNode->type);
+  assert(sym->type == sym->ast_node->type);
   return sym->type == type;
 }
 

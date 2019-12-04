@@ -43,7 +43,8 @@ char* wrapper(char);
 // LEMBRAR DE DESALOCAR APOHS USAR O RESULTADO!
 // OBS: pode modificar objeto, caso precise atribuir um endereco 
 // temporario a ele
-char* get_addr(No*);
+char* get_no_val(No*);
+char* get_no_addr(No* no);
 
 // Retorna string contendo tamanho da matriz.
 // Dois casos:
