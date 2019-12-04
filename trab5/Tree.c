@@ -86,9 +86,10 @@ No* No_New(int v) {
 
 No* Token_New(char* tname, char* sval) {
   No* token = No_New(-1);
-  DBG(
+/*   DBG(
     printf("[Token_New] %p, %s\n", token, sval);
   );
+ */
   token->isToken = 1;
   token->tname_alloc = 1;
   token->tname = calloc(strlen(tname) + 1, sizeof(char));

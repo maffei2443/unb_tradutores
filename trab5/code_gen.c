@@ -96,8 +96,10 @@ char* widen(No* src ,No* dest) {
   } else if( t1 == TYPE_MAT_INT && t2 == TYPE_MAT_FLOAT ){
     CODESHOW(printf("FAZER CONVERSAO MAT_INT --> MAT_FLOAT\n"));
     // O que fazer: checar se variavel eh global ou local.
-    CODESHOW(printf("param %s\n", get_no_val(src)));
-    CODESHOW(printf("param %s\n", get_mat_size(src)));
+    char* e = get_no_val(src);
+    CODESHOW(printf("param %s\n", e)); free(e);
+    e = get_mat_size(src);
+    CODESHOW(printf("param %s\n", e)); free(e);
 
     ret = "DUMMY";
   } else {
@@ -176,6 +178,7 @@ char* widen_basic(char* src, Type t_src, Type t_dest) {
 // Em caso de variavel local, eh string contendo o registrador
 // que armazena o valor
 // Em caso de variahvel global, retorna seu nome.
+// NAO POSSUI GERA COHDIGO, MAS PODE MODIFICAR temp pois chama temp_next
 char* get_no_val(No* no) {
   // DBG(printf("[getAddr] with %p->is_param = %d...\n", no, no->is_param));
   if(no->sym_entry && no->sym_entry->is_global) {  // eh identificador GLOBAL
@@ -217,12 +220,12 @@ char* get_no_addr(No* no) {
   }
   return ret;
 }
+// Retorna endereco de onde estah o tamanho de uma matriz.
+// Gera cohdigo caso tenha de ser computado em tempo de execucao
 char* get_mat_size(No* no) {
   assert(no->sym_entry);
-  WARSHOW(printf("[get_mat_size] %p->is_param = %d\n",no, no->is_param));
-  free(get_no_val(no));   // garante que no possui endereco
+  free(get_no_val(no));   // garante que no possui endereco [gambiarra]
   if(no->sym_entry->line == -1 && no->sym_entry->col == -1) {    // computar em tempo de execucao, pois eh argumento
-    CODESHOW(printf("TODO: COMPUTAR TAMANHO DA MATRIZ EM TEMPO DE EXECUCAO [%p->is_param == %d]\n", no, no->is_param));    
     int mat_addr = no->sym_entry->addr;
     int temp = temp_next();
     CODESHOW(printf("mul $%d, $%d, $%d // tamanho da matriz, em tempo de execucao\n", temp,mat_addr+1 ,mat_addr+2));
@@ -231,7 +234,6 @@ char* get_mat_size(No* no) {
     return ret;
   } else {  // possui valores estaticos para as dimensoes
     SymEntry* s = no->sym_entry;
-    printf("%p !!! \n", s);/*  abort(); */
     return itoa( s->line * s->col , calloc(20, sizeof(char)));
   }
 }

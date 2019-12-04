@@ -17,14 +17,14 @@
 #define MAKE_NODE(x) INITNODE(STR(x))
 // TODO: onde aparece setar variavel de erro!
 #define PARAM_RPT_NAME_CHECK(__baseType, __id) \
-  if(!neoEntry) {\
-    neoEntry = last_decl(&reshi, yyvsp[__id]._id);    \
+  if(!neo_entry) {\
+    neo_entry = last_decl(&reshi, yyvsp[__id]._id);    \
     ERRSHOW(printf("[Semantico] Parametros de mesmo nome! Arvore vai ficar inconsistente..\n"));\
   }\
   else {\
-    neoEntry->type = yyvsp[__baseType].type;\
+    neo_entry->type = yyvsp[__baseType].type;\
     yyval.no->type = yyvsp[__baseType].type;\
-    neoEntry->tag = TAG_PARAM;\
+    neo_entry->tag = TAG_PARAM;\
   }
 #define BLANK_INT "              "
 #define BLANK_FLOAT "                           "
@@ -271,13 +271,13 @@ declOrdeclInitVar : typeAndNameSign ';'
 | typeAndNameSign '=' rvalue error
 
 typeAndNameSign : BASE_TYPE ID {
-  SymEntry* oldEntry = last_decl(&reshi, $ID);
-  // printf("Recuperado da tabela de simbolos: %p\n", oldEntry);
+  SymEntry* old_entry = last_decl(&reshi, $ID);
+  // printf("Recuperado da tabela de simbolos: %p\n", old_entry);
   // printf("base_type: %s\n", t2s($BASE_TYPE));
   char err = 0;
-  if(oldEntry) {
-    if( !strcmp(oldEntry->escopo, currScope) ) {
-      ERRSHOW(printf("[Semantico] Erro: Redeclaracao de %s:%s!\n", oldEntry->escopo, oldEntry->id));
+  if(old_entry) {
+    if( !strcmp(old_entry->escopo, currScope) ) {
+      ERRSHOW(printf("[Semantico] Erro: Redeclaracao de %s:%s!\n", old_entry->escopo, old_entry->id));
       err = 1;
     }
     else {
@@ -286,19 +286,26 @@ typeAndNameSign : BASE_TYPE ID {
   }
 
   if (!err) {
-    SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_UNDEFINED);
-    if(neoEntry) {  // DE UTUDO CERTO
-      neoEntry->type = $BASE_TYPE;
+    SymEntry* neo_entry = add_entry(&reshi, $ID, TAG_UNDEFINED);
+    if(neo_entry) {  // DE UTUDO CERTO
+      neo_entry->type = $BASE_TYPE;
       MAKE_NODE(typeAndNameSign);
-      link_symentry_no(&neoEntry, &$$);      
+      link_symentry_no(&neo_entry, &$$);      
       add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", t2s($BASE_TYPE)));
       add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
       
       // para facilitar geracao de cohdigo
-      point_no_symentry(&neoEntry, &$$);      
+      point_no_symentry(&neo_entry, &$$);     
+
+      if(neo_entry->is_global) {
+        GLOBALSHOW(
+          printf("%s %s\n", t2s(to_base_type( neo_entry->type )),neo_entry->id);
+        );
+      }
+
     }
     else {
-      printf("ERRO LOGICO: NAO DEVERIA ENTRAR AQUI! %s:%s ...\n", neoEntry->escopo, $ID);
+      printf("ERRO LOGICO: NAO DEVERIA ENTRAR AQUI! %s:%s ...\n", neo_entry->escopo, $ID);
     }
   }
   else {
@@ -313,13 +320,13 @@ typeAndNameSign : BASE_TYPE ID {
   /// 1 - Se nao existe OU existe mas nao eh mesmo escopo, tah ok
   /// 2 - Se num eh inteiro, tah ok
   /// 3 - Soh entao cria-se o noh
-  SymEntry* oldEntry = last_decl(&reshi, $ID);
-  // printf("Recuperado da tabela de simbolos: %p\n", oldEntry);
+  SymEntry* old_entry = last_decl(&reshi, $ID);
+  // printf("Recuperado da tabela de simbolos: %p\n", old_entry);
   
   char err = 0;
-  if(oldEntry) {
-    if( !strcmp(oldEntry->escopo, currScope) ) {
-      ERRSHOW(printf("[Semantico] Erro: Redeclaracao de %s:%s!\n", oldEntry->escopo, oldEntry->id));
+  if(old_entry) {
+    if( !strcmp(old_entry->escopo, currScope) ) {
+      ERRSHOW(printf("[Semantico] Erro: Redeclaracao de %s:%s!\n", old_entry->escopo, old_entry->id));
       err = 1;
     }
     else {
@@ -335,31 +342,41 @@ typeAndNameSign : BASE_TYPE ID {
     }  else if ($num->ival < 0) {
       ERRSHOW(printf("[Semantico] Erro: Tamanho deve ser >= 0\n"));
     }  else {   // DEU TUDO CERTO! 
-      SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_UNDEFINED);
+      SymEntry* neo_entry = add_entry(&reshi, $ID, TAG_UNDEFINED);
       Type type = $BASE_TYPE == TYPE_FLOAT ? TYPE_ARRAY_FLOAT : TYPE_ARRAY_INT;
-      if(neoEntry) {
+      if(neo_entry) {
         // TODO: checar se num eh inteiro. Se nao for, ERRO
-        neoEntry->type = type;
-        neoEntry->base_type = $BASE_TYPE;
-        neoEntry->col = $num->ival;      
+        neo_entry->type = type;
+        neo_entry->base_type = $BASE_TYPE;
+        neo_entry->col = $num->ival;      
         MAKE_NODE(typeAndNameSign);
         // para facilitar geracao de codigo
-        point_no_symentry(&neoEntry, &$$);
+        point_no_symentry(&neo_entry, &$$);
         add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", t2s($BASE_TYPE)));
         add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
-        link_symentry_no(&neoEntry, &$$->child_last);
-        abort();      
-        // char* e = get_no_addr(  );
-        if(!neoEntry->is_global){
-          CODESHOW(printf("mema &%s, %d\n", $ID, $num->ival));
+        link_symentry_no(&neo_entry, &$$->child_last);
+
+        int sz = yyvsp[-1].no->ival;
+        // char* e = get_no_addr();
+        if(neo_entry->is_global) {
+          GLOBALSHOW(
+            printf("%s %s = {", t2s(to_base_type( neo_entry->type )),neo_entry->id);
+            for(int i = 0; i < sz-1; i++) {
+              printf("0, ");
+            }
+            printf("0 }\n");
+          );
         }
-        else {
-          BLUE("INSERIR NO .TABLE AS VARIAVEIS GLOBAIS!\n");
+        else {          
+          char* e = get_no_addr( $$->child_last );
+          CODESHOW(printf("mema %s, %d\n", e, sz)); 
+          free(e);
         }
+
         add_Node_Child_If_Not_Null($$, $num);
       }
       else {
-        printf("[BASE_TYPE ID '[' num ']'] ERRO LOGICO: NAO DEVERIA ENTRAR AQUI! %s:%s ...\n", neoEntry->escopo, $ID);
+        printf("[BASE_TYPE ID '[' num ']'] ERRO LOGICO: NAO DEVERIA ENTRAR AQUI! %s:%s ...\n", neo_entry->escopo, $ID);
         $$ = NULL;
       }
     }
@@ -376,13 +393,13 @@ typeAndNameSign : BASE_TYPE ID {
 
 | MAT_TYPE BASE_TYPE ID '[' num ']' '[' num ']' {
   // Procedimento analogo ao de cima,
-  SymEntry* oldEntry = last_decl(&reshi, $ID);
-  // printf("Recuperado da tabela de simbolos: %p\n", oldEntry);
+  SymEntry* old_entry = last_decl(&reshi, $ID);
+  // printf("Recuperado da tabela de simbolos: %p\n", old_entry);
   
   char err = 0;
-  if(oldEntry) {
-    if( !strcmp(oldEntry->escopo, currScope) ) {
-      ERRSHOW(printf("[Semantico] Erro: Redeclaracao de %s:%s!\n", oldEntry->escopo, oldEntry->id));
+  if(old_entry) {
+    if( !strcmp(old_entry->escopo, currScope) ) {
+      ERRSHOW(printf("[Semantico] Erro: Redeclaracao de %s:%s!\n", old_entry->escopo, old_entry->id));
       err = 1;
     }
     else {
@@ -404,25 +421,31 @@ typeAndNameSign : BASE_TYPE ID {
     }
     else {    // TUDO CERTO: PODE CIRAR O NOH
       Type type = $BASE_TYPE == TYPE_FLOAT ? TYPE_MAT_FLOAT : TYPE_MAT_INT;
-      SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_UNDEFINED);
-      if(neoEntry) {
-        neoEntry->line = $5->ival;
-        neoEntry->col = $8->ival;
-        neoEntry->type = type;
+      SymEntry* neo_entry = add_entry(&reshi, $ID, TAG_UNDEFINED);
+      if(neo_entry) {
+        neo_entry->line = $5->ival;
+        neo_entry->col = $8->ival;
+        neo_entry->type = type;
 
         // TODO: checar se num eh inteiro. Se nao for, ERRO
         MAKE_NODE(typeAndNameSign);
 /*  */
-        point_no_symentry(&neoEntry, &$$);
+        point_no_symentry(&neo_entry, &$$);
         add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", t2s($BASE_TYPE)));
         add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
-        link_symentry_no(&neoEntry, &$$->child_last);
+        link_symentry_no(&neo_entry, &$$->child_last);
 
         int sz = yyvsp[-4].no->ival * yyvsp[-1].no->ival;
         // char* e = get_no_addr();
-        if(neoEntry->is_global){
-          BLUE("INSERIR NO .TABLE AS VARIAVEIS GLOBAIS\n");
-          CODESHOW(printf("mema &%s, %d\n", $ID, sz));
+        if(neo_entry->is_global){
+          GLOBALSHOW(
+            printf("%s %s[%d] = {", t2s(to_base_type( neo_entry->type )),neo_entry->id, sz);
+            for(int i = 0; i < sz-1; i++) {
+              printf("0, ");
+            }
+            printf("0 }\n");
+          );
+
         }
         else {          
           char* e = get_no_addr( $$->child_last );
@@ -435,11 +458,11 @@ typeAndNameSign : BASE_TYPE ID {
 /*  */
 
         // para facilitar geracao de cohdigo
-        link_symentry_no(&neoEntry, &$$);
-        $$->type = neoEntry->type;
+        link_symentry_no(&neo_entry, &$$);
+        $$->type = neo_entry->type;
       }
       else {
-        printf("[BASE_TYPE ID '[' num ']'] ERRO LOGICO: NAO DEVERIA ENTRAR AQUI! %s:%s ...\n", neoEntry->escopo, $ID);
+        printf("[BASE_TYPE ID '[' num ']'] ERRO LOGICO: NAO DEVERIA ENTRAR AQUI! %s:%s ...\n", neo_entry->escopo, $ID);
         $$ = NULL;
       }
     }
@@ -459,8 +482,8 @@ paramListVoid : paramList {
   // child_last eh usado como auxiliar para criar a lista na ordem correta ;)
   $1->child_last = NULL;
   $$ = $1;
-  printf("[paramListVoid] %p\n", $paramListVoid);
-  printf("[paramListVoid->type] %s\n", t2s($paramListVoid->type));
+  // printf("[paramListVoid] %p\n", $paramListVoid);
+  // printf("[paramListVoid->type] %s\n", t2s($paramListVoid->type));
 
 }
 | %empty {$$ = NULL;}
@@ -483,18 +506,14 @@ paramList : paramList ',' param {
 param : BASE_TYPE ID {
   $$ = Token_New(STR(param), $ID);
   $$->is_param = 1;
-  SymEntry* neoEntry = last_decl(&reshi, $ID);
-  printf("!!! %p, %s: param @@@\n", neoEntry, $ID);
+  SymEntry* neo_entry = last_decl(&reshi, $ID);
   if(!declared_curr_fun) {
-    SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_PARAM);
-    if(neoEntry) {
-      neoEntry->type =  $BASE_TYPE;
+    SymEntry* neo_entry = add_entry(&reshi, $ID, TAG_PARAM);
+    if(neo_entry) {
+      neo_entry->type =  $BASE_TYPE;
       $$->type =  $BASE_TYPE;
       PARAM_RPT_NAME_CHECK(-1, 0);
     }
-  }
-  else {
-    printf("1296 !!!\n");
   }
   $$->type = $BASE_TYPE;
   free($ID), $ID = NULL;
@@ -503,21 +522,20 @@ param : BASE_TYPE ID {
   $$ = Token_New(STR(param), $ID);
   $$->is_param = 1;
   // TODO: checar por declaracao previa de parametro!
-  SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_PARAM );
-  printf("!!! %p, %s: param @@@\n", neoEntry, $ID);
+  SymEntry* neo_entry = add_entry(&reshi, $ID, TAG_PARAM );
   // SEMANTICO
   PARAM_RPT_NAME_CHECK(-3, -2);
   
-  if($BASE_TYPE == TYPE_INT)    neoEntry->type = TYPE_ARRAY_INT;
-  else if ($BASE_TYPE == TYPE_FLOAT) neoEntry->type = TYPE_ARRAY_FLOAT;
-  else if ($BASE_TYPE == TYPE_CHAR) neoEntry->type = TYPE_ARRAY_CHAR;
+  if($BASE_TYPE == TYPE_INT)    neo_entry->type = TYPE_ARRAY_INT;
+  else if ($BASE_TYPE == TYPE_FLOAT) neo_entry->type = TYPE_ARRAY_FLOAT;
+  else if ($BASE_TYPE == TYPE_CHAR) neo_entry->type = TYPE_ARRAY_CHAR;
   else {
     ERRSHOW(printf("BASE_TYPE deve mao identificado\n"));
-    neoEntry->type = TYPE_UNDEFINED;
+    neo_entry->type = TYPE_UNDEFINED;
   }
-  $$->type = neoEntry->type;  // IMPORTANTE
-  if(neoEntry)
-    link_symentry_no(&neoEntry, &$$);
+  $$->type = neo_entry->type;  // IMPORTANTE
+  if(neo_entry)
+    link_symentry_no(&neo_entry, &$$);
   free($ID), $ID = NULL;
 }
 
@@ -528,13 +546,12 @@ param : BASE_TYPE ID {
   DBG(printf("%p eh parametro!\n id == %s\n", $param, $ID));
   $$->is_param = 1;
   
-  SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_PARAM);
+  SymEntry* neo_entry = add_entry(&reshi, $ID, TAG_PARAM);
   // enderecos para os dois temporarios que guardam tamanho da matriz!
   // IMPORTANTE CHAMAR DEPOIS de ter inserido na tabela de simbolos
   temp_next();
   temp_next();
 
-  printf("!!! %p, %s: param @@@\n", neoEntry, $ID);
   // Semantico
   PARAM_RPT_NAME_CHECK(-1, 0);
   Type tipo;
@@ -544,17 +561,17 @@ param : BASE_TYPE ID {
     case TYPE_FLOAT: tipo = TYPE_MAT_FLOAT; break;
   }
   $$->type = tipo;
-  neoEntry->type = tipo;
+  neo_entry->type = tipo;
 
-  if($BASE_TYPE == TYPE_INT) neoEntry->type = TYPE_MAT_INT;  
-  else if ($BASE_TYPE == TYPE_FLOAT) neoEntry->type = TYPE_MAT_FLOAT;
-  else if ($BASE_TYPE == TYPE_CHAR) neoEntry->type = TYPE_MAT_CHAR;
+  if($BASE_TYPE == TYPE_INT) neo_entry->type = TYPE_MAT_INT;  
+  else if ($BASE_TYPE == TYPE_FLOAT) neo_entry->type = TYPE_MAT_FLOAT;
+  else if ($BASE_TYPE == TYPE_CHAR) neo_entry->type = TYPE_MAT_CHAR;
   else {
     ERRSHOW(printf("BASE_TYPE deve mao identificado\n"));
-    neoEntry->type = TYPE_UNDEFINED;
+    neo_entry->type = TYPE_UNDEFINED;
   }
-  if(neoEntry)
-    link_symentry_no(&neoEntry, &$$);  
+  if(neo_entry)
+    link_symentry_no(&neo_entry, &$$);  
   free($ID), $ID = NULL;
 }
 
@@ -605,9 +622,6 @@ localStmt : call ';' {
     WARSHOW(printf("Conversao entre matrizes. %s = %s\n", t2s(t1), t2s(t2)));
 
     SymEntry* sym = $rvalue->sym_entry;
-    printf("lines: %d, colunas: %d\n", sym->line, sym->line);
-    show_entry(sym);
-    // abort();
 
     BLUE("AQUI O CAST DE MATRIZES\n");
     CODESHOW(printf("param %s\n", get_no_addr($rvalue)));
@@ -803,18 +817,18 @@ defFun : BASE_TYPE ID '('{
   }
   else {
     // fprintf(stderr, "definindo funcao %s\n", $ID); fflush(stdout);
-    SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_DEF_FUN);
-    if(!neoEntry) {
+    SymEntry* neo_entry = add_entry(&reshi, $ID, TAG_DEF_FUN);
+    if(!neo_entry) {
       printf("Erro na definicao de funcao %s [bug]\n", $ID);
     }
     else {
-      neoEntry->type = $BASE_TYPE;
-      neoEntry->def_fun = 1;
+      neo_entry->type = $BASE_TYPE;
+      neo_entry->def_fun = 1;
     }
   }
   currScope = $ID;
 } paramListVoid ')' '{' declList localStmtList '}' {
-  printf("%p ====== paramListVoid\n", $paramListVoid);
+  // printf("%p ====== paramListVoid\n", $paramListVoid);
   if(check_signature) {   
     fprintf(stderr,"Checando assinatura de %s\n", $ID);
     currScope = GLOBAL_SCOPE;
@@ -832,8 +846,8 @@ defFun : BASE_TYPE ID '('{
           printf("DEFINICAO de %s BATE COM DECLARACAO!\n", $ID);
           // TODO: ATUALIZAR NOME DOS PARAMETROS PARA QUANDO FOR USAR A FUNCAO,
           // CONTAR OS NOMES DOS PARAMETROS USADOS NA DEFINICAO
-          // SymEntry* neoEntry = add_entry(&reshi, $ID, TAG_DEF_FUN);
-          // neoEntry->type = $BASE_TYPE;
+          // SymEntry* neo_entry = add_entry(&reshi, $ID, TAG_DEF_FUN);
+          // neo_entry->type = $BASE_TYPE;
         }
         else {
           printf("Lista de parametros de %s incompativel com sua declaracao!\n", $ID);
@@ -858,7 +872,7 @@ defFun : BASE_TYPE ID '('{
     tmp->type = $BASE_TYPE;
 
     $$->param = $paramListVoid;
-    printf("PARAM BECOME %p\n", $$->param);
+    // printf("PARAM BECOME %p\n", $$->param);
     link_symentry_no(&tmp, &$$);
   }
   else
@@ -1172,7 +1186,7 @@ argList : argList ',' arg {
 
 arg : lvalue {
   assert( $lvalue->sym_entry );
-  printf("arg $%d (%s)\n", $1->sym_entry->addr, $1->sym_entry->id);
+  // printf("arg $%d (%s)\n", $1->sym_entry->addr, $1->sym_entry->id);
   $$ = $1;
   SymEntry * sym = $lvalue->sym_entry;
   sym->is_arg = 1;
@@ -1180,8 +1194,7 @@ arg : lvalue {
 }
 | ID '(' expr ')' '(' expr ')' {
   SymEntry* entry = last_decl(&reshi, $ID);
-  printf("arg $%d (%s)\n", 
-    entry->addr, entry->id);
+  // printf("arg $%d (%s)\n", entry->addr, entry->id);
   assert( entry );
   assert( entry->ast_node);
   // BoldCyan();
@@ -1253,10 +1266,7 @@ lvalue : ID {
   add_Node_Child_If_Not_Null($$, tok);
   // SEMANTICO
   SymEntry* entry = last_decl(&reshi, $ID);
-  SHOWGRAY(printf("%s is arg? %d", $ID, entry->is_arg));
-  // DBG(printf("[lvalue] RECOVERY-type: %s\n", t2s(entry->type)));
-  // CHECK FOR NULL (== nao declarado)
-  // printf("[ID: %s]entry->type: %s\n", $ID, t2s(entry->type));
+  // SHOWGRAY(printf("%s is arg? %d", $ID, entry->is_arg));
   if(entry) {
     if(is_fun(entry->tag)) {
       printf("Identificador %s, l.%d c.%lu DECLARADO PREVIAMENTE como funcao em l.%d, c.%d!\n",

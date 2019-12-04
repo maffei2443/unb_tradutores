@@ -1,11 +1,11 @@
 mat int mi[4][4];
+int v[12];
+// int f(mat int x) {
+// 	mat float y[3][3];
+// 	// mi = x;
+// 	y = x;
+// }
 
-int f(mat int x) {
-	mat float y[3][3];
-	// mi = x;
-	y = x;
-}
-
-int main() {
-	f( mi(2+2-6)(4) );
-}
+// int main() {
+// 	f( mi(2+2-6)(4) );
+// }

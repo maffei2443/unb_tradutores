@@ -20,6 +20,12 @@
   X;\
   Reset();}
 
+#define GLOBALSHOW(X) \
+  {BoldMagenta(); \
+  printf("\t");\
+  X;\
+  Reset();}
+
 #define WARSHOW(X) \
   {BoldYellow(); \
   X;\

@@ -19,25 +19,27 @@ int match_paramList(No* oldParam, No* param) {
   // printf("sym: %p vs no: %p\n", sym, no);
   if(!oldParam && !param) return 1;   // ambas funcoes sem argumento
   if(!oldParam || !param) return 0;   // apenas 1 eh sem argumento
-  printf("%s vs %s\n", t2s(oldParam->type), t2s(param->type));
-  printf("%s vs %s\n", oldParam->sval, param->sval);
+  // printf("%s vs %s\n", t2s(oldParam->type), t2s(param->type));
+  // printf("%s vs %s\n", oldParam->sval, param->sval);
   while (oldParam && param){
     if(oldParam->type != param->type){
-      printf("[match_paramList]%s vs %s\n", 
-        t2s(oldParam->type), t2s(param->type)
+      DBG(
+        printf("[match_paramList]%s vs %s\n", 
+          t2s(oldParam->type), t2s(param->type)
+        )
       );
       return 0;
       break;
     }
     else {
-      printf("pametro igual!\n");
+      // printf("pametro igual!\n");
       // Alterar os ponteiros por fora, aqui nao estah dando nada certo.
     }
     oldParam = oldParam->next_aux;
     param = param->next_aux;
   }
-  printf("OK, FOI mach_paramList\n");
-  printf("\t %p %p\n", oldParam, param);
+  // printf("OK, FOI mach_paramList\n");
+  // printf("\t %p %p\n", oldParam, param);
   return !oldParam && !param;
 }
 
@@ -242,86 +244,86 @@ int can_cast_mod(Type le, Type ri) {
 // retorna ponteiro para declracao mais prohxima.
 SymEntry* last_decl(SymEntry** reshi, char* id){
   // fprintf(stderr, "[last_decl] para %s", id);
-  SymEntry* oldEntry = NULL;
-  SymEntry* last_same_id = oldEntry;
-  HASH_FIND_STR((*reshi), id, oldEntry);
-  while( oldEntry ) {
-    if(strcmp(oldEntry->escopo, currScope) == 0){  // declaracao sob mesmo escopo
-      // fprintf(stderr," retornou (%p, %s)\n", oldEntry, oldEntry->id);
-      return oldEntry;
+  SymEntry* old_entry = NULL;
+  SymEntry* last_same_id = old_entry;
+  HASH_FIND_STR((*reshi), id, old_entry);
+  while( old_entry ) {
+    if(strcmp(old_entry->escopo, currScope) == 0){  // declaracao sob mesmo escopo
+      // fprintf(stderr," retornou (%p, %s)\n", old_entry, old_entry->id);
+      return old_entry;
     }
-    else if(strcmp(oldEntry->escopo, GLOBAL_SCOPE) == 0){  // mesmo nome e escopo global
-      last_same_id = oldEntry;
+    else if(strcmp(old_entry->escopo, GLOBAL_SCOPE) == 0){  // mesmo nome e escopo global
+      last_same_id = old_entry;
     }
-    oldEntry = oldEntry->next;
+    old_entry = old_entry->next;
   }
   // fprintf(stderr, " retornou [outWhile] (%p, %s)\n", last_same_id, last_same_id->id);
   return last_same_id;
 }
 // TODO: diferenciar da funcao de cima!
 int was_declared(SymEntry** reshi, char* id){
-  SymEntry* oldEntry = NULL;
-  SymEntry* last_same_id = oldEntry;
-  HASH_FIND_STR((*reshi), id, oldEntry);
-  while( oldEntry ) {
-    if(strcmp(oldEntry->escopo, currScope) == 0){  // declaracao sob mesmo escopo
-      return !!oldEntry;
+  SymEntry* old_entry = NULL;
+  SymEntry* last_same_id = old_entry;
+  HASH_FIND_STR((*reshi), id, old_entry);
+  while( old_entry ) {
+    if(strcmp(old_entry->escopo, currScope) == 0){  // declaracao sob mesmo escopo
+      return !!old_entry;
     }
-    else if(strcmp(oldEntry->escopo, GLOBAL_SCOPE) == 0){  // mesmo nome e escopo global
-      last_same_id = oldEntry;
+    else if(strcmp(old_entry->escopo, GLOBAL_SCOPE) == 0){  // mesmo nome e escopo global
+      last_same_id = old_entry;
     }
-    oldEntry = oldEntry->next;
+    old_entry = old_entry->next;
   }
   return !!last_same_id;
 }
 
 SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
-    SymEntry* neoEntry = NULL;
-    HASH_FIND_STR((*reshi), id, neoEntry);/* id already in the hash? */
-    if (neoEntry == NULL) {
-      neoEntry = SymEntry_New(id, tag, currScope);
+    SymEntry* neo_entry = NULL;
+    HASH_FIND_STR((*reshi), id, neo_entry);/* id already in the hash? */
+    if (neo_entry == NULL) {
+      neo_entry = SymEntry_New(id, tag, currScope);
       if( !strcmp(currScope, GLOBAL_SCOPE) ) {
-        neoEntry->is_global = 1;
+        neo_entry->is_global = 1;
         // printf("\t\t%s eh GLOBAL!\n", id);
       } else {
-        neoEntry->is_global = 0;
-        neoEntry->addr = temp_next();
-        // printf("%s:%s com $%d associado\n", neoEntry->id, currScope, neoEntry->addr);
+        neo_entry->is_global = 0;
+        neo_entry->addr = temp_next();
+        // printf("%s:%s com $%d associado\n", neo_entry->id, currScope, neo_entry->addr);
 
       }
-      // printf("\t\tNEO_ENTRY: %p\n", neoEntry);
-      // printf("<<<<<< add (%p) id, tag: %s, %s\n", neoEntry, id, t2s(tag));
-      neoEntry->local.line = numlines;
-      neoEntry->local.col = currCol;
-      HASH_ADD_STR( (*reshi), id, neoEntry );/* id: name of key field */
+      // printf("\t\tNEO_ENTRY: %p\n", neo_entry);
+      // printf("<<<<<< add (%p) id, tag: %s, %s\n", neo_entry, id, t2s(tag));
+      neo_entry->local.line = numlines;
+      neo_entry->local.col = currCol;
+      HASH_ADD_STR( (*reshi), id, neo_entry );/* id: name of key field */
     }
     else {    // Checar se eh declaracao no msm escopo. Se for, nao adiciona e dah pau (retorna NULL);
-      // printf("Possivel conflito com %s:%s\n", id, neoEntry->escopo);
-      for(;neoEntry->next;neoEntry = neoEntry->next) {
-        if(strcmp(id, neoEntry->id) == 0 && strcmp(currScope, neoEntry->escopo)) {
+      // printf("Possivel conflito com %s:%s\n", id, neo_entry->escopo);
+      for(;neo_entry->next;neo_entry = neo_entry->next) {
+        if(strcmp(id, neo_entry->id) == 0 && strcmp(currScope, neo_entry->escopo)) {
           ERRSHOW(printf("[Semantico1] Erro: redeclaracao de %s:%s em l.%d, r.%d\n",
-            currScope, id, neoEntry->local.line, neoEntry->local.col));
+            currScope, id, neo_entry->local.line, neo_entry->local.col));
           return NULL;
         }
       }
-      if( strcmp(id, neoEntry->id) == 0 && !strcmp(currScope, neoEntry->escopo) ) {          
-        if(tag == TAG_DEF_FUN && neoEntry->tag == TAG_DECL_FUN) {
+      if( strcmp(id, neo_entry->id) == 0 && !strcmp(currScope, neo_entry->escopo) ) {          
+        if(tag == TAG_DEF_FUN && neo_entry->tag == TAG_DECL_FUN) {
           printf("Caso especial de declaracao previa de %s\n", id);
         }
         else
           printf("[Semantico2] Erro: redeclaracao de %s:%s em l.%d, r.%d\n",
-            currScope, id, neoEntry->local.line, neoEntry->local.col);
+            currScope, id, neo_entry->local.line, neo_entry->local.col);
         return NULL;
       }
       else {
-        neoEntry->next = SymEntry_New(id, tag, currScope);
-        printf(">>>>> add (%p) id, tag: %s, %s\n", neoEntry->next, id, t2s(tag));
-        neoEntry->next->local.line = numlines;
-        neoEntry->next->local.col = currCol;
-        return neoEntry->next;
+        neo_entry->next = SymEntry_New(id, tag, currScope);
+        printf(">>>>> add (%p) id, tag: %s, %s\n", neo_entry->next, id, t2s(tag));
+        neo_entry->next->local.line = numlines;
+        neo_entry->next->local.col = currCol;
+        return neo_entry->next;
       }
     }
-    return neoEntry;
+    return neo_entry;
 }
 
 int id_has_type(SymEntry** reshi, char* id, Type type) {
