@@ -4,3 +4,5 @@
 análise semântica.. não tinha me tocado disso)
 
 - analise semantica d operador _&_ e _!_
+
+- nao deu para liberar as areas alocadas com _mema_

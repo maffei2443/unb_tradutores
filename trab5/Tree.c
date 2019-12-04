@@ -70,7 +70,7 @@ No* No_New(int v) {
   no->next_aux = NULL;
   no->param = NULL;
   // no->scope = NULL; no->scope_alloc = 0; 
-  // no->isToken = 0;
+  // no->is_token = 0;
   // no->has_aux = 0;
   no->ival = v;
   no->code = NULL;
@@ -90,7 +90,7 @@ No* Token_New(char* tname, char* sval) {
     printf("[Token_New] %p, %s\n", token, sval);
   );
  */
-  token->isToken = 1;
+  token->is_token = 1;
   token->tname_alloc = 1;
   token->tname = calloc(strlen(tname) + 1, sizeof(char));
   token->sval_alloc = 1;
@@ -252,7 +252,7 @@ void show_Lis(No* head, Field field) {
         // case TYPE_INT: printf("< %s, %d>", head->tname, ); break;
       }
     }
-    else if(head->isToken) {
+    else if(head->is_token) {
       printf("%s ", head->sval);
     }
     else if(head->tname && !strcmp(head->tname, "expr")) {

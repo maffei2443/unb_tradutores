@@ -178,7 +178,7 @@ typedef struct No {
   char is_param;
   char is_arg;
   Type type;
-  char isToken;    // nesse modo, usa-se mesmo noh para token e regra
+  char is_token;    // nesse modo, usa-se mesmo noh para token e regra
   char has_aux;
   Code* code;
   int addr;

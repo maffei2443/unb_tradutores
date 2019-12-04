@@ -3,7 +3,7 @@
 - globalStmt
 - declFun
 - typeAndNameSign
-  - [] alocacao dinamica em caso de array
+  - [x] alocacao dinamica em caso de array
 - declOrdeclInitVar
   - typeAndNameSign 
   - [] checar os TIPOS e fazer CAST se necessario
@@ -15,7 +15,7 @@
 - localStmt
 - flowControl
 - loop
-  - [] **TODO: descobrir como tratar isso sem backpatching**
+  - [x] **TODO: descobrir como tratar isso sem backpatching**
 - defFun
   - criar label e retorno ao final independente de ter retorno a função
 

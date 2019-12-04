@@ -722,16 +722,20 @@ newFlowControl : countFlow
  flowControl {
    $$ = yyvsp[0].no;
    __new_flow--;
-   LABELSHOW(printf("__endFlow%d:\n", $countFlow->ival));
+   if($flowControl != NULL && $flowControl->is_token)
+    LABELSHOW(printf("__endFlow%d:\n", $countFlow->ival));
 }
 countFlow : %empty {
   $$ = No_New( newFlow_counter );
   closest_flow = newFlow_counter;
-
   newFlow_counter++;
-  LABELSHOW(printf("__newFlow%d:\n", $$->ival ));
+  // LABELSHOW(printf("__newFlow%d:\n", $$->ival ));
 }
 flowControl :  IF '(' expr ')' {
+    if(yyvsp[-4].no->sval == NULL && yyvsp[-4].no->sval == NULL) {
+      LABELSHOW(printf("__newFlow%d:\n", yyvsp[-4].no->ival ));
+    }
+    
     char* expr_addr = get_no_addr($expr);
     $1 = No_New(if_counter);
     if_counter++;
@@ -891,7 +895,12 @@ defFun : BASE_TYPE ID '('{
   def_fun_rule = 0;
   currScope = GLOBAL_SCOPE;
   free($ID);$ID = NULL;
-  
+  if($BASE_TYPE == TYPE_INT) {
+    CODESHOW(printf("return 0\n"));
+  }
+  else if($BASE_TYPE == TYPE_FLOAT) {
+    CODESHOW(printf("return 0.0\n"));
+  }
   old_context();
 }
 
