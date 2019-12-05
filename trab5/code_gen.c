@@ -226,6 +226,10 @@ char* get_no_addr(No* no) {
 // Gera cohdigo caso tenha de ser computado em tempo de execucao
 char* get_mat_size(No* no) {
   if(!no) return calloc(1,1);
+  if(no->temp_mat.line != -1 && no->temp_mat.col != -1) { // matriz temporaria
+    return itoa( no->temp_mat.line * no->temp_mat.col , calloc(20, sizeof(char)));
+  }
+  // show_entry(no->sym_entry);
   assert(no->sym_entry);
   if(Type_Class(no->type) != TYPE_MAT ) {
     ERRSHOW(printf("%s nao eh matriz!\n", no->sym_entry->id));

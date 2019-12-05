@@ -79,6 +79,8 @@ No* No_New(int v) {
   // no->is_const = 0;
   no->addr = -1;  // seta como sem temporario associado!
   no->is_param = 0;
+  no->temp_mat.line = -1;
+  no->temp_mat.col = -1;
   // printf("\t%d\n", no->is_param);
 
   return no;

@@ -182,6 +182,10 @@ typedef struct No {
   char has_aux;
   Code* code;
   int addr;
+  struct {
+    int line; // campos usados soh quando noh eh matriz temporaria
+    int col;
+  } temp_mat;
    // campo utilizado basicamente por EXPRESSOES, para usar como temporario (ver. pgn 389)
   //  Contudo, pode ser utilizado para outros fins, evidentemente
 } No;

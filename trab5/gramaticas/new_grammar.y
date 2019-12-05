@@ -643,13 +643,13 @@ localStmt : call ';' {
           // abort();
           right_addr = get_no_addr($rvalue);
 
-          CODESHOW(printf("param $%d    // src\n", temp));
+          CODESHOW(printf("param $%d    // src =1\n", temp));
           CODESHOW(printf("param %s    // dest\n", get_no_addr($lvalue)));
           CODESHOW(printf("param %s    // qtd \n", get_mat_size($rvalue)));
           CODESHOW(printf("call __copyN, 3\n"));
         } else {  // soh mover (copiar), n precisa converter nada.
           WARSHOW(printf("no casts\n"));
-          CODESHOW(printf("param %s    // src\n", get_no_addr($rvalue)));
+          CODESHOW(printf("param %s    // src =2\n", get_no_addr($rvalue)));
           CODESHOW(printf("param %s    // dest\n", get_no_addr($lvalue)));
           CODESHOW(printf("param %s    // qtd \n", get_mat_size($rvalue)));
           CODESHOW(printf("call __copyN, 3\n"));
@@ -660,8 +660,7 @@ localStmt : call ';' {
           int temp = temp_next();
           right_addr = get_no_addr( $rvalue );
           BoldCyan();
-          printf("\tinttofl ");
-          
+          printf("\tinttofl ");        
           if(left_addr[0] == '&') printf("%s, ",left_addr + 1);
           else printf("%s, ",left_addr);
           free(left_addr);
@@ -728,11 +727,16 @@ localStmt : call ';' {
   No* print_no = Token_New("PRINT","PRINT");
   add_Node_Child_If_Not_Null($$, print_no);
   add_Node_Child_If_Not_Null($$, $rvalue);
+  CODESHOW(printf("print \n"));
 }
 | PRINT '(' V_ASCII ')' ';' {
   MAKE_NODE(localStmt);
   $$->ival = $V_ASCII;
   add_Node_Child_If_Not_Null($$, Token_New("PRINT","PRINT"));
+  switch($V_ASCII) {
+    case '\n': CODESHOW(printf("println ' '\n"));
+    default: CODESHOW(printf("print '%c'\n", $V_ASCII));
+  }
 }
 
 newFlowControl : countFlow
@@ -964,11 +968,14 @@ expr : expr ARITM expr {
   $$->ival = $ARITM;
   No* e = $$, *e1 = $1, *e2 = $3;
   Type t1 = e1->type, t2 = e2->type;
+  $$->type = bin_expr_type( t1, t2, $$->ival);
+  Type c1 = Type_Class(t1), c2 = Type_Class(t2);
   // printf("ARTM_OP: ");
   char* e2_addr, *e1_addr, *e_addr;
   e2_addr = get_no_addr(e2);
   e1_addr = get_no_addr(e1);
   e_addr = get_no_addr(e);
+  
   char* op;
   switch($ARITM) {
     case '+': op = "add"; break;
@@ -976,7 +983,37 @@ expr : expr ARITM expr {
     case '/': op = "div"; break;
     case '*': op = "mul"; break;
   }
-  CODESHOW(printf("%s %s, %s, %s\n", op , e_addr, e1_addr, e2_addr));
+  if(c1 == TYPE_UNDEFINED || c1 == TYPE_UNDEFINED || c1 == TYPE_ARRAY || c2 == TYPE_ARRAY) {
+    ERRSHOW(printf("Nao se pode operar sobre arrays!\n"));
+  } else if(c1 == c2) {
+    if( c1 == TYPE_SCALAR ) {
+      e1_addr = widen($1, $$);
+      e2_addr = widen($3, $$);
+      CODESHOW(printf("%s %s, %s, %s\n", op , e_addr, e1_addr, e2_addr));
+    } else if (c1 == TYPE_MAT) {
+      char* e1 = widen($1, $$);
+      char* e2 = widen($3, $$);
+      switch($ARITM) {
+        case '+': case '-':
+          CODESHOW(printf("param %s\n", e1));
+          CODESHOW(printf("param %s\n", get_mat_size($1)));
+          CODESHOW(printf("param %s\n", e2));
+          CODESHOW(printf("param %s\n", get_mat_size($3)));
+          CODESHOW(printf("call addMat, 4\n"));
+          int temp = temp_next();
+          CODESHOW(printf("pop $%d\n", temp));
+          $$->addr = temp;
+          $$->temp_mat.line = max($1->temp_mat.line, $3->temp_mat.line);
+          $$->temp_mat.col = max($1->temp_mat.col, $3->temp_mat.col);
+          break;
+        default:
+          ERRSHOW("'*' e '/' nao podem ser usados entre matrizes!\n");
+      }
+    }
+  } else if (c1 == TYPE_SCALAR && c2 == TYPE_MAT) {
+
+  }
+  
   free(e2_addr);
   free(e1_addr);
   free(e_addr);
@@ -984,7 +1021,7 @@ expr : expr ARITM expr {
   add_Node_Child_If_Not_Null($$, e1);
   add_Node_Child_If_Not_Null($$, e2);
   // SEMANTICO
-  $$->type = bin_expr_type( t1, t2, $$->ival);
+  
   // DBG(printf("RESULT TYPE: %s", t2s(e->type)));
   // DBG(printf(" from: %s + %s\n", t2s(e1->type), t2s(e2->type)));
   // printf("\t    : (is_const)%d + (is_const)%d\n", e1->is_const, e2->is_const);
@@ -1041,10 +1078,10 @@ expr : expr ARITM expr {
   add_Node_Child_If_Not_Null($$, $3);
   // SEMANTICO
   $$->type = bin_expr_type( $1->type, $3->type, $$->ival);
-
   // GERADOR 
   No* e = $$, *e1 = $1, *e2 = $3;
   Type t1 = e1->type, t2 = e2->type;
+  Type c1 = Type_Class(t1), c2 = Type_Class(t2);
   printf("REL_OP: ");
   char* e2_addr, *e1_addr, *e_addr;
   e2_addr = get_no_addr(e2);
@@ -1070,6 +1107,7 @@ expr : expr ARITM expr {
 
   No* e = $$, *e1 = $1, *e2 = $3;
   Type t1 = e1->type, t2 = e2->type;
+  Type c1 = Type_Class(t1), c2 = Type_Class(t2);
   // DBG(printf("BIN_LOGI\n"));
   char* e2_addr, *e1_addr, *e_addr;
   e2_addr = get_no_addr(e2);
@@ -1086,6 +1124,8 @@ expr : expr ARITM expr {
   add_Node_Child_If_Not_Null($$, $1);
   add_Node_Child_If_Not_Null($$, $3);
   // SEMANTICO
+  DBG("SOH <BIN_LOGI> FAZER SOBRE ESCALARES E DO MESMO TIPO\n");
+  // if()
 }
 | '!' expr {
   MAKE_NODE(expr);
