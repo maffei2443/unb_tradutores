@@ -29,6 +29,10 @@ start:
 end:
 	return $2
 		// calculando indice de acesso
+
+//
+
+// 
 main:
 	mema $0, 2
 	mema $1, 2
