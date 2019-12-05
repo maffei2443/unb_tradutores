@@ -2,7 +2,7 @@
 #define CODE_GEN_H
 #include "Array.h"
 #include "Common.h"
-
+#define FINISH_PROGRAM "__yh42340xsAyb8"
 #define CODE_PREFIX ">>>>> [CodeGen] <<<<<\t"
 
 

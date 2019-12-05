@@ -8,9 +8,11 @@ entre aspas.
 
 + lista de parametros e de argumentos sao encadeadas pelo ponteiro *next_aux*
 
-+ comparações booleanas apenas entre coisas de MESMO TIPO
++ comparações booleanas apenas entre escalares [nao implementado]
 
 + em caso de redeclaracao de variavel/funcao, mantem-se na symTable a antiga
 (além de dar erro)
 
 + temporário **$1023** reservado para operações de casting (buffer)
+
++ 

@@ -2,7 +2,7 @@
 #include "new_grammar.tab.h"
 #include "Common.h"
 extern int temp;    // usado para enumerar os temporarios. Deve ser zerado e restaurado cada vez que entra em definicao de funcao
-extern char* currScope;
+extern char* curr_scope;
 extern char* GLOBAL_SCOPE;
 extern int numlines;
 extern int currCol;
@@ -248,7 +248,7 @@ SymEntry* last_decl(SymEntry** reshi, char* id){
   SymEntry* last_same_id = old_entry;
   HASH_FIND_STR((*reshi), id, old_entry);
   while( old_entry ) {
-    if(strcmp(old_entry->escopo, currScope) == 0){  // declaracao sob mesmo escopo
+    if(strcmp(old_entry->escopo, curr_scope) == 0){  // declaracao sob mesmo escopo
       // fprintf(stderr," retornou (%p, %s)\n", old_entry, old_entry->id);
       return old_entry;
     }
@@ -266,7 +266,7 @@ int was_declared(SymEntry** reshi, char* id){
   SymEntry* last_same_id = old_entry;
   HASH_FIND_STR((*reshi), id, old_entry);
   while( old_entry ) {
-    if(strcmp(old_entry->escopo, currScope) == 0){  // declaracao sob mesmo escopo
+    if(strcmp(old_entry->escopo, curr_scope) == 0){  // declaracao sob mesmo escopo
       return !!old_entry;
     }
     else if(strcmp(old_entry->escopo, GLOBAL_SCOPE) == 0){  // mesmo nome e escopo global
@@ -281,14 +281,14 @@ SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
     SymEntry* neo_entry = NULL;
     HASH_FIND_STR((*reshi), id, neo_entry);/* id already in the hash? */
     if (neo_entry == NULL) {
-      neo_entry = SymEntry_New(id, tag, currScope);
-      if( !strcmp(currScope, GLOBAL_SCOPE) ) {
+      neo_entry = SymEntry_New(id, tag, curr_scope);
+      if( !strcmp(curr_scope, GLOBAL_SCOPE) ) {
         neo_entry->is_global = 1;
         // printf("\t\t%s eh GLOBAL!\n", id);
       } else {
         neo_entry->is_global = 0;
         neo_entry->addr = temp_next();
-        // printf("%s:%s com $%d associado\n", neo_entry->id, currScope, neo_entry->addr);
+        // printf("%s:%s com $%d associado\n", neo_entry->id, curr_scope, neo_entry->addr);
 
       }
       // printf("\t\tNEO_ENTRY: %p\n", neo_entry);
@@ -300,23 +300,23 @@ SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
     else {    // Checar se eh declaracao no msm escopo. Se for, nao adiciona e dah pau (retorna NULL);
       // printf("Possivel conflito com %s:%s\n", id, neo_entry->escopo);
       for(;neo_entry->next;neo_entry = neo_entry->next) {
-        if(strcmp(id, neo_entry->id) == 0 && strcmp(currScope, neo_entry->escopo)) {
+        if(strcmp(id, neo_entry->id) == 0 && strcmp(curr_scope, neo_entry->escopo)) {
           ERRSHOW(printf("[Semantico1] Erro: redeclaracao de %s:%s em l.%d, r.%d\n",
-            currScope, id, neo_entry->local.line, neo_entry->local.col));
+            curr_scope, id, neo_entry->local.line, neo_entry->local.col));
           return NULL;
         }
       }
-      if( strcmp(id, neo_entry->id) == 0 && !strcmp(currScope, neo_entry->escopo) ) {          
+      if( strcmp(id, neo_entry->id) == 0 && !strcmp(curr_scope, neo_entry->escopo) ) {          
         if(tag == TAG_DEF_FUN && neo_entry->tag == TAG_DECL_FUN) {
           printf("Caso especial de declaracao previa de %s\n", id);
         }
         else
           printf("[Semantico2] Erro: redeclaracao de %s:%s em l.%d, r.%d\n",
-            currScope, id, neo_entry->local.line, neo_entry->local.col);
+            curr_scope, id, neo_entry->local.line, neo_entry->local.col);
         return NULL;
       }
       else {
-        neo_entry->next = SymEntry_New(id, tag, currScope);
+        neo_entry->next = SymEntry_New(id, tag, curr_scope);
         printf(">>>>> add (%p) id, tag: %s, %s\n", neo_entry->next, id, t2s(tag));
         neo_entry->next->local.line = numlines;
         neo_entry->next->local.col = currCol;
@@ -393,7 +393,7 @@ void delete_all(SymEntry* tab) {
 
   HASH_ITER(hh, tab, current_user, tmp) {
     HASH_DEL(tab, current_user);  /* delete; users advances to next */
-    printf("__calling__... %p\n", current_user);
+    // printf("__calling__... %p\n", current_user);
     if (current_user)
       SymEntry_Destroy(current_user);            /* optional- if you want to free  */
   }

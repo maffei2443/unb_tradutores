@@ -55,7 +55,7 @@ char* GLOBAL_SCOPE = "0global";
 
 SymEntry* reshi;
 
-char* currScope = NULL;
+char* curr_scope = NULL;
 int check_signature = 0;
 int decl_fun_rule = 0;
 int def_fun_rule = 0;
@@ -133,7 +133,6 @@ unsigned closest_while = 0;
 program : globalStmtList {
   $$ = $1;
   root = $$;
-  printf("Derivacao foi concluida.\n");
 }
 
 
@@ -166,7 +165,7 @@ declFun : AHEAD BASE_TYPE ID {
   else {
     ERRSHOW(printf("[Semantico] |%s| nao pode ser declarado pois jah o foi em l.%d, c.%d\n", tmp->id, tmp->local.line, tmp->local.col));
   }
-  currScope = $ID;
+  curr_scope = $ID;
 } '(' paramListVoid ')' {
   MAKE_NODE(declFun);
   SymEntry* tmp;
@@ -194,7 +193,7 @@ declFun : AHEAD BASE_TYPE ID {
   link_symentry_no(&tmp, &$$);
   
   free($ID), $ID = NULL;
-  currScope = GLOBAL_SCOPE;
+  curr_scope = GLOBAL_SCOPE;
   decl_fun_rule = 0;
 }
 
@@ -277,7 +276,7 @@ typeAndNameSign : BASE_TYPE ID {
   // printf("base_type: %s\n", t2s($BASE_TYPE));
   char err = 0;
   if(old_entry) {
-    if( !strcmp(old_entry->escopo, currScope) ) {
+    if( !strcmp(old_entry->escopo, curr_scope) ) {
       ERRSHOW(printf("[Semantico] Erro: Redeclaracao de %s:%s!\n", old_entry->escopo, old_entry->id));
       err = 1;
     }
@@ -326,7 +325,7 @@ typeAndNameSign : BASE_TYPE ID {
   
   char err = 0;
   if(old_entry) {
-    if( !strcmp(old_entry->escopo, currScope) ) {
+    if( !strcmp(old_entry->escopo, curr_scope) ) {
       ERRSHOW(printf("[Semantico] Erro: Redeclaracao de %s:%s!\n", old_entry->escopo, old_entry->id));
       err = 1;
     }
@@ -399,7 +398,7 @@ typeAndNameSign : BASE_TYPE ID {
   
   char err = 0;
   if(old_entry) {
-    if( !strcmp(old_entry->escopo, currScope) ) {
+    if( !strcmp(old_entry->escopo, curr_scope) ) {
       ERRSHOW(printf("[Semantico] Erro: Redeclaracao de %s:%s!\n", old_entry->escopo, old_entry->id));
       err = 1;
     }
@@ -607,9 +606,6 @@ localStmt : call ';' {
   Type c1 = Type_Class(t1), c2 = Type_Class(t2);
   const char* s1 = t2s(t1), *s2 = t2s(t2);
   
-  /*   BoldGray();
-  printf("%s -- %s\n", s1, s2);
-  Reset();*/
 
   // ################# VAI VIRAR FUNCAO
   if(t1 == TYPE_UNDEFINED || t2 == TYPE_UNDEFINED ||
@@ -648,7 +644,7 @@ localStmt : call ';' {
           CODESHOW(printf("param %s    // qtd \n", get_mat_size($rvalue)));
           CODESHOW(printf("call __copyN, 3\n"));
         } else {  // soh mover (copiar), n precisa converter nada.
-          WARSHOW(printf("no casts\n"));
+          // WARSHOW(printf("no casts\n"));
           CODESHOW(printf("param %s    // src =2\n", get_no_addr($rvalue)));
           CODESHOW(printf("param %s    // dest\n", get_no_addr($lvalue)));
           CODESHOW(printf("param %s    // qtd \n", get_mat_size($rvalue)));
@@ -702,6 +698,7 @@ localStmt : call ';' {
   MAKE_NODE(localStmt);
   add_Node_Child_If_Not_Null($$, Token_New("RETURN", "return"));
   add_Node_Child_If_Not_Null($$, $expr);
+  CODESHOW(printf("return %s\n", get_no_addr($expr)));
 }
 | RETURN expr error{$$=NULL;}
 | IREAD '(' lvalue ')' ';' {
@@ -711,6 +708,9 @@ localStmt : call ';' {
   add_Node_Child_If_Not_Null($$, $lvalue);
   if($lvalue->type != TYPE_INT) {
     ERRSHOW(printf("[Semantico] Erro: Leitura de inteiro sobre tipo |%s|\n", t2s($lvalue->type)));
+  } else {
+    char* e = get_no_addr($lvalue);
+    CODESHOW(printf("scani %s\n", e[0] == '&' ? e + 1 : e));
   }
 }
 | FREAD '(' lvalue ')' ';' {
@@ -720,21 +720,35 @@ localStmt : call ';' {
   add_Node_Child_If_Not_Null($$, $lvalue);
   if($lvalue->type != TYPE_FLOAT) {
     ERRSHOW(printf("[Semantico] Erro: Leitura de inteiro sobre tipo |%s|\n", t2s($lvalue->type)));
-  }  
+  } else {
+    char* e = get_no_addr($lvalue);
+    CODESHOW(printf("scanf %s\n", e[0] == '&' ? e + 1 : e));
+  }
 }
 | PRINT '(' rvalue ')' ';' {
   MAKE_NODE(localStmt);
   No* print_no = Token_New("PRINT","PRINT");
   add_Node_Child_If_Not_Null($$, print_no);
   add_Node_Child_If_Not_Null($$, $rvalue);
-  CODESHOW(printf("print \n"));
+  Type t1 = $rvalue->type;
+  Type c1 = Type_Class(t1);
+  if( c1 == TYPE_MAT ) {
+    CODESHOW(printf("param %s\n", get_no_addr($3)));
+    CODESHOW(printf("param %d\n", $3->temp_mat.line));
+    CODESHOW(printf("param %d\n", $3->temp_mat.col));
+    CODESHOW(printf("call showMat_ij, 3\n"));
+  } else {
+    // Sei que nao deveria ser exatamente assim
+    char* e = get_no_addr($rvalue);
+    CODESHOW(printf("print %s\n", e[0] == '&' ? e + 1 : e));
+  }
 }
 | PRINT '(' V_ASCII ')' ';' {
   MAKE_NODE(localStmt);
   $$->ival = $V_ASCII;
   add_Node_Child_If_Not_Null($$, Token_New("PRINT","PRINT"));
   switch($V_ASCII) {
-    case '\n': CODESHOW(printf("println ' '\n"));
+    case '\n': CODESHOW(printf("println ' '\n")); break;
     default: CODESHOW(printf("print '%c'\n", $V_ASCII));
   }
 }
@@ -855,12 +869,12 @@ defFun : BASE_TYPE ID '('{
       neo_entry->def_fun = 1;
     }
   }
-  currScope = $ID;
+  curr_scope = $ID;
 } paramListVoid ')' '{' declList localStmtList '}' {
   // printf("%p ====== paramListVoid\n", $paramListVoid);
   if(check_signature) {   
     fprintf(stderr,"Checando assinatura de %s\n", $ID);
-    currScope = GLOBAL_SCOPE;
+    curr_scope = GLOBAL_SCOPE;
     SymEntry* entry = last_decl(&reshi, $ID);
     // assert(entry != NULL);  // se der NULL, algo deu errado pois a funcao jah era pra estar na symTable
     if(entry) {
@@ -883,7 +897,7 @@ defFun : BASE_TYPE ID '('{
         }
       }
     }
-    currScope = GLOBAL_SCOPE;
+    curr_scope = GLOBAL_SCOPE;
     check_signature = 0;
     declared_curr_fun = 0;
     // $$ = NULL;
@@ -914,13 +928,18 @@ defFun : BASE_TYPE ID '('{
   add_Node_Child_If_Not_Null($$, $declList);
   add_Node_Child_If_Not_Null($$, $localStmtList);  
   def_fun_rule = 0;
-  currScope = GLOBAL_SCOPE;
+  curr_scope = GLOBAL_SCOPE;
   free($ID);$ID = NULL;
-  if($BASE_TYPE == TYPE_INT) {
-    CODESHOW(printf("return 0\n"));
+  if(strcmp(curr_scope, "main")) {
+    CODESHOW(printf("jump " FINISH_PROGRAM "\n"));
   }
-  else if($BASE_TYPE == TYPE_FLOAT) {
-    CODESHOW(printf("return 0.0\n"));
+  else {
+    if($BASE_TYPE == TYPE_INT) {
+      CODESHOW(printf("return 0\n"));
+    }
+    else if($BASE_TYPE == TYPE_FLOAT) {
+      CODESHOW(printf("return 0.0\n"));
+    }
   }
   old_context();
 }
@@ -1011,7 +1030,7 @@ expr : expr ARITM expr {
       }
     }
   } else if (c1 == TYPE_SCALAR && c2 == TYPE_MAT) {
-
+    ERRSHOW("Nao deu tempo de implementar, mas era para ser possivel apenas somar/subtrair inteiro DE matriz\n");
   }
   
   free(e2_addr);
@@ -1077,7 +1096,8 @@ expr : expr ARITM expr {
   add_Node_Child_If_Not_Null($$, $1);
   add_Node_Child_If_Not_Null($$, $3);
   // SEMANTICO
-  $$->type = bin_expr_type( $1->type, $3->type, $$->ival);
+  // $$->type = bin_expr_type( $1->type, $3->type, $$->ival);
+  $$->type = TYPE_INT;
   // GERADOR 
   No* e = $$, *e1 = $1, *e2 = $3;
   Type t1 = e1->type, t2 = e2->type;
@@ -1088,6 +1108,24 @@ expr : expr ARITM expr {
   e1_addr = get_no_addr(e1);
   e_addr = get_no_addr(e);
 
+  if(c1 != c2 || c1 == TYPE_ARRAY || c2 == TYPE_ARRAY) {
+    ERRSHOW(printf("Operadores relacionais permitidos apenas entre escalares\n"));
+  }
+  else {
+    // char* op;
+    // switch ($ARITM) {
+    //   case GE: op = 
+    //   case LE:
+    //   case EQ: 
+    //   case NEQ:
+    //   case '<':
+    //   case '>':
+
+      
+    //   default:      break;
+    // }
+  }
+  
   if( $$->ival <= 127 ) 
     CODESHOW(
       printf("|%c| %s, %s, %s\n", $$->ival ,
@@ -1354,6 +1392,9 @@ lvalue : ID {
     $$->type = TYPE_UNDEFINED;
     printf("Variavel %s, l.%d c.%lu nao declarada!\n", $ID, numlines, currCol - (strlen($ID) + 2));
   }
+  // Ainda que nao seja matriz, nao faz mal.
+  $$->temp_mat.line = entry->line;
+  $$->temp_mat.col = entry->col;
   // printf("lvalue->type=%s \n", t2s( $$->type ));
   free($ID), $ID = NULL;
   assert($$->sym_entry);
@@ -1373,6 +1414,10 @@ lvalue : ID {
     printf("Variavel %s, l.%d nao declarada!\n", $ID, numlines);
   }
   else {
+    // Ainda que nao seja matriz, nao faz mal.
+    $$->temp_mat.line = old->line;
+    $$->temp_mat.col = old->col;
+
     if(old->col == -1) {
       ERRSHOW(printf("[Semantico] Erro: %s nao eh indexavel!\n",  old->id));
     }
@@ -1438,6 +1483,10 @@ lvalue : ID {
   CODESHOW(printf("mov $%d, $%d[$%d]\n", temp,temp-2 , temp-1));
   $$->addr = temp;
   free($ID); $ID = NULL;
+  // Ainda que nao seja matriz, nao faz mal.
+  $$->temp_mat.line = old->line;
+  $$->temp_mat.col = old->col;
+
   assert($$->sym_entry);
 }
 
@@ -1466,18 +1515,26 @@ void nullify(void** p) {
   *p = NULL;
 }
 
-int main(){
-  currScope = GLOBAL_SCOPE;
+int main(int argc){
+  curr_scope = GLOBAL_SCOPE;
   reshi = NULL;
   nodeCounter = 0;
   yyparse();
-  if(root) {
-    // show_Sub_Tree(root, 1, SVAL);
-    // show_Lis(root,SVAL);
+  WARSHOW(printf(FINISH_PROGRAM ":\n"));
+  CODESHOW(printf("nop\n"));
+  WARSHOW(printf("-------TAC'S END---------"));
+  if(root && argc == 2) {
+    show_Sub_Tree(root, 1, SVAL);
+    show_Lis(root,SVAL);
+  } else if (argc == 3) {
+    print_reshi(reshi);
+  } else if (argc == 4) {
+    show_Sub_Tree(root, 1, SVAL);
+    show_Lis(root,SVAL);
+    print_reshi(reshi);
   }
-  print_reshi(reshi);
   yylex_destroy();
   
-  // delete_all(reshi);
+  delete_all(reshi);
   free_All_Child(root);
 }

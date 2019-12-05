@@ -323,7 +323,7 @@ SymEntry* SymEntry_New(char* id, int tag, char* escopo){
 void* SymEntry_Destroy(void* p){
   SymEntry* sym = (SymEntry*)p;
   if(!sym) return NULL;
-  printf("DESTRUINDO >>> %p->id, sval = %s, %s\n", sym,sym->id, "sym->sval");
+  // printf("DESTRUINDO >>> %p->id, sval = %s, %s\n", sym,sym->id, "sym->sval");
   if(sym->tag == TAG_DEF_FUN || sym->tag == TAG_DECL_FUN) {
     if(!sym->ast_node) {
       printf("$$$ Funcao %s nao tem parametros $$$\n", sym->id);
