@@ -596,8 +596,8 @@ localStmt : call ';' {
   MAKE_NODE(localStmt);
   add_Node_Child_If_Not_Null($$, $lvalue);
   add_Node_Child_If_Not_Null($$, $rvalue);  
-  char* leftAddr, *rightAddr = NULL;
-  leftAddr = get_no_addr($lvalue);
+  char* left_addr, *right_addr = NULL;
+  left_addr = get_no_addr($lvalue);
 
   Type t1 = $lvalue->type, t2 = $rvalue->type;
   if(t2 == TYPE_LIST || t2 == TYPE_LIST_LIST) {
@@ -620,7 +620,7 @@ localStmt : call ';' {
   } else if(c1 == c2) {
     if(t1 < t2) {
       ERRSHOW(printf("Nao eh possivel a atribuicao %s = %s : narrow casting\n", s1, s2));    
-      rightAddr = "impossivel";
+      right_addr = "impossivel";
     } else {  // t1 > t2 e c1 eh matriz OU scalar
       if ( c1 == TYPE_MAT  ) {
         if(t1 > t2) {
@@ -641,7 +641,7 @@ localStmt : call ';' {
           // printf("gogogo ! %d\n", temp);
           $rvalue->addr = temp;
           // abort();
-          rightAddr = get_no_addr($rvalue);
+          right_addr = get_no_addr($rvalue);
 
           CODESHOW(printf("param $%d    // src\n", temp));
           CODESHOW(printf("param %s    // dest\n", get_no_addr($lvalue)));
@@ -655,34 +655,40 @@ localStmt : call ';' {
           CODESHOW(printf("call __copyN, 3\n"));
         }
       }
-      else {  // converter de int -> float
-        CODESHOW(printf("FAZER CONVERSAO FLOAT <--- INT\n"));
-
+      else if (c1 == TYPE_SCALAR) {  
+        if(t1 > t2) { // converter de float <-- float(inteiro)
+          int temp = temp_next();
+          right_addr = get_no_addr( $rvalue );
+          BoldCyan();
+          printf("\tinttofl ");
+          
+          if(left_addr[0] == '&') printf("%s, ",left_addr + 1);
+          else printf("%s, ",left_addr);
+          free(left_addr);
+          if(right_addr[0] == '&') printf("%s\n",right_addr + 1);
+          else printf("%s\n",right_addr);
+          free(right_addr);
+        }
+        else {
+          right_addr = get_no_addr($rvalue);
+          BoldCyan();
+          printf("\tmov ");
+          if(left_addr[0] == '&') printf("%s, ",left_addr + 1);
+          else printf("%s, ",left_addr);
+          free(left_addr);
+          if(right_addr[0] == '&') printf("%s\n",right_addr + 1);
+          else printf("%s\n",right_addr);
+          free(right_addr);
+        }
       }
     }
   } else {
     ERRSHOW(printf("Proibido operar em classes distintas (%s = %s)\n", s1, s2));
   }
-  
+  Reset();
   // FIM PARTE DO CAST
 
   // INICIO PARTE DO MOV
-  if(c1 != c2) {
-    ERRSHOW(printf("Nao permite-se atribuicao entre elementos de classes distintas\n"));
-  }
-  else {
-    if( c1 == TYPE_MAT ) {  // supor que eh matriz
-      // abort();
-    } else if (c1 == TYPE_SCALAR) {
-        rightAddr = get_no_addr($rvalue);
-        CODESHOW(pf("mov %s, %s\n", leftAddr, rightAddr));
-        free(rightAddr);
-    }
-    else {
-      ERRSHOW(printf("Atribuicao entre vetores nao eh permitida!"));
-    }
-
-  }
   // ################# VAI VIRAR FUNCAO
 }
 | newFlowControl {
