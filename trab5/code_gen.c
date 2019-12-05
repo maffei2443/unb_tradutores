@@ -66,6 +66,7 @@ char* str_ptr_clone(const char* src) {
 // PROBLEMAS POSSIVEIS: se src nao for passivel de dar free.
 // SOLUCAO: criar copia!
 
+// Obs; nao funciona para matrizes!
 char* widen(No* src ,No* dest) {
   char * ret;
 
@@ -94,13 +95,14 @@ char* widen(No* src ,No* dest) {
       CODESHOW(printf("inttofl %s, %s\n", temp_addr, get_no_val(src)));
     }
   } else if( t1 == TYPE_MAT_INT && t2 == TYPE_MAT_FLOAT ){
-    CODESHOW(printf("FAZER CONVERSAO MAT_INT --> MAT_FLOAT\n"));
-    // O que fazer: checar se variavel eh global ou local.
-    char* e = get_no_val(src);
-    CODESHOW(printf("param %s\n", e)); free(e);
-    e = get_mat_size(src);
-    CODESHOW(printf("param %s\n", e)); free(e);
-
+    // WARSHOW(printf("FAZER CONVERSAO MAT_INT --> MAT_FLOAT\n"));
+    // // O que fazer: checar se variavel eh global ou local.
+    // char* e = get_no_val(src);
+    // CODESHOW(printf("param %s\n", e)); free(e);
+    // e = get_mat_size(src);
+    // CODESHOW(printf("param %s\n", e)); free(e);
+    // WARSHOW(printf("FIM CONVERSAO MAT_INT --> MAT_FLOAT\n"));
+    WARSHOW(printf("widen nao estah preparado para matrizes!\n"));
     ret = "DUMMY";
   } else {
     ret =get_no_val( src );
@@ -201,10 +203,13 @@ char* get_no_val(No* no) {
     else {  // jah tem endereco temporario associado
       sprintf(buf, "$%d", no->addr);
     }
+    // printf("Addr of %s : %s\n", no->tname , buf);
     return buf;
   }
 }
 char* get_no_addr(No* no) {
+  // printf("Addr of >tname = %s\n", no->tname);
+  
   if(!no) return calloc(10, sizeof(char));
   char* tmp = get_no_val(no);
   char* ret;
@@ -220,7 +225,12 @@ char* get_no_addr(No* no) {
 // Retorna endereco de onde estah o tamanho de uma matriz.
 // Gera cohdigo caso tenha de ser computado em tempo de execucao
 char* get_mat_size(No* no) {
+  if(!no) return calloc(1,1);
   assert(no->sym_entry);
+  if(Type_Class(no->type) != TYPE_MAT ) {
+    ERRSHOW(printf("%s nao eh matriz!\n", no->sym_entry->id));
+    return calloc(1,1);
+  }
   free(get_no_val(no));   // garante que no possui endereco [gambiarra]
   if(no->sym_entry->line == -1 && no->sym_entry->col == -1) {    // computar em tempo de execucao, pois eh argumento
     int mat_addr = no->sym_entry->addr;
@@ -231,6 +241,7 @@ char* get_mat_size(No* no) {
     return ret;
   } else {  // possui valores estaticos para as dimensoes
     SymEntry* s = no->sym_entry;
-    return itoa( s->line * s->col , calloc(20, sizeof(char)));
+    char* ret = itoa( s->line * s->col , calloc(20, sizeof(char)));
+    return ret;
   }
 }

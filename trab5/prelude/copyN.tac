@@ -6,16 +6,16 @@
 // #0 - src
 // #1 - dest
 // #2 - qtd
-copyN:
+__copyN:
   mov $0, #2
   sub $0, $0, 1
-copyN_loop:
+__copyN_loop:
   mov $1, #0[$0]
   mov #1[$0], $1
-  brz copyN_end, $0
+  brz __copyN_end, $0
   sub $0, $0, 1
-  jump copyN_loop
-copyN_end:
+  jump __copyN_loop
+__copyN_end:
   return
 
 main:
@@ -24,7 +24,7 @@ main:
   mov $1, &dest
   param $1
   param 3
-  call copyN, 3
+  call __copyN, 3
   mov $0, $1[0]
   println $0
   mov $0, $1[1]

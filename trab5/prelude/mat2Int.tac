@@ -29,7 +29,7 @@ mat_f2i_temp_end:
 // Espera 2 parametros:
 // - endereco simbolico
 // - qtd de enderecos alocados
-// Retorna referencia para antiga area de memoria alocada
+// Retorna referencia para ANTIGA area de memoria alocada
 // a qual contem os valores convertidos para inteiro
 
 mat_f2i:

@@ -612,75 +612,78 @@ localStmt : call ';' {
   Reset();*/
 
   // ################# VAI VIRAR FUNCAO
-  // SHOWGRAY(printf("lvalue = rvalue : %s = %s\n", s1, s2));
-
-  int to_cast = 0;
   if(t1 == TYPE_UNDEFINED || t2 == TYPE_UNDEFINED ||
     to_base_type(t1) == TYPE_CHAR || to_base_type(t1) == TYPE_CHAR) {
-    to_cast = 0;
     ERRSHOW(printf("Erro: UNDEFINED/char em atribuicao: %s = %s\n", s1, s2));
-  } else if ( c1 == c2 && c1 == TYPE_MAT && t1 != t2 ) {
-    to_cast = 1;
-    WARSHOW(printf("Conversao entre matrizes. %s = %s\n", t2s(t1), t2s(t2)));
-
-    SymEntry* sym = $rvalue->sym_entry;
-
-    BLUE("AQUI O CAST DE MATRIZES\n");
-    CODESHOW(printf("param %s\n", get_no_addr($rvalue)));
-    char* m_sz = get_mat_size($rvalue);
-    CODESHOW(printf("param %s\n", m_sz ));
-    free(m_sz);
-    CODESHOW(printf("call mat_i2f_temp, 2\n"));
-    int temp = temp_next();
-    CODESHOW(printf("pop $%d\n", temp));
-    char* laddr = get_no_addr($lvalue);
-    
-    if(0) { // Se eh global, COPIAR DIRETAMENTE PARA O .table
-      // empilhar referencia pra .table, e percorrer copiando para lah
-    }
-    else {
-      CODESHOW(printf("mov %s, $%d\n", laddr , temp));
-    }
-    rightAddr = widen( $rvalue, $lvalue );
-
-
-  } else if (c1 == TYPE_ARRAY && c2 == TYPE_ARRAY) {
-    if(to_base_type(t1) > to_base_type(t2)) {
-      to_cast = 1;
-    } else {
-      ERRSHOW(printf("Erro de tipo. %s = %s\n", t2s(t1), t2s(t2)));
-    }
-  } else if (c1 == c2 && t1 != t2){ 
-    to_cast = 1;
-    WARSHOW(printf("[Semantico] Warning de tipo em atribuicao: <%s> = <%s>\n",
-     t2s(t1), t2s(t2)));
-  } else to_cast = 1;
-  if(to_cast) {
-    if( t1 < t2 ) {
+  } else if (c1 == TYPE_ARRAY || c2 == TYPE_ARRAY) {
+    ERRSHOW("Proibido operar com array!\n");
+  } else if(c1 == c2) {
+    if(t1 < t2) {
       ERRSHOW(printf("Nao eh possivel a atribuicao %s = %s : narrow casting\n", s1, s2));    
-      rightAddr = "impossivel";  
-    } else {
-      if(can_cast(t2, t1)) {
-        rightAddr = get_no_addr( $rvalue );
+      rightAddr = "impossivel";
+    } else {  // t1 > t2 e c1 eh matriz OU scalar
+      if ( c1 == TYPE_MAT  ) {
+        if(t1 > t2) {
+          WARSHOW(printf("Conversao entre matrizes. %s = %s\n", t2s(t1), t2s(t2)));
+
+          SymEntry* sym = $rvalue->sym_entry;
+
+          BLUE("AQUI O CAST DE MATRIZES\n");
+          CODESHOW(printf("param %s\n", get_no_addr($rvalue)));
+          char* m_sz = get_mat_size($rvalue);
+          CODESHOW(printf("param %s\n", m_sz ));    free(m_sz);
+          CODESHOW(printf("call mat_i2f_temp, 2\n"));
+          int temp = temp_next();
+          CODESHOW(printf("pop $%d\n", temp));
+
+          BLUE("END CAST\n");
+          // PAra todos os efeitos, seu endereco antigo nao eh mais conhecido
+          // printf("gogogo ! %d\n", temp);
+          $rvalue->addr = temp;
+          // abort();
+          rightAddr = get_no_addr($rvalue);
+
+          CODESHOW(printf("param $%d    // src\n", temp));
+          CODESHOW(printf("param %s    // dest\n", get_no_addr($lvalue)));
+          CODESHOW(printf("param %s    // qtd \n", get_mat_size($rvalue)));
+          CODESHOW(printf("call __copyN, 3\n"));
+        } else {  // soh mover (copiar), n precisa converter nada.
+          WARSHOW(printf("no casts\n"));
+          CODESHOW(printf("param %s    // src\n", get_no_addr($rvalue)));
+          CODESHOW(printf("param %s    // dest\n", get_no_addr($lvalue)));
+          CODESHOW(printf("param %s    // qtd \n", get_mat_size($rvalue)));
+          CODESHOW(printf("call __copyN, 3\n"));
+        }
       }
-      else {
-        ERRSHOW(printf("Nao eh possivel a atribuicao %s = %s : cast inexistente\n", s1, s2));
+      else {  // converter de int -> float
+        CODESHOW(printf("FAZER CONVERSAO FLOAT <--- INT\n"));
+
       }
     }
+  } else {
+    ERRSHOW(printf("Proibido operar em classes distintas (%s = %s)\n", s1, s2));
   }
-  if( c1 == c2 && c1 == TYPE_SCALAR ){
-    CODESHOW(pf("mov %s, %s\n", leftAddr, rightAddr));
-  }
-  else ( c1 == c2 && c1 == TYPE_MAT ){  // supor que eh matriz
-    
+  
+  // FIM PARTE DO CAST
+
+  // INICIO PARTE DO MOV
+  if(c1 != c2) {
+    ERRSHOW(printf("Nao permite-se atribuicao entre elementos de classes distintas\n"));
   }
   else {
-    ERRSHOW(printf("Atribuicao entre vetores nao eh permitida!"));
+    if( c1 == TYPE_MAT ) {  // supor que eh matriz
+      // abort();
+    } else if (c1 == TYPE_SCALAR) {
+        rightAddr = get_no_addr($rvalue);
+        CODESHOW(pf("mov %s, %s\n", leftAddr, rightAddr));
+        free(rightAddr);
+    }
+    else {
+      ERRSHOW(printf("Atribuicao entre vetores nao eh permitida!"));
+    }
+
   }
   // ################# VAI VIRAR FUNCAO
-
-
-
 }
 | newFlowControl {
   MAKE_NODE(localStmt);
@@ -1426,7 +1429,7 @@ int main(){
     // show_Sub_Tree(root, 1, SVAL);
     // show_Lis(root,SVAL);
   }
-  // print_reshi(reshi);
+  print_reshi(reshi);
   yylex_destroy();
   
   // delete_all(reshi);
