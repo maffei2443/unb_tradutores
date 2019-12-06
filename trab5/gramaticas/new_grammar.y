@@ -72,6 +72,23 @@ unsigned while_counter = 0;
 unsigned newFlow_counter = 0;
 unsigned closest_flow = 0;
 unsigned closest_while = 0;
+
+void show_num_list(No* num_list) {
+  if(!num_list) return;
+  if(num_list->type == TYPE_INT)
+    printf("%d", num_list->ival);
+  else
+    printf("%f", num_list->fval);
+  No* aux = num_list->next_aux;
+  while(aux) {
+    if(aux->type == TYPE_INT)
+      printf(", %d", aux->ival);
+    else
+      printf(", %f", aux->fval);
+    aux = aux->next_aux;
+  }
+  printf(" ");
+}
 %}
 %define parse.error verbose
 %define parse.lac none
@@ -200,11 +217,13 @@ declFun : AHEAD BASE_TYPE ID {
 
 declOrdeclInitVar : typeAndNameSign ';'
 | typeAndNameSign '=' rvalue ';' {
+  WARSHOW(printf("Sugiro nao fazer essa inicializacao. Mas... dah no mesmo que fazer em outro lugar, neh?"));
   if($1 == NULL || $3 == NULL) {
     $$ = NULL;
     ERRSHOW(printf("[Semantico] NAo foi possivel construir <declOrdeclInitVar> devido a erro semantico.\n"));
   }
   else {
+    printf("typeAndNameSign '=' rvalue ';'\n");
     MAKE_NODE(declOrdeclInitVar);
     add_Node_Child_If_Not_Null($$, $typeAndNameSign);
     add_Node_Child_If_Not_Null($$, $rvalue);
@@ -260,7 +279,7 @@ declOrdeclInitVar : typeAndNameSign ';'
           ERRSHOW(printf("[Semantico] Erro: inicializacao de matriz com %s\n", t2s($rvalue->type)));
         }
         else {
-          CODESHOW(printf("INICIALIZAR MATRIZ COM NUMEROS\n"));
+          WARSHOW(printf("DEVENDO:INICIALIZAR MATRIZ COM NUMEROS"));
         }
       }
     }
@@ -475,6 +494,7 @@ typeAndNameSign : BASE_TYPE ID {
   if(!$$) {
     printf("\t[Semantico] Nao adicionou (%s) aa tabela de simbolos (redeclaracao, tamanho nao inteiro, algo deu errado).\n", $ID);
   }
+  // abort();
   free($ID); $ID = NULL;
 }
 
@@ -872,13 +892,27 @@ numListList :  numListList '{' numList '}' {
 }
 
 numList : numList ',' num {
-  MAKE_NODE(numList);
-  add_Node_Child_If_Not_Null($$, $1);
-  add_Node_Child_If_Not_Null($$, $num);
+  // MAKE_NODE(numList);
+  // add_Node_Child_If_Not_Null($$, $1);
+  // add_Node_Child_If_Not_Null($$, $num);
+
+  if(!$1->has_aux) {
+    $1->has_aux = 1;
+    $1->next_aux = $num;
+    $1->child_last = $num;
+  }
+  else {
+    $1->child_last->next_aux = $num;
+    $1->child_last = $num;
+  }
+  $$ = $1;
 }
 | num {
-  MAKE_NODE(numList);
-  add_Node_Child_If_Not_Null($$, $num);
+  // printf("gggggggggggggggggggg\n");
+  // MAKE_NODE(numList);
+  // add_Node_Child_If_Not_Null($$, $num);
+  $$ = $1;
+  $$->has_aux = 0;
 }
 
 
@@ -1410,11 +1444,14 @@ lvalue : ID {
 
 rvalue : expr
 | '{' numList '}' {
+  printf("RVALOR OF LIST : \n");
+  show_num_list($2);
   $$ = $2;
   $$->type = TYPE_LIST;
-  No* expr = yyvsp[0].no;
-  if(expr->sym_entry)
-    point_no_symentry(&(expr->sym_entry), &$$);
+  // No* expr = yyvsp[0].no;
+  // if(expr->sym_entry)
+  //   point_no_symentry(&(expr->sym_entry), &$$);
+  printf("rvaluee\n");
 }
 | '{' numListList '}' {
   $$ = $2;
