@@ -1138,19 +1138,13 @@ expr : expr ARITM expr {
       case '<':case '>': op = "slt"; break;
     }
     switch($REL_OP) {
-      case GE: case '>': // operacoes nao implementadas nativamente pelo TAC
-        CODESHOW(printf("minus %s, %s\n", t_addr, e1));
-        CODESHOW(printf("minus %s, %s\n", t_addr2, e2));
-        CODESHOW(printf("%s %s, %s, %s\n", op, t_addr, t_addr, t_addr2));
-        $$->addr = temp;
-        break;
       case LE: case EQ: case '<':
         CODESHOW(printf("%s %s, %s, %s\n", op, t_addr, e1, e2));
         $$->addr = temp;
         break;
-      case NEQ:
-        CODESHOW(printf("seq %s, %s, %s\n", t_addr, e1, e2));
-        CODESHOW(printf("bxor %s, %s, 1\n", t_addr, t_addr));
+      case GE: case '>': case NEQ: // operacoes nao implementadas nativamente pelo TAC
+        CODESHOW(printf("%s %s, %s, %s\n", op, t_addr, e1, e2));
+        CODESHOW(printf("not %s, %s\n", t_addr, t_addr));
         $$->addr = temp;
         break;
       default: ERRSHOW(printf("operador relacional nao reconhecido"));abort();
@@ -1193,6 +1187,12 @@ expr : expr ARITM expr {
   $$->type = TYPE_INT;
   $$->ival = '!';
   add_Node_Child_If_Not_Null($$, $2);
+  if($2->type != TYPE_INT) {
+    ERRSHOW(printf("SOH SE PODE NEGAR LOGICAMENTE\n"));
+  } else {
+    // 1 - ver se eh zero. Se sim, vira 1. Se nao, vira zero.
+    // CODESHOW(printf("",));
+  }
 }
 
 | '(' expr ')' {$$ = $2;}
