@@ -292,12 +292,10 @@ achar '([a-zA-Z0-9_ +*/=\(\)\[\]\{\}!@#$%*\\/?§:;|-]?)'
       return PRINT;
       break;
     case 'I':
-      printf("I...: %s\n", yytext);
       currCol += yyleng;
       if(yy1 == 'R') return IREAD;
       else if (yy1 == 'C') return ICAST;
     case 'F':
-      printf("F...: %s\n", yytext);
       currCol += yyleng;
       if(yy1 == 'R') return FREAD;
       else if (yy1 == 'C') return FCAST;

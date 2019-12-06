@@ -4,24 +4,30 @@
 
 int main() {
   int a = 0;
-  print(a);
-  scani(a);
-  if (a){
-  	// a = a + 5;
-  	// if( a + 2 ) {
-  	// 	a = a + 5;
-  	// } else{
-  	// 	a = a - 4;
-      print(a);
-  	// }
-  } else{
+  PRINT(a);
+  PRINT('');
+  IREAD(a);
+  if ( a ) {
+    PRINT( a );
+  } else {
   	a = a  * a;
-    print(a)
+    PRINT(a);
   }
-  a = a % a;
-
-  if(a){
-  	if(a) {} else {}
-  }else{a = a + 44;}
-  // if (a) {} else {}
+  a = a - 4 % a;
+  if( a ){
+  	if( a ){
+      PRINT('a');
+      PRINT(' ');
+      PRINT('x');
+      PRINT('2');
+      PRINT(' ');
+      PRINT('=');
+      PRINT(' ');
+      PRINT( a );
+      PRINT('');
+    } else ;
+  } else {
+    a = a + 44;
+    PRINT(a);
+  }
 }

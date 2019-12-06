@@ -4,6 +4,10 @@
 #include "uthash.h"
 #include "Array.h"
 #include "Colorfy.h"
+#include <stdio.h>
+
+FILE* arquivo_saida;
+
 #ifdef NULL
   #undef NULL
   #define NULL ((void *)0)

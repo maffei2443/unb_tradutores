@@ -72,7 +72,7 @@ unsigned while_counter = 0;
 int newFlow_counter = 0;
 unsigned closest_flow = 0;
 unsigned closest_while = 0;
-
+extern FILE* arquivo_saida;
 void show_num_list(No* num_list, Type t) {
   // printf("rectype: %s\n", t2s(t));
   if(!num_list) return;
@@ -1127,31 +1127,36 @@ expr : expr ARITM expr {
     char* e1 = get_no_val($1), *e2 = get_no_val($3);
     int temp = temp_next();
     char t_addr[] = "\0\0\0\0\0\0\0";      
+    char t_addr2[] = "\0\0\0\0\0\0\0";      
     sprintf(t_addr,"$%d" , temp);
+    sprintf(t_addr2,"$%d" , temp+1);
     $$->addr = temp;
-    switch ($REL_OP) {
-      case GE: {
-        CODESHOW(printf(""));
-      }
-      case LE: {
-      
-      }
-      case EQ: {
-      
-      }
-      case NEQ: {
-      
-      }
-      case '<': {
-        CODESHOW(printf("slt %s, %s, %s\n", t_addr, e1, e2));
-      }
-      case '>': {
-      
-      }
-      default:      break;
+    char* op;
+    switch($REL_OP) {
+      case GE:case LE: op = "sleq"; break;
+      case EQ:case NEQ: op = "seq"; break;
+      case '<':case '>': op = "slt"; break;
     }
-  }
-
+    switch($REL_OP) {
+      case GE: case '>': // operacoes nao implementadas nativamente pelo TAC
+        CODESHOW(printf("minus %s, %s\n", t_addr, e1));
+        CODESHOW(printf("minus %s, %s\n", t_addr2, e2));
+        CODESHOW(printf("%s %s, %s, %s\n", op, t_addr, t_addr, t_addr2));
+        $$->addr = temp;
+        break;
+      case LE: case EQ: case '<':
+        CODESHOW(printf("%s %s, %s, %s\n", op, t_addr, e1, e2));
+        $$->addr = temp;
+        break;
+      case NEQ:
+        CODESHOW(printf("seq %s, %s, %s\n", t_addr, e1, e2));
+        CODESHOW(printf("bxor %s, %s, 1\n", t_addr, t_addr));
+        $$->addr = temp;
+        break;
+      default: ERRSHOW(printf("operador relacional nao reconhecido"));abort();
+    }
+  }  
+  
 }
 
 | expr BIN_LOGI expr {
@@ -1534,6 +1539,8 @@ void nullify(void** p) {
 }
 
 int main(int argc){
+  // arquivo_saida = fopen("out.tac", "w+");
+  // stdout = arquivo_saida;
   curr_scope = GLOBAL_SCOPE;
   reshi = NULL;
   nodeCounter = 0;
