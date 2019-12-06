@@ -42,7 +42,7 @@ comment \/\/.*
 base_types int|float|char
 types mat|{base_types}
 flux_control while|if|else|return
-reserved_words {types}|{flux_control}|"COPY"|"PRINT"|"IREAD"|"FREAD"|"ICAST"|"FCAST"|"ahead"
+reserved_words {types}|{flux_control}|"COPY"|"PRINT"|"IREAD"|"FREAD"|"ICAST"|"FCAST"|"ahead"|"def"
 
 sep [ \t\n\(\)<>[\]\{},.;=]
 par [()]
@@ -248,6 +248,7 @@ achar '([a-zA-Z0-9_ ]?)'
       currCol += yyleng;
       return AHEAD;
       break;
+
     case 'i':
       if (yy1 == 'n') {// int 
         yylval.type = TYPE_INT;
@@ -260,9 +261,11 @@ achar '([a-zA-Z0-9_ ]?)'
       return yy1 == 'n' ? BASE_TYPE : IF;
       break;
     case 'f':
-      // showBaseType(); currCol += yyleng;
-      yylval.type = TYPE_FLOAT;
-      return BASE_TYPE;
+      if(yytext[1] == 'l'){
+        // showBaseType(); currCol += yyleng;
+        yylval.type = TYPE_FLOAT;
+        return BASE_TYPE;
+      }
       break;
     case 'e':
       // showFlowControl(); currCol += yyleng;

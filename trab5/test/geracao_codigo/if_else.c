@@ -3,7 +3,7 @@
 // tamanho alocado em caso de atribuicao entre matrizes COM CAST
 
 int main() {
-  int a;
+  int a = 0;
   // float f;
   // mat int mi[5][7];
   // mat float mf[2][3];
@@ -17,6 +17,7 @@ int main() {
   		a = a + 5;
   	} else{
   		a = a - 4;
+      PRINT(a);
   	}
   } else{
   	a = a  * a;

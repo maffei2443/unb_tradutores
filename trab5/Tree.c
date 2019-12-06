@@ -54,7 +54,7 @@ void show_Spaces(int qtd){
 // obs: NÃO INICIALIZA code
 No* No_New(int v) {
   No* no = (No*)calloc(1,sizeof(No));
-  // WARSHOW(printf("[NO_NEW] %p\n", no));
+  // WARSHOW(printf("[NO_NEW] %p", no));
   // NOTA: em teoria, nada (exceto inicializacao de ival) abaixo eh necessario por conta do calloc.
   no->type = TYPE_UNDEFINED;
   // Aqui ficarah o cohdigo associado a cada variavel, tal qual no livro

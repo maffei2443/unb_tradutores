@@ -16,7 +16,7 @@
   Reset();}
 
 #define LABELSHOW(X) \
-  {BoldYellow(); \
+  {BoldMagenta(); \
   X;\
   Reset();}
 
@@ -28,19 +28,22 @@
 
 #define WARSHOW(X) \
   {BoldYellow(); \
+  printf("/* ");\
   X;\
-  Reset();}
+  printf("*/\n");Reset();}
 
 #define ERRSHOW(X) \
   { critical_error++;\
   BoldRed(); \
+  printf("/* ");\
   X;\
-  Reset();}
+  printf("*/\n");Reset();}
 
 #define  DBG(X) \
   {BoldGreen(); \
+  printf("// ");\
   X;\
-  Reset();}
+  printf("\n");Reset();}
 
 #define BLUE(X) \
   {BoldCyan(); \
@@ -52,8 +55,9 @@
   Reset();}
 #define SHOWGRAY(X) \
   {BoldGray(); \
+  printf("/* ");\
   X;\
-  Reset();}
+  printf("*/\n");Reset();}
 
 
 #define STR(x) #x

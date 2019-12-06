@@ -439,11 +439,13 @@ typeAndNameSign : BASE_TYPE ID {
         // char* e = get_no_addr();
         if(neo_entry->is_global){
           GLOBALSHOW(
-            printf("%s %s[%d] = {", t2s(to_base_type( neo_entry->type )),neo_entry->id, sz);
+            Type base = to_base_type( neo_entry->type );
+            printf("%s %s[%d] = {", t2s(base),neo_entry->id, sz);
+            char* _ = base == TYPE_INT ? "0" : "0.0";
             for(int i = 0; i < sz-1; i++) {
-              printf("0, ");
+              printf("%s, ", _);
             }
-            printf("0 }\n");
+            printf("%s }\n", _);
           );
 
         }
@@ -595,91 +597,7 @@ localStmt : call ';' {
   MAKE_NODE(localStmt);
   add_Node_Child_If_Not_Null($$, $lvalue);
   add_Node_Child_If_Not_Null($$, $rvalue);  
-  char* left_addr, *right_addr = NULL;
-  left_addr = get_no_addr($lvalue);
-
-  Type t1 = $lvalue->type, t2 = $rvalue->type;
-  if(t2 == TYPE_LIST || t2 == TYPE_LIST_LIST) {
-    WARSHOW("Divida: nao foi implementado inicalizacao com vetor\n");
-    
-  }
-  Type c1 = Type_Class(t1), c2 = Type_Class(t2);
-  const char* s1 = t2s(t1), *s2 = t2s(t2);
-  
-
-  // ################# VAI VIRAR FUNCAO
-  if(t1 == TYPE_UNDEFINED || t2 == TYPE_UNDEFINED ||
-    to_base_type(t1) == TYPE_CHAR || to_base_type(t1) == TYPE_CHAR) {
-    ERRSHOW(printf("Erro: UNDEFINED/char em atribuicao: %s = %s\n", s1, s2));
-  } else if (c1 == TYPE_ARRAY || c2 == TYPE_ARRAY) {
-    ERRSHOW("Proibido operar com array!\n");
-  } else if(c1 == c2) {
-    if(t1 < t2) {
-      ERRSHOW(printf("Nao eh possivel a atribuicao %s = %s : narrow casting\n", s1, s2));    
-      right_addr = "impossivel";
-    } else {  // t1 > t2 e c1 eh matriz OU scalar
-      if ( c1 == TYPE_MAT  ) {
-        if(t1 > t2) {
-          WARSHOW(printf("Conversao entre matrizes. %s = %s\n", t2s(t1), t2s(t2)));
-
-          SymEntry* sym = $rvalue->sym_entry;
-
-          BLUE("AQUI O CAST DE MATRIZES\n");
-          CODESHOW(printf("param %s\n", get_no_addr($rvalue)));
-          char* m_sz = get_mat_size($rvalue);
-          CODESHOW(printf("param %s\n", m_sz ));    free(m_sz);
-          CODESHOW(printf("call mat_i2f_temp, 2\n"));
-          int temp = temp_next();
-          CODESHOW(printf("pop $%d\n", temp));
-
-          BLUE("END CAST\n");
-          // PAra todos os efeitos, seu endereco antigo nao eh mais conhecido
-          // printf("gogogo ! %d\n", temp);
-          $rvalue->addr = temp;
-          // abort();
-          right_addr = get_no_addr($rvalue);
-
-          CODESHOW(printf("param $%d    // src =1\n", temp));
-          CODESHOW(printf("param %s    // dest\n", get_no_addr($lvalue)));
-          CODESHOW(printf("param %s    // qtd \n", get_mat_size($rvalue)));
-          CODESHOW(printf("call __copyN, 3\n"));
-        } else {  // soh mover (copiar), n precisa converter nada.
-          // WARSHOW(printf("no casts\n"));
-          CODESHOW(printf("param %s    // src =2\n", get_no_addr($rvalue)));
-          CODESHOW(printf("param %s    // dest\n", get_no_addr($lvalue)));
-          CODESHOW(printf("param %s    // qtd \n", get_mat_size($rvalue)));
-          CODESHOW(printf("call __copyN, 3\n"));
-        }
-      }
-      else if (c1 == TYPE_SCALAR) {  
-        if(t1 > t2) { // converter de float <-- float(inteiro)
-          int temp = temp_next();
-          right_addr = get_no_addr( $rvalue );
-          BoldCyan();
-          printf("\tinttofl ");        
-          if(left_addr[0] == '&') printf("%s, ",left_addr + 1);
-          else printf("%s, ",left_addr);
-          free(left_addr);
-          if(right_addr[0] == '&') printf("%s\n",right_addr + 1);
-          else printf("%s\n",right_addr);
-          free(right_addr);
-        }
-        else {
-          right_addr = get_no_addr($rvalue);
-          BoldCyan();
-          printf("\tmov ");
-          if(left_addr[0] == '&') printf("%s, ",left_addr + 1);
-          else printf("%s, ",left_addr);
-          free(left_addr);
-          if(right_addr[0] == '&') printf("%s\n",right_addr + 1);
-          else printf("%s\n",right_addr);
-          free(right_addr);
-        }
-      }
-    }
-  } else {
-    ERRSHOW(printf("Proibido operar em classes distintas (%s = %s)\n", s1, s2));
-  }
+  check_type_and_convert_on_lr_attr($lvalue, $rvalue);
   Reset();
   // FIM PARTE DO CAST
 

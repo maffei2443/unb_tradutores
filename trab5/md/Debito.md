@@ -10,3 +10,5 @@ análise semântica.. não tinha me tocado disso)
 - nao deu para fazer operacoes com matriz temporárias.
   - motivo: não consegui a tempo salvar as informações (criei um campo, **temp_mat**)
       no _No_, mas não deu tempo de fazer as alterações necessárias.
+
+- não checa completamente a semntica (NÃO USAR CHAR, FAZ FAVOR!)

@@ -56,6 +56,7 @@ char* get_no_addr(No* no);
 
 char* get_mat_size(No*);
 
-// int sprintf ( char * str, const char * format, ... );
+// Estava no .y, mas deveria aparecer em + de um local
+void check_type_and_convert_on_lr_attr(No* lvalue, No* rvalue);
 
 #endif
