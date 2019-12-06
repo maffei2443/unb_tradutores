@@ -140,7 +140,7 @@ void show_num_list(No* num_list, Type t) {
 %type<no> numList block declList expr call argList 
 %type<no> arg rvalue lvalue num typeAndNameSign
 
-%type<no> IF ELSE WHILE countFlow
+%type<no> IF /* ELSE */ WHILE countFlow
 
 %type<_id> ID 
 %type<type> BASE_TYPE
@@ -738,52 +738,37 @@ localStmt : call ';' {
 
 newFlowControl : countFlow
  flowControl {
+   $$ = yyvsp[0].no;
   //  __new_flow--;
-  //  LABELSHOW(printf("__endFlow%d:\n", $countFlow->ival));
-  //  abort();
   LABELSHOW(printf("__endFlow%d:\n", $countFlow->ival));
-  // abort();
-
 }
 countFlow : %empty {
   $$ = No_New( newFlow_counter );
   $$->tname = "countFlow";
   closest_flow = newFlow_counter;
+
   newFlow_counter++;
   LABELSHOW(printf("__newFlow%d:\n", $$->ival ));
 }
 flowControl : IF '(' expr ')' {
-    MAKE_NODE(flowControl);
-    // yyvsp[-4].no = flowControl;
-    No* prev = yyvsp[-4].no;
-    add_Node_Child_If_Not_Null(prev, Token_New("IF","if"));
-    add_Node_Child_If_Not_Null(prev, $expr);
-
-    // abort();
-    int i = 0;
-
-    
-/*     if(yyvsp[-4].no) {
-      No* tmp = yyvsp[-4].no;
-      if(tmp && !strcmp(tmp->tname, "countFlow")) {
-        LABELSHOW(printf("__newFlow%d:\n", tmp->ival ));
-        LABELSHOW(printf("%s:\n", tmp->tname ));
-      }
-    } */
-    
     char* expr_addr = get_no_addr($expr);
     $1 = No_New(if_counter);
+    
+    MAKE_NODE(flowControl);
     if_counter++;
-
+    
+    __after_if++;
     CODESHOW(printf("brz __afterIfBlock%d, %s\n", $1->ival, expr_addr));
     free(expr_addr);
-
 } block {
     CODESHOW(printf("jump __endFlow%d\n", closest_flow ) ) ;
     LABELSHOW( printf("__afterIfBlock%d:\n",  $1->ival) );
-    add_Node_Child_If_Not_Null(yyvsp[-6].no, $block);
+    // add_Node_Child_If_Not_Null(yyvsp[-6].no, $block);
 }
-  ELSE {}flowControl {
+  ELSE flowControl {
+      add_Node_Child_If_Not_Null($$, Token_New("IF","if"));
+      add_Node_Child_If_Not_Null($$, $expr);
+      add_Node_Child_If_Not_Null($$, $block);
       add_Node_Child_If_Not_Null($$, Token_New("ELSE","else"));
       add_Node_Child_If_Not_Null($$, yyvsp[0].no);
       LABELSHOW(printf("__afterElseBlock%d:\n", $1->ival ) ) ;
@@ -1149,8 +1134,7 @@ expr : expr ARITM expr {
         break;
       default: ERRSHOW(printf("operador relacional nao reconhecido"));abort();
     }
-  }  
-  
+  }    
 }
 
 | expr BIN_LOGI expr {
