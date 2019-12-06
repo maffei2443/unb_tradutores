@@ -28,9 +28,9 @@
 
 #define WARSHOW(X) \
   {BoldYellow(); \
-  printf("/* ");\
+  printf("///* ");\
   X;\
-  printf("*/\n");Reset();}
+  printf("//*/\n");Reset();}
 
 #define ERRSHOW(X) \
   { critical_error++;\

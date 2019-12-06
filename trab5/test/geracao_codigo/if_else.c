@@ -4,23 +4,19 @@
 
 int main() {
   int a = 0;
-  // float f;
-  // mat int mi[5][7];
-  // mat float mf[2][3];
-  // a = 1;
-  // f = 8.9;
-  // mi = mf;
-  // mf = mi;
+  print(a);
+  scani(a);
   if (a){
-  	a = a + 5;
-  	if( a + 2 ) {
-  		a = a + 5;
-  	} else{
-  		a = a - 4;
-      PRINT(a);
-  	}
+  	// a = a + 5;
+  	// if( a + 2 ) {
+  	// 	a = a + 5;
+  	// } else{
+  	// 	a = a - 4;
+      print(a);
+  	// }
   } else{
   	a = a  * a;
+    print(a)
   }
   a = a % a;
 

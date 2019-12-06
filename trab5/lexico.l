@@ -49,7 +49,7 @@ par [()]
 bracket [\[\]]
 curly [{}]
 
-achar '([a-zA-Z0-9_ ]?)'
+achar '([a-zA-Z0-9_ +*/=\(\)\[\]\{\}!@#$%*\\/?§:;|-]?)'
 %%
 {achar} {
   if(yyleng == 3 && yytext[1] == '\\'){

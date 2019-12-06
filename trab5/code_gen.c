@@ -182,7 +182,7 @@ char* widen_basic(char* src, Type t_src, Type t_dest) {
 // Em caso de variahvel global, retorna seu nome.
 // NAO POSSUI GERA COHDIGO, MAS PODE MODIFICAR temp pois chama temp_next
 char* get_no_val(No* no) {
-  if(no->sym_entry && no->sym_entry->is_global) {  // eh identificador GLOBAL    
+  if(no->sym_entry && no->sym_entry->is_global) {  // eh identificador GLOBAL   
     return str_ptr_clone(no->sym_entry->id);
   } 
   else {
@@ -258,7 +258,7 @@ void check_type_and_convert_on_lr_attr(No* lvalue, No* rvalue) {
   const char* s1 = t2s(t1), *s2 = t2s(t2);
 
   if(t2 == TYPE_LIST || t2 == TYPE_LIST_LIST) {
-    WARSHOW("Divida: nao foi implementado inicalizacao com vetor\n");
+    WARSHOW(printf("Divida: nao foi implementado inicalizacao com vetor"));
     return;
   }
   if(t1 == TYPE_UNDEFINED || t2 == TYPE_UNDEFINED ||
@@ -273,7 +273,7 @@ void check_type_and_convert_on_lr_attr(No* lvalue, No* rvalue) {
     } else {  // t1 >= t2 e c1 eh matriz OU scalar
       if ( c1 == TYPE_MAT  ) {
         if(t1 > t2) {
-          WARSHOW(printf("Conversao entre matrizes. %s = %s\n", t2s(t1), t2s(t2)));
+          WARSHOW(printf("Conversao entre matrizes. %s = %s", t2s(t1), t2s(t2)));
 
           SymEntry* sym = rvalue->sym_entry;
 

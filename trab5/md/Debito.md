@@ -12,3 +12,6 @@ análise semântica.. não tinha me tocado disso)
       no _No_, mas não deu tempo de fazer as alterações necessárias.
 
 - não checa completamente a semntica (NÃO USAR CHAR, FAZ FAVOR!)
+
+- só pode inicializar matriz/array global
+  - próxima entrega: permitir que matrizes/arrays locais o façam também

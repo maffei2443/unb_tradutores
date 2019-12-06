@@ -69,22 +69,25 @@ extern Stack* after_if_stack;
 
 unsigned if_counter = 0;
 unsigned while_counter = 0;
-unsigned newFlow_counter = 0;
+int newFlow_counter = 0;
 unsigned closest_flow = 0;
 unsigned closest_while = 0;
 
-void show_num_list(No* num_list) {
+void show_num_list(No* num_list, Type t) {
+  // printf("rectype: %s\n", t2s(t));
   if(!num_list) return;
-  if(num_list->type == TYPE_INT)
+  // printf("FIRST num->ival: %p->%d\n", num_list, num_list->ival);
+  if(t == TYPE_INT)
     printf("%d", num_list->ival);
   else
     printf("%f", num_list->fval);
   No* aux = num_list->next_aux;
   while(aux) {
-    if(aux->type == TYPE_INT)
+    if(t == TYPE_INT)
       printf(", %d", aux->ival);
-    else
+    else {
       printf(", %f", aux->fval);
+    }
     aux = aux->next_aux;
   }
   printf(" ");
@@ -117,7 +120,7 @@ void show_num_list(No* num_list) {
   No* no;
   Type type;
 }
-%type<ival> ARITM REL_OP BIN_LOGI
+%type<ival> ARITM REL_OP BIN_LOGI ')'
 %token ARITM REL_OP BIN_LOGI
 
 %token BASE_TYPE WHILE V_INT V_FLOAT V_ASCII AHEAD
@@ -215,15 +218,37 @@ declFun : AHEAD BASE_TYPE ID {
 }
 
 
-declOrdeclInitVar : typeAndNameSign ';'
+declOrdeclInitVar : typeAndNameSign ';' {
+  Type t1 = $1->type;
+  Type c1 = Type_Class(t1);
+  char* s1 = t2s(c1);
+  if(!strcmp(curr_scope, GLOBAL_SCOPE)) {
+      switch(c1) {
+        case TYPE_MAT:
+        case TYPE_ARRAY_INT:
+          GLOBALSHOW(
+            Type base = to_base_type( t1 );
+            int sz = $1->temp_mat.col * $1->temp_mat.line;
+            printf("%s %s[%d] = {", t2s(base),$1->sym_entry->id, sz);
+            char* _ = base == TYPE_INT ? "0" : "0.0";
+            for(int i = 0; i < sz ; i++) {
+              printf("%s, ", _);
+            }
+            printf("%s }\n", _);
+          ); break;
+        case TYPE_SCALAR:
+          printf("\n");
+      }
+  }  
+}
 | typeAndNameSign '=' rvalue ';' {
-  WARSHOW(printf("Sugiro nao fazer essa inicializacao. Mas... dah no mesmo que fazer em outro lugar, neh?"));
+  // WARSHOW(printf("Sugiro nao fazer essa inicializacao. Mas... dah no mesmo que fazer em outro lugar, neh?"));
   if($1 == NULL || $3 == NULL) {
     $$ = NULL;
     ERRSHOW(printf("[Semantico] NAo foi possivel construir <declOrdeclInitVar> devido a erro semantico.\n"));
   }
   else {
-    printf("typeAndNameSign '=' rvalue ';'\n");
+    // printf("typeAndNameSign '=' rvalue ';'\n");
     MAKE_NODE(declOrdeclInitVar);
     add_Node_Child_If_Not_Null($$, $typeAndNameSign);
     add_Node_Child_If_Not_Null($$, $rvalue);
@@ -234,12 +259,39 @@ declOrdeclInitVar : typeAndNameSign ';'
     Type right_class = Type_Class(t2);
 
     char* r;
-    char* l = get_no_addr($1);
-    DBG(printf("[lvalue = rvalue] %s = %s\n", t2s(t1), t2s(t2)));
-    if(left_class == right_class) {
-      if(t1 == t2) {
-          CODESHOW( printf("mov %s, %s\n", get_no_addr(decl), get_no_addr(rval)) );
-          abort();
+    char* l = get_no_addr($1);    
+  // printf("Escopos: %s vs %s\n",curr_scope, GLOBAL_SCOPE);
+    if(left_class == right_class || (left_class == TYPE_MAT && t2 == TYPE_LIST)) {      
+      if(t1 == t2 || (left_class == TYPE_MAT && t2 == TYPE_LIST)) {
+        if(!strcmp(curr_scope, GLOBAL_SCOPE)) {
+          if(!$3->is_const) {
+            ERRSHOW(printf("Erro: inicializacao de global com valores nao constantes\n"));
+          } else {
+            // abort();
+            SymEntry* entry = $1->sym_entry;
+            if(left_class == TYPE_MAT) {
+              // abort();
+              GLOBALSHOW(
+                printf("%s %s[%d] = { ", t2s(to_base_type( entry->type )),entry->id,
+                $1->temp_mat.line * $1->temp_mat.col  );
+                show_num_list($rvalue, to_base_type($1->type));
+                fflush(stdout);
+                // for(int i = 0; i < $1->ival-1; i++) {
+                //   printf("0, ");
+                // }
+                printf("} // matriz\n");
+                // abort();
+              );
+            } else if(t1 == TYPE_FLOAT) {
+              LABELSHOW(printf(" = %f\n", $3->fval));
+            } else {
+              LABELSHOW(printf(" = %d\n", $3->ival));
+            }            
+          }
+        } else {
+          // abort();
+          CODESHOW( printf("mov %s, %s\n", get_no_val(decl), get_no_addr(rval)) );
+        }
       } else {  // efetuar conversoes, jah que sao de mesma classe
         // Converter do tipo de rvalue -> declOrInitVar 
         if(left_class < right_class) {
@@ -312,14 +364,14 @@ typeAndNameSign : BASE_TYPE ID {
       link_symentry_no(&neo_entry, &$$);      
       add_Node_Child_If_Not_Null($$, Token_New("BASE_TYPE", t2s($BASE_TYPE)));
       add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
-      
+      $$->type = $BASE_TYPE;
       // para facilitar geracao de cohdigo
       point_no_symentry(&neo_entry, &$$);     
 
       if(neo_entry->is_global) {
-        GLOBALSHOW(
-          printf("%s %s\n", t2s(to_base_type( neo_entry->type )),neo_entry->id);
-        );
+        BoldMagenta();
+        printf("\t%s %s", t2s(to_base_type( neo_entry->type )),neo_entry->id);
+        Reset();
       }
 
     }
@@ -376,20 +428,23 @@ typeAndNameSign : BASE_TYPE ID {
         link_symentry_no(&neo_entry, &$$->child_last);
 
         int sz = yyvsp[-1].no->ival;
+        $$->ival = sz;
+        $$->type = $BASE_TYPE == TYPE_INT ? TYPE_ARRAY_INT :  TYPE_ARRAY_FLOAT;
         // char* e = get_no_addr();
-        if(neo_entry->is_global) {
-          GLOBALSHOW(
-            printf("%s %s = {", t2s(to_base_type( neo_entry->type )),neo_entry->id);
-            for(int i = 0; i < sz-1; i++) {
-              printf("0, ");
-            }
-            printf("0 }\n");
-          );
-        }
-        else {          
+        if(!neo_entry->is_global) {
           char* e = get_no_addr( $$->child_last );
           CODESHOW(printf("mema %s, %d\n", e, sz)); 
           free(e);
+        }
+        else { 
+          DBG(printf("PRINTS MOVIDOS PARA corpos de declOrDeclInitVar"));  
+          // GLOBALSHOW(
+          //   printf("%s %s = {", t2s(to_base_type( neo_entry->type )),neo_entry->id);
+          //   for(int i = 0; i < sz-1; i++) {
+          //     printf("0, ");
+          //   }
+          //   printf("0 }\n");
+          // );
         }
 
         add_Node_Child_If_Not_Null($$, $num);
@@ -398,6 +453,7 @@ typeAndNameSign : BASE_TYPE ID {
         printf("[BASE_TYPE ID '[' num ']'] ERRO LOGICO: NAO DEVERIA ENTRAR AQUI! %s:%s ...\n", neo_entry->escopo, $ID);
         $$ = NULL;
       }
+      $$->temp_mat.col = $num->ival;
     }
   }
   else {
@@ -456,31 +512,18 @@ typeAndNameSign : BASE_TYPE ID {
 
         int sz = yyvsp[-4].no->ival * yyvsp[-1].no->ival;
         // char* e = get_no_addr();
-        if(neo_entry->is_global){
-          GLOBALSHOW(
-            Type base = to_base_type( neo_entry->type );
-            printf("%s %s[%d] = {", t2s(base),neo_entry->id, sz);
-            char* _ = base == TYPE_INT ? "0" : "0.0";
-            for(int i = 0; i < sz-1; i++) {
-              printf("%s, ", _);
-            }
-            printf("%s }\n", _);
-          );
-
-        }
-        else {          
+        if(!neo_entry->is_global){          
           char* e = get_no_addr( $$->child_last );
           CODESHOW(printf("mema %s, %d\n", e, sz)); 
           free(e);
         }
         add_Node_Child_If_Not_Null($$, yyvsp[-4].no);
         add_Node_Child_If_Not_Null($$, yyvsp[-1].no);
-
-/*  */
-
         // para facilitar geracao de cohdigo
         link_symentry_no(&neo_entry, &$$);
         $$->type = neo_entry->type;
+        $$->temp_mat.line = yyvsp[-4].no->ival;
+        $$->temp_mat.col = yyvsp[-1].no->ival;
       }
       else {
         printf("[BASE_TYPE ID '[' num ']'] ERRO LOGICO: NAO DEVERIA ENTRAR AQUI! %s:%s ...\n", neo_entry->escopo, $ID);
@@ -689,46 +732,63 @@ localStmt : call ';' {
     case '\n': CODESHOW(printf("println ' '\n")); break;
     default: CODESHOW(printf("print '%c'\n", $V_ASCII));
   }
+  // printf("PRINT-abort");
+  // abort();
 }
 
 newFlowControl : countFlow
  flowControl {
-   $$ = yyvsp[0].no;
-   __new_flow--;
-   if($flowControl != NULL && !strcmp($flowControl->tname, "flowControl") )
-    LABELSHOW(printf("__endFlow%d:\n", $countFlow->ival));
+  //  __new_flow--;
+  //  LABELSHOW(printf("__endFlow%d:\n", $countFlow->ival));
+  //  abort();
+  LABELSHOW(printf("__endFlow%d:\n", $countFlow->ival));
+  // abort();
+
 }
 countFlow : %empty {
   $$ = No_New( newFlow_counter );
+  $$->tname = "countFlow";
   closest_flow = newFlow_counter;
   newFlow_counter++;
-  // LABELSHOW(printf("__newFlow%d:\n", $$->ival ));
+  LABELSHOW(printf("__newFlow%d:\n", $$->ival ));
 }
-flowControl :  IF '(' expr ')' {
-    if(yyvsp[-4].no->sval == NULL && yyvsp[-4].no->sval == NULL) {
-      LABELSHOW(printf("__newFlow%d:\n", yyvsp[-4].no->ival ));
-    }
+flowControl : IF '(' expr ')' {
+    MAKE_NODE(flowControl);
+    // yyvsp[-4].no = flowControl;
+    No* prev = yyvsp[-4].no;
+    add_Node_Child_If_Not_Null(prev, Token_New("IF","if"));
+    add_Node_Child_If_Not_Null(prev, $expr);
+
+    // abort();
+    int i = 0;
+
+    
+/*     if(yyvsp[-4].no) {
+      No* tmp = yyvsp[-4].no;
+      if(tmp && !strcmp(tmp->tname, "countFlow")) {
+        LABELSHOW(printf("__newFlow%d:\n", tmp->ival ));
+        LABELSHOW(printf("%s:\n", tmp->tname ));
+      }
+    } */
     
     char* expr_addr = get_no_addr($expr);
     $1 = No_New(if_counter);
     if_counter++;
 
     CODESHOW(printf("brz __afterIfBlock%d, %s\n", $1->ival, expr_addr));
-    free(expr_addr);    
-  } block {
+    free(expr_addr);
+
+} block {
     CODESHOW(printf("jump __endFlow%d\n", closest_flow ) ) ;
-    WARSHOW( printf("__afterIfBlock%d:\n",  $1->ival) );
-  }
-  ELSE flowControl {
-      MAKE_NODE(flowControl);
-      add_Node_Child_If_Not_Null($$, Token_New("IF","if"));
-      add_Node_Child_If_Not_Null($$, $expr);
-      add_Node_Child_If_Not_Null($$, $block);
+    LABELSHOW( printf("__afterIfBlock%d:\n",  $1->ival) );
+    add_Node_Child_If_Not_Null(yyvsp[-6].no, $block);
+}
+  ELSE {}flowControl {
       add_Node_Child_If_Not_Null($$, Token_New("ELSE","else"));
       add_Node_Child_If_Not_Null($$, yyvsp[0].no);
       LABELSHOW(printf("__afterElseBlock%d:\n", $1->ival ) ) ;
-
-      No_Destroy($1); // usado como temporario (pilha)
+      DBG(printf("hfasdfhakjf\n"));
+      // No_Destroy($1); // usado como temporario (pilha)  
     }
 // block e ';' foram movidos para cah de modo a nao haver conflito na gramatica
 | block {
@@ -883,11 +943,13 @@ defFun : BASE_TYPE ID '('{
 }
 
 numListList :  numListList '{' numList '}' {
+  printf("numListList - recursivo\n");
   MAKE_NODE(numListList);
   add_Node_Child_If_Not_Null($$, $1);
   add_Node_Child_If_Not_Null($$, $numList);
 }
 | %empty {
+  printf("numListList - vazio\n");
   $$ = NULL;
 }
 
@@ -895,7 +957,6 @@ numList : numList ',' num {
   // MAKE_NODE(numList);
   // add_Node_Child_If_Not_Null($$, $1);
   // add_Node_Child_If_Not_Null($$, $num);
-
   if(!$1->has_aux) {
     $1->has_aux = 1;
     $1->next_aux = $num;
@@ -908,11 +969,11 @@ numList : numList ',' num {
   $$ = $1;
 }
 | num {
+  $$ = $1;
+  $$->has_aux = 0;
   // printf("gggggggggggggggggggg\n");
   // MAKE_NODE(numList);
   // add_Node_Child_If_Not_Null($$, $num);
-  $$ = $1;
-  $$->has_aux = 0;
 }
 
 
@@ -1054,38 +1115,42 @@ expr : expr ARITM expr {
   No* e = $$, *e1 = $1, *e2 = $3;
   Type t1 = e1->type, t2 = e2->type;
   Type c1 = Type_Class(t1), c2 = Type_Class(t2);
-  printf("REL_OP: ");
   char* e2_addr, *e1_addr, *e_addr;
   e2_addr = get_no_addr(e2);
   e1_addr = get_no_addr(e1);
   e_addr = get_no_addr(e);
 
-  if(c1 != c2 || c1 == TYPE_ARRAY || c2 == TYPE_ARRAY) {
-    ERRSHOW(printf("Operadores relacionais permitidos apenas entre escalares\n"));
+  if(c1 != TYPE_SCALAR || c2 != TYPE_SCALAR || t1 != t2) {
+    ERRSHOW(printf("Operadores relacionais permitidos apenas entre escalares de mesmo tipo"));
   }
   else {
-    // char* op;
-    // switch ($ARITM) {
-    //   case GE: op = 
-    //   case LE:
-    //   case EQ: 
-    //   case NEQ:
-    //   case '<':
-    //   case '>':
-
+    char* e1 = get_no_val($1), *e2 = get_no_val($3);
+    int temp = temp_next();
+    char t_addr[] = "\0\0\0\0\0\0\0";      
+    sprintf(t_addr,"$%d" , temp);
+    $$->addr = temp;
+    switch ($REL_OP) {
+      case GE: {
+        CODESHOW(printf(""));
+      }
+      case LE: {
       
-    //   default:      break;
-    // }
+      }
+      case EQ: {
+      
+      }
+      case NEQ: {
+      
+      }
+      case '<': {
+        CODESHOW(printf("slt %s, %s, %s\n", t_addr, e1, e2));
+      }
+      case '>': {
+      
+      }
+      default:      break;
+    }
   }
-  
-  if( $$->ival <= 127 ) 
-    CODESHOW(
-      printf("|%c| %s, %s, %s\n", $$->ival ,
-        e_addr, e1_addr, e2_addr))
-  else
-    CODESHOW(
-      printf("|%d| %s, %s, %s\n", $$->ival ,
-        e_addr, e1_addr, e2_addr))
 
 }
 
@@ -1444,18 +1509,16 @@ lvalue : ID {
 
 rvalue : expr
 | '{' numList '}' {
-  printf("RVALOR OF LIST : \n");
-  show_num_list($2);
   $$ = $2;
   $$->type = TYPE_LIST;
   // No* expr = yyvsp[0].no;
   // if(expr->sym_entry)
   //   point_no_symentry(&(expr->sym_entry), &$$);
-  printf("rvaluee\n");
 }
 | '{' numListList '}' {
   $$ = $2;
   $$->type = TYPE_LIST_LIST;
+  abort();
 }
 
 %%
@@ -1475,7 +1538,7 @@ int main(int argc){
   reshi = NULL;
   nodeCounter = 0;
   yyparse();
-  WARSHOW(printf(FINISH_PROGRAM ":\n"));
+  LABELSHOW(printf(FINISH_PROGRAM ":\n"));
   CODESHOW(printf("nop\n"));
   WARSHOW(printf("-------TAC'S END---------"));
   if(root && argc == 2) {
