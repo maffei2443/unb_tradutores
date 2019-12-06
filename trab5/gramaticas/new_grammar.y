@@ -1187,11 +1187,16 @@ expr : expr ARITM expr {
   $$->type = TYPE_INT;
   $$->ival = '!';
   add_Node_Child_If_Not_Null($$, $2);
-  if($2->type != TYPE_INT) {
-    ERRSHOW(printf("SOH SE PODE NEGAR LOGICAMENTE\n"));
+  if(Type_Class($2->type) != TYPE_SCALAR) {
+    ERRSHOW(printf("SOH SE PODE NEGAR LOGICAMENTE ESCALARES\n"));
   } else {
     // 1 - ver se eh zero. Se sim, vira 1. Se nao, vira zero.
     // CODESHOW(printf("",));
+    int temp = temp_next();
+    char* e = get_no_val($2);
+    CODESHOW(printf("not $%d, %s\n", temp, e));
+    free(e);
+    $$->addr = temp;
   }
 }
 

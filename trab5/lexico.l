@@ -379,7 +379,6 @@ achar '([a-zA-Z0-9_ +*/=\(\)\[\]\{\}!@#$%*\\/?§:;|-]?)'
   ;
 }
 {unaryOp} {
-  printf("UNARIO: %s\n", yytext);
   currCol += yyleng;
   return yytext[0];
   ;
