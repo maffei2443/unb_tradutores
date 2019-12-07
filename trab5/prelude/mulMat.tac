@@ -61,7 +61,6 @@ showMat_ij:
 // #2: size_j
 // #3: &1
 // #4: &2
-
 __mulMatInt_ikj:
   mul $0, #0, #1
   mema $20, $0  // new_mat de tramanho  sie_i * size_k

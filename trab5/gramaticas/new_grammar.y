@@ -1280,8 +1280,11 @@ call : ID '(' argList ')' {
       if(aux->ast_node) {
         int match = match_paramList(aux->ast_node->param, $argList);
         if(match > 0) {
-          printf("[++++Semantico++++] Argumentos de %s corretos\n", $ID);
+          DBG(printf("[++++Semantico++++] Argumentos de %s corretos\n", $ID));
           CODESHOW(printf("call %s, %d\n", $ID, $argList->ival));
+          int temp = temp_next();
+          CODESHOW(printf("pop $%d\n", temp));
+          $$->addr = temp;
           // Gambiarra para marcar todos os argumentos como has_aux;
           // gambiarra pq nao parece nada legal, mas deve funcionar
 
