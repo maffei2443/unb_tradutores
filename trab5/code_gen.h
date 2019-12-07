@@ -58,5 +58,5 @@ char* get_mat_size(No*);
 
 // Estava no .y, mas deveria aparecer em + de um local
 void check_type_and_convert_on_lr_attr(No* lvalue, No* rvalue);
-
+char* get_mat_base(No*);
 #endif

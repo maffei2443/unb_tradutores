@@ -28,6 +28,11 @@
   }
 #define BLANK_INT "              "
 #define BLANK_FLOAT "                           "
+#define TYPE_AND_CLASS_EXPR() \
+  Type t1 = yyvsp[0].no->type, t2 = yyvsp[-2].no->type;\
+  Type c1 = Type_Class(t1), c2 = Type_Class(t2);\
+  char* s1 = t2s(t1), *s2 = t2s(t2);\
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -714,10 +719,12 @@ localStmt : call ';' {
   Type t1 = $rvalue->type;
   Type c1 = Type_Class(t1);
   if( c1 == TYPE_MAT ) {
+    DBG("prelude showMat_ij")
     CODESHOW(printf("param %s\n", get_no_addr($3)));
     CODESHOW(printf("param %d\n", $3->temp_mat.line));
     CODESHOW(printf("param %d\n", $3->temp_mat.col));
     CODESHOW(printf("call showMat_ij, 3\n"));
+    DBG(printf("end showMat_ij"));
   } else {
     // Sei que nao deveria ser exatamente assim
     char* e = get_no_addr($rvalue);
@@ -1008,21 +1015,28 @@ expr : expr ARITM expr {
       e2_addr = widen($3, $$);
       CODESHOW(printf("%s %s, %s, %s\n", op , e_addr, e1_addr, e2_addr));
     } else if (c1 == TYPE_MAT) {
-      char* e1 = widen($1, $$);
-      char* e2 = widen($3, $$);
+      char* e1 = get_mat_base($1);
+      char* e2 = get_mat_base($3);
       switch($ARITM) {
-        case '+': case '-':
-          CODESHOW(printf("param %s\n", e1));
-          CODESHOW(printf("param %s\n", get_mat_size($1)));
-          CODESHOW(printf("param %s\n", e2));
-          CODESHOW(printf("param %s\n", get_mat_size($3)));
-          CODESHOW(printf("call addMat, 4\n"));
+        case '+': case '-': {
+          int op = $ARITM;
+          CODESHOW(printf("param %s\n", e1)); free(e1); e1 = get_mat_size($1);
+          CODESHOW(printf("param %s\n", e1)); free(e1); 
+          CODESHOW(printf("param %s\n", e2)); free(e2); e2 = get_mat_size($3);
+          CODESHOW(printf("param %s\n", e2));   free(e2);
+          if( op == '+' ){
+            CODESHOW(printf("call __addMat, 4\n"));
+          }
+          else {
+            CODESHOW(printf("call __subMat, 4\n"));
+          }
           int temp = temp_next();
           CODESHOW(printf("pop $%d\n", temp));
           $$->addr = temp;
           $$->temp_mat.line = max($1->temp_mat.line, $3->temp_mat.line);
           $$->temp_mat.col = max($1->temp_mat.col, $3->temp_mat.col);
           break;
+        }
         default:
           ERRSHOW("'*' e '/' nao podem ser usados entre matrizes!\n");
       }
@@ -1076,6 +1090,29 @@ expr : expr ARITM expr {
   add_Node_Child_If_Not_Null($$, $3);
   // SEMANTICO
   $$->type = bin_expr_type( $1->type, $3->type, '@');
+  TYPE_AND_CLASS_EXPR();
+
+  if(c1 == TYPE_MAT && c1 == c2) {
+    DBG(printf("multiplicacao de matrizes"));
+    CODESHOW(printf("param %d // i\n", $1->temp_mat.line)); 
+    CODESHOW(printf("param %d // k\n", $1->temp_mat.col)); 
+    CODESHOW(printf("param %d // j\n", $3->temp_mat.col));
+    char* e1 = get_mat_base($1);
+    char* e2 = get_mat_base($3);
+    CODESHOW(printf("param %s\n", e1)); free(e1);
+    CODESHOW(printf("param %s\n", e2)); free(e2);
+    CODESHOW(printf("call __mulMatInt_ikj, 5\n"));
+    int temp = temp_next();
+    CODESHOW(printf("pop $%d\n", temp));
+    DBG(printf("fim multiplicacao"));
+    $$->addr = temp;
+
+    $$->temp_mat.line = $1->temp_mat.line;
+    $$->temp_mat.col = $3->temp_mat.col;
+  } else {
+    ERRSHOW(printf("%s @@ %s : ambos deveriam ser matrizes\n", s1, s2));
+  }
+
 }
 | expr MAT_POW expr {
   MAKE_NODE(expr);
@@ -1085,6 +1122,16 @@ expr : expr ARITM expr {
   add_Node_Child_If_Not_Null($$, $3);
   // SEMANTICO
   $$->type = bin_expr_type( $1->type, $3->type, MAT_POW);
+  TYPE_AND_CLASS_EXPR();
+  if(c1 == TYPE_MAT && c2 == TYPE_INT) {  // tipos corretos ==> gera cohdigo
+    DBG(printf("Implementar exponenciacao de modo ingenuo[?]\n"));
+  } else {
+    ERRSHOW(printf("Potenciacao de matriz deve ter expoente INTEIRO( %s @@ %s )\n",
+      t2s(t1), t2s(t2) ));
+  }
+
+  // 
+
 }
 
 | expr REL_OP expr {
@@ -1501,7 +1548,7 @@ lvalue : ID {
   assert($$->sym_entry);
 }
 
-rvalue : expr
+rvalue : expr 
 | '{' numList '}' {
   $$ = $2;
   $$->type = TYPE_LIST;

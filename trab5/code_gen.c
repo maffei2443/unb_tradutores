@@ -76,6 +76,7 @@ char* widen(No* src ,No* dest) {
   if(dest->sym_entry)t2 = dest->sym_entry->type;
   else t2 = dest->type;
 
+  // if(t1 == t2) ret = get_no_val(src);  // antigo: esta correto?
   if(t1 == t2) ret = get_no_val(src);
   // Senao, tem tipos distintos e ASSUME 
   if (!can_cast(t1, t2)) {
@@ -229,6 +230,9 @@ char* get_mat_size(No* no) {
   if(no->temp_mat.line != -1 && no->temp_mat.col != -1) { // matriz temporaria
     return itoa( no->temp_mat.line * no->temp_mat.col , calloc(20, sizeof(char)));
   }
+  printf("no->sval, no->tname: %s : %s\n", no->sval, no->tname);
+  printf("line: %d, col: %d\n", no->temp_mat.line, no->temp_mat.col);
+  abort();
   // show_entry(no->sym_entry);
   assert(no->sym_entry);
   if(Type_Class(no->type) != TYPE_MAT ) {
@@ -300,7 +304,8 @@ void check_type_and_convert_on_lr_attr(No* lvalue, No* rvalue) {
           // WARSHOW(printf("no casts\n"));
           CODESHOW(printf("param %s    // src =2\n", get_no_addr(rvalue)));
           CODESHOW(printf("param %s    // dest\n", get_no_addr(lvalue)));
-          CODESHOW(printf("param %s    // qtd \n", get_mat_size(rvalue)));
+          DBG(printf("Tamanhos: %d, %d", rvalue->temp_mat.line, rvalue->temp_mat.col));
+          CODESHOW(printf("param %d    // qtd \n", rvalue->temp_mat.line * rvalue->temp_mat.col  ));
           CODESHOW(printf("call __copyN, 3\n"));
         }
       }
@@ -332,4 +337,22 @@ void check_type_and_convert_on_lr_attr(No* lvalue, No* rvalue) {
   } else {
     ERRSHOW(printf("Proibido operar em classes distintas (%s = %s)\n", s1, s2));
   }  
+}
+
+// Espera receber um noh que tenha como endereco uma matriz.
+// Se for matriz global, gera o cohdigo intermediario necessario. Senao,
+// retorna o temporario associado aa matriz local.
+char* get_mat_base( No* no ) {
+  assert(Type_Class(no->type) == TYPE_MAT);
+  char* addr = get_no_addr(no);
+  if(addr[0] == '&') {
+    int temp = temp_next();
+    CODESHOW(printf("mov $%d, %s\n", temp, addr));
+    char* buf = calloc(20, sizeof(char));
+    sprintf(buf, "$%d", temp);
+    free(addr);
+    return buf;
+  } else {
+    return addr; 
+  }
 }

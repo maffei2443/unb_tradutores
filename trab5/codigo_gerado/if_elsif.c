@@ -2,7 +2,7 @@ int main() {
   // int a = 0-13;
   int a;
   IREAD(a);
-  if(0) {
+  if(a > 0) {
     PRINT('G');
   } else if (a > 0) {
     PRINT('A');    PRINT('Q');

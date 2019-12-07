@@ -1,26 +1,9 @@
 .table
-  float v[4] = {1.4, 2.5, 7.8, 9.87}
-  int mm[4] = {1, 2, 3, 4}
-  int sqr[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9}
+	int mi[4] = { 1, 2, 3, 4 } // matriz
+	int mv[4] = { 1, 2, 3, 4 } // matriz
 .code
 
-// ################## TESTADO
-// #0: &
-// #1: qtd
-show_line:
-  mov $0, 0
-again:
-  mov $1, #0[$0]
-  print $1
-  print ' '
-  add $0, $0, 1
-  mov $2, $0
-  sub $2, $2, #1
-  brnz again, $2
-  println ' '
-  return #0 
-// END 
-// ################## TESTADO
+// PRELUDIO
 
 // ################## TESTADO
 // #0: &
@@ -106,31 +89,60 @@ __mulMatInt_ikj:
     return $20    // referencia para memoria contendo a matriz resultadoo
 // ########### TESTADO
 
-main:
-  mov $0, &sqr
-  // param $0
-  // param 4
-  // call passaConvertendoF2I, 2
-  print 'm'
-  print 'a'
-  print 't'
-  println ':'
-  param $0
-  param 3
-  param 3
-  call showMat_ij, 3
-  param 3
-  param 3
-  param 3
-  param $0
-  param $0
-  call __mulMatInt_ikj, 5
-  
-  pop $0
-  param $0
-  param 3
-  param 3
-  call showMat_ij, 3
+// #0 - src
+// #1 - dest
+// #2 - qtd
+__copyN:
+  mov $0, #2
+  sub $0, $0, 1
+__copyN_loop:
+  mov $1, #0[$0]
+  mov #1[$0], $1
+  brz __copyN_end, $0
+  sub $0, $0, 1
+  jump __copyN_loop
+__copyN_end:
+  return
 
-end:
-  nop
+
+
+// PRELUDIO
+
+main:
+	mema $1, 4
+// multiplicacao de matrizes
+	param 2 // i
+	param 2 // k
+	param 2 // j
+	mov $2, &mi
+	mov $3, &mv
+	param $2
+	param $3
+	call __mulMatInt_ikj, 5
+	pop $4
+// fim multiplicacao
+// multiplicacao de matrizes
+	param 2 // i
+	param 2 // k
+	param 2 // j
+	mov $5, &mi
+	param $4
+	param $5
+	call __mulMatInt_ikj, 5
+	pop $6
+// fim multiplicacao
+	param $6    // src =2
+	param $1    // dest
+// Tamanhos: 2, 2
+	param 4    // qtd 
+	call __copyN, 3
+// 
+	param $1
+	param 2
+	param 2
+	call showMat_ij, 3
+// end showMat_ij
+	jump __yh42340xsAyb8
+__yh42340xsAyb8:
+	nop
+///* -------TAC'S END---------//*/

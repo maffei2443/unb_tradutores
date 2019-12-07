@@ -18,6 +18,7 @@ __copyN_loop:
 __copyN_end:
   return
 
+//
 main:
   mov $1, &src
   param $1

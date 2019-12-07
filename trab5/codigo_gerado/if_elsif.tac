@@ -4,13 +4,15 @@
 main:
 	scani $1
 __newFlow0:
-	brz __afterIfBlock0, 0
+	slt $3, 1, 0
+	not $3, $3
+	brz __afterIfBlock0, $3
 	print 'G'
 	jump __endFlow0
 __afterIfBlock0:
-	slt $3, $1, 0
-	not $3, $3
-	brz __afterIfBlock1, $3
+	slt $5, $1, 0
+	not $5, $5
+	brz __afterIfBlock1, $5
 	print 'A'
 	print 'Q'
 	print 'U'
@@ -54,4 +56,5 @@ __endFlow0:
 __yh42340xsAyb8:
 	nop
 ///* -------TAC'S END---------//*/
+
 
