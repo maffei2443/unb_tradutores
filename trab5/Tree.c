@@ -112,13 +112,6 @@ No* Token_New(char* tname, char* sval) {
 // para NULL. Depois, dah free nessa variavel.
 // NAO TESTADO
 void No_Destroy(No* no) {
-  // printf("[No_Destroy] %p\n", no);
-  // if(!no) return;
-  // // NAO DEVE TER NEXT E AUX; UM OU OUTRO
-  // assert(!(no->has_aux == 1 && no->n != NULL));
-  // no->n = NULL;
-  // no->child = NULL; no -> child_last = NULL;
-  // no->next_aux = NULL; no->param = NULL;
   if(no->sval_alloc)
     DESTROY_PTR(no->sval);
   if(no->tname_alloc) {
@@ -214,16 +207,14 @@ void free_Param_Lis(No* no) {
 // mas soh quando todos os childs jah o tiverem feito tambem.
 // TESTADO, FUNCIONA
 void free_All_Child(No * no) {
-  // printf("[free_All_Child] ToFree? %p\n", no);
-  if(!no) return;
-  No* child = no->child;
-  while(child != NULL) {
-    No* nxt = child->n;
-    free_All_Child(child);
-    child = nxt;
-  }
-  // printf("[free_All_Child-final] %p\n", no);
-  No_Destroy(no);
+  // if(!no) return;
+  // No* child = no->child;
+  // while(child != NULL) {
+  //   No* nxt = child->n;
+  //   free_All_Child(child);
+  //   child = nxt;
+  // }
+  // No_Destroy(no);
 }
 
 void show_Lis(No* head, Field field) {
