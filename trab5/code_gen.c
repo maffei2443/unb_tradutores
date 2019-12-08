@@ -287,6 +287,7 @@ char* get_mat_size(No* no) {
 }
 
 void check_type_and_convert_on_lr_attr(No* lvalue, No* rvalue) {
+  // CASO ESPECIAL : ATRIBUICAO DE ESCALAR A ELEMENTO DA MATRIZ
   char* left_addr, *right_addr = NULL;
   left_addr = get_no_addr(lvalue);
   Type t1 = lvalue->type, t2 = rvalue->type;
@@ -341,7 +342,15 @@ void check_type_and_convert_on_lr_attr(No* lvalue, No* rvalue) {
           CODESHOW(printf("call __copyN, 3\n"));
         }
       }
-      else if (c1 == TYPE_SCALAR) {  
+      else if (c1 == TYPE_SCALAR) { 
+        DBG(printf("scalar on check_type_and_convert_on_lr_attr"));
+        assert(lvalue->child->sym_entry);
+        Type t = lvalue->sym_entry->type;
+        Type clt = Type_Class(t);
+        if( clt != TYPE_SCALAR) {
+          DBG(printf("%s", t2s(t)));
+          WARSHOW(printf("ahhhhh droga!"));
+        }
         if(t1 > t2) { // converter de float <-- float(inteiro)
           int temp = temp_next();
           right_addr = get_no_addr( rvalue );
