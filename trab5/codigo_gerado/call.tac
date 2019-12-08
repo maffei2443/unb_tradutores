@@ -10,7 +10,7 @@ show:
 	println ' '
 	return 0
 foo:
-// >>>>> add (0x55d2f3dd3080) id, tag: x, param
+// >>>>> add (0x55ec03fd3220) id, tag: x, param
 
 	mov $0, #0
 // NOT MATRIX PARAM param
@@ -18,21 +18,27 @@ foo:
 	mov $1, #1
 	mov $2, #2
 	mov $3, #3
-	mov $3, &mi
-	mul $4, 1, 3
-	add $4, $4, 1
-	mov $5, $3[$4]
-// $3[$4]
+///* ?????//*/
+// global matrix
+	mov $4, &mi
+	mul $5, 1, 3
+	add $5, $5, 1
+	mov $5, $4[$5]
+///* -----//*/
+// $4[$5]
 // scalar on check_type_and_convert_on_lr_attr
 // mat(int)
 ///* ahhhhh droga!//*/
-	mov $3[$4], 123
+	mov $4[$5], 123
+///* ?????//*/
+// global matrix
 	mov $6, &mi
 	mul $7, 1, 3
 	add $7, $7, 1
-	mov $8, $6[$7]
+	mov $7, $6[$7]
+///* -----//*/
 // $6[$7]
-	return $8
+	return $7
 	return 0
 main:
 // [++++Semantico++++] Argumentos de foo corretos

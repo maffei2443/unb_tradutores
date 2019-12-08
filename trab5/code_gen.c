@@ -188,7 +188,6 @@ char* get_no_val(No* no) {
     switch(no->type) {
       case TYPE_INT: {
         char* ret = itoa(no->ival, calloc(20, sizeof(char)));
-        // for debug purposes
         return ret;
       }
       case TYPE_FLOAT: {
@@ -197,8 +196,13 @@ char* get_no_val(No* no) {
         return  buf;
       }
     }
-  }  
-  if(no->sym_entry && no->sym_entry->is_global) {  // eh identificador GLOBAL   
+  }
+  else if (no->addr != -1){  // atribuir endereco temporario
+    char* buf = calloc(20, sizeof(char));
+    sprintf(buf, "$%d", no->addr);
+    return buf;
+  }
+  else if(no->sym_entry && no->sym_entry->is_global) {  // eh identificador GLOBAL   
     return str_ptr_clone(no->sym_entry->id);
   } 
   else {
@@ -231,12 +235,14 @@ char* get_no_addr(No* no) {
     switch(no->type) {
       case TYPE_INT: {
         char* ret = itoa(no->ival, calloc(20, sizeof(char)));
+        // DBG(printf("[TYPE_INT]char* ival :: %d\n", no->ival));
         // for debug purposes
         return ret;
       }
       case TYPE_FLOAT: {
         char* buf = calloc(20, sizeof(char));
         sprintf(buf, "%f", no->fval);
+        // DBG(printf("[TYPE_FLOAT]char* fval :: %f\n", no->fval));
         return  buf;
       }
     }

@@ -155,8 +155,12 @@ void show_num_list(No* num_list, Type t) {
 %type<ival> BIN_OP
 %%
 
-program : globalStmtList {
-  $$ = $1;
+program : {
+  LABELSHOW(printf(".table\n"));
+  LABELSHOW(printf("\n"));
+  LABELSHOW(printf(".code\n"));
+}globalStmtList {
+  $$ = $2;
   root = $$;
 }
 
@@ -562,6 +566,7 @@ paramList : paramList ',' param {
   // Para mantes a ordem correta dos parametros
   if(!$3->has_aux) {
     CODESHOW(printf("mov $%d, #%d\n", param_qtd, param_qtd));
+    $1->addr = param_qtd;
     param_qtd++;
     if( Type_Class($3->type) == TYPE_MAT) {
       CODESHOW(printf("mov $%d, #%d\n", param_qtd, param_qtd));
@@ -583,10 +588,14 @@ paramList : paramList ',' param {
 | param {
   $$ = $1;
   CODESHOW(printf("mov $%d, #%d\n", param_qtd, param_qtd));
+  $1->addr = param_qtd;
+  temp_next();
   param_qtd++;
   if( Type_Class($$->type) == TYPE_MAT) {
+    temp_next();
     CODESHOW(printf("mov $%d, #%d\n", param_qtd, param_qtd));
     param_qtd++;
+    temp_next();
     CODESHOW(printf("mov $%d, #%d\n", param_qtd, param_qtd));
     param_qtd++;
   } else {
@@ -954,7 +963,9 @@ defFun : BASE_TYPE ID '('{
   }
   curr_scope = GLOBAL_SCOPE;
   free($ID);$ID = NULL;
+  // Soh faz sentido se houver definicoes aninhadas
   old_context();
+
 }
 
 numListList :  numListList '{' numList '}' {
@@ -1457,6 +1468,7 @@ arg : lvalue {
 num : V_INT {
   MAKE_NODE(num);
   $$->ival = $V_INT;
+  $$->addr = $V_INT;
   // SEMANTICO
   $$->is_const = 1;
   $$->type = TYPE_INT;
@@ -1579,30 +1591,36 @@ lvalue : ID {
   // printf("old->ast_node: %p\n", old->ast_node);
   if(!strcmp(old->escopo, GLOBAL_SCOPE)) { // SE EH GLOBAL, GG
     CODESHOW(printf("mov $%d, %s\n", temp, get_no_addr(old->ast_node)));
-    CODESHOW(printf("mul $%d, %s, %d\n", temp = temp_next(), get_no_addr($3), old->col  ));  
+    CODESHOW(printf("mul $%d, %s, %d\n", temp =temp_next(), get_no_addr($3), old->col  ));  
     CODESHOW(printf("add $%d, $%d, %s\n", temp, temp, get_no_addr($6)));
   } else {
-    printf("NOOOG GLOBAL\n");
-    CODESHOW(printf("klasdkfls"));
-    abort();
+    CODESHOW(printf("mov $%d, $%d\n", temp, old->addr));
+    if(!old->ast_node->is_param) {
+      CODESHOW(printf("mul $%d, %s, %d\n", temp =temp_next(), get_no_addr($3), old->addr+2  ));  
+      CODESHOW(printf("add $%d, $%d, %s\n", temp, temp, get_no_addr($6)));
+    } else {
+      temp =temp_next();
+      CODESHOW(printf("mul $%d, %s, $%d\n", temp, get_no_addr($3),  old->ast_node->addr + 2 ));  
+      CODESHOW(printf("add $%d, $%d, %s\n", temp, temp, get_no_addr($6)));
+
+    }
   }
 
-  temp = temp_next();
+  // temp = temp_next();
+  DBG(printf("desparafusa"));
   char* lvalue_addr = calloc(10, sizeof(char));
-  sprintf(lvalue_addr, "$%d[$%d]", temp-2, temp-1);
+  sprintf(lvalue_addr, "$%d[$%d]", temp-1, temp);
   
-  CODESHOW(printf("mov $%d, %s\n", temp,  lvalue_addr));
-  
+  CODESHOW(printf("mov $%d, %s\n", temp = temp_next(),  lvalue_addr));
   $$->lvalue_addr = lvalue_addr;
-  
-  DBG(printf(lvalue_addr));
-  // abort();
-  $$->addr = temp;
+    
   free($ID); $ID = NULL;
   // Ainda que nao seja matriz, nao faz mal.
   $$->temp_mat.line = old->line;
   $$->temp_mat.col = old->col;
-
+  
+  // para saber onde pegar o conteudo desse acesso
+  $$->addr = temp;
   // assert($$->sym_entry);
 }
 
