@@ -1322,10 +1322,14 @@ call : ID '(' argList ')' {
             Type c1 = Type_Class( arg->type );
             if( c1 == TYPE_MAT || c1 == TYPE_ARRAY ) {   // matriz ou array
               // Empilhar dimensoes da matriz
-              if(!arg->is_param) {    // se nao eh parametro, eh global ou local. De qqer jeito, empilha referencia
-                int temp = temp_next();
-                CODESHOW(printf("mov $%d, &%s\n", temp, arg->sym_entry->id));
-                CODESHOW(printf("param $%d\n", temp));
+              if(!arg->is_param) {    // se nao eh parametro, eh global ou local. Empilha referencia sse for GLOBAL!
+                if(arg->sym_entry->is_global) {
+                  int temp = temp_next();
+                  CODESHOW(printf("mov $%d, &%s\n", temp, arg->sym_entry->id));
+                  CODESHOW(printf("param $%d\n", temp));
+                } else {
+                  CODESHOW(printf("param $%d\n", arg->sym_entry->addr));
+                }
               }
               else {
                 CODESHOW(printf("param %s\n", e));
@@ -1590,6 +1594,8 @@ lvalue : ID {
   // printf("old->id: %s\n", old->id);
   // printf("old->ast_node: %p\n", old->ast_node);
   if(!strcmp(old->escopo, GLOBAL_SCOPE)) { // SE EH GLOBAL, GG
+  DBG(printf("GLOBAL MAT"));
+  abort();
     CODESHOW(printf("mov $%d, %s\n", temp, get_no_addr(old->ast_node)));
     CODESHOW(printf("mul $%d, %s, %d\n", temp =temp_next(), get_no_addr($3), old->col  ));  
     CODESHOW(printf("add $%d, $%d, %s\n", temp, temp, get_no_addr($6)));
