@@ -68,7 +68,7 @@ int declared_curr_fun = 0;
 int check_parameters = 0;
 int err = 0;
 int aborta = 0;
-
+int param_qtd = 0;  // usado para escolher os tmeporarios e variaveis em parametros
 extern Stack* new_flow_stack;
 extern Stack* after_if_stack;
 
@@ -236,7 +236,7 @@ declOrdeclInitVar : typeAndNameSign ';' {
             int sz = $1->temp_mat.col * $1->temp_mat.line;
             printf("%s %s[%d] = {", t2s(base),$1->sym_entry->id, sz);
             char* _ = base == TYPE_INT ? "0" : "0.0";
-            for(int i = 0; i < sz ; i++) {
+            for(int i = 1; i < sz ; i++) {
               printf("%s, ", _);
             }
             printf("%s }\n", _);
@@ -560,7 +560,16 @@ paramListVoid : paramList {
 
 paramList : paramList ',' param {
   // Para mantes a ordem correta dos parametros
-  if(!$1->has_aux) {
+  if(!$3->has_aux) {
+    CODESHOW(printf("mov $%d, #%d\n", param_qtd, param_qtd));
+    param_qtd++;
+    if( Type_Class($3->type) == TYPE_MAT) {
+      CODESHOW(printf("mov $%d, #%d\n", param_qtd, param_qtd));
+      param_qtd++;
+      CODESHOW(printf("mov $%d, #%d\n", param_qtd, param_qtd));
+      param_qtd++;
+    }
+
     $1->has_aux = 1;
     $1->next_aux = $param;
     $1->child_last = $param;
@@ -571,7 +580,19 @@ paramList : paramList ',' param {
   }
   $$ = $1;
 }
-| param 
+| param {
+  $$ = $1;
+  CODESHOW(printf("mov $%d, #%d\n", param_qtd, param_qtd));
+  param_qtd++;
+  if( Type_Class($$->type) == TYPE_MAT) {
+    CODESHOW(printf("mov $%d, #%d\n", param_qtd, param_qtd));
+    param_qtd++;
+    CODESHOW(printf("mov $%d, #%d\n", param_qtd, param_qtd));
+    param_qtd++;
+  } else {
+    DBG(printf("NOT MATRIX PARAM %s\n", $$->tname));
+  }
+}
 
 param : BASE_TYPE ID {
   $$ = Token_New(STR(param), $ID);
@@ -613,7 +634,7 @@ param : BASE_TYPE ID {
   // TODO: checar por declaracao previa de parametro!
   
   $param = Token_New(STR(param), $ID);
-  DBG(printf("%p eh parametro!\n id == %s\n", $param, $ID));
+  // DBG(printf("%p eh parametro!\n id == %s\n", $param, $ID));
   $$->is_param = 1;
   
   SymEntry* neo_entry = add_entry(&reshi, $ID, TAG_PARAM);
@@ -713,6 +734,7 @@ localStmt : call ';' {
 }
 | PRINT '(' rvalue ')' ';' {
   MAKE_NODE(localStmt);
+  // abort();
   No* print_no = Token_New("PRINT","PRINT");
   add_Node_Child_If_Not_Null($$, print_no);
   add_Node_Child_If_Not_Null($$, $rvalue);
@@ -860,6 +882,7 @@ defFun : BASE_TYPE ID '('{
     }
   }
   curr_scope = $ID;
+  param_qtd = 0;
 } paramListVoid ')' '{' declList localStmtList '}' {
   // printf("%p ====== paramListVoid\n", $paramListVoid);
   if(check_signature) {   
@@ -918,9 +941,7 @@ defFun : BASE_TYPE ID '('{
   add_Node_Child_If_Not_Null($$, $declList);
   add_Node_Child_If_Not_Null($$, $localStmtList);  
   def_fun_rule = 0;
-  curr_scope = GLOBAL_SCOPE;
-  free($ID);$ID = NULL;
-  if(strcmp(curr_scope, "main")) {
+  if(!strcmp(curr_scope, "main")) {
     CODESHOW(printf("jump " FINISH_PROGRAM "\n"));
   }
   else {
@@ -931,6 +952,8 @@ defFun : BASE_TYPE ID '('{
       CODESHOW(printf("return 0.0\n"));
     }
   }
+  curr_scope = GLOBAL_SCOPE;
+  free($ID);$ID = NULL;
   old_context();
 }
 
@@ -1281,7 +1304,32 @@ call : ID '(' argList ')' {
         int match = match_paramList(aux->ast_node->param, $argList);
         if(match > 0) {
           DBG(printf("[++++Semantico++++] Argumentos de %s corretos\n", $ID));
-          CODESHOW(printf("call %s, %d\n", $ID, $argList->ival));
+          
+          int arity = 0;
+          for(No* arg = $argList; arg; arg = arg->next_aux) {
+            char* e = get_no_addr(arg);
+            Type c1 = Type_Class( arg->type );
+            if( c1 == TYPE_MAT || c1 == TYPE_ARRAY ) {   // matriz ou array
+              CODESHOW(printf("mov $%d, %s\n", temp, e+1));
+              CODESHOW(printf("param $%d\n", temp));
+              int temp = temp_next();
+              // Empilhar dimensoes da matriz
+              e = get_no_addr(arg->child->n);
+              CODESHOW(printf("param %s\n", e)); free(e);
+              e = get_no_addr(arg->child->n->n);
+              CODESHOW(printf("param %s\n", e)); free(e);
+              Reset();
+
+              if(c1 == TYPE_MAT) {
+                DBG(printf("empilhar dimensoes"));
+              }
+              } else {
+                CODESHOW(printf("param %s\n", e));
+              }
+              arity++;
+          }
+          
+          CODESHOW(printf("call %s, %d\n", $ID, arity));
           int temp = temp_next();
           CODESHOW(printf("pop $%d\n", temp));
           $$->addr = temp;
@@ -1291,12 +1339,12 @@ call : ID '(' argList ')' {
           // No* tmp = 
 
         }
-        else
+        else {
           printf("[----Semantico----] Uso indevido de %s\n", $ID); 
+        }
       } else {
         printf("TODO : CHECAR SE ARGLIST EH VAZIO !!!\n");
-      }
-      
+      }      
     }
     else {
       printf("%s nao eh funcao para ser chamada\n", aux->id);
@@ -1345,7 +1393,6 @@ argList : argList ',' arg {
     $1->child_last = $arg;
   }
   $$ = $1;
-  $$->ival += 1;
 }
 | arg {
   $$ = $1;
@@ -1367,21 +1414,6 @@ arg : lvalue {
   assert( entry );
   assert( entry->ast_node);
   // BoldCyan();
-
-/*   if(entry->is_global)
-    printf("param %s\n", entry->id);
-  else
-    printf("param $%d\n", entry->addr);
- */
-  char *e = get_no_addr( entry->ast_node );
-  
-  CODESHOW(printf("param %s\n", e));
-  // Empilhar dimensoes da matriz
-  e = get_no_addr($3);
-  CODESHOW(printf("param %s\n", e)); free(e);
-  e = get_no_addr($6);
-  CODESHOW(printf("param %s\n", e)); free(e);
-  Reset();
 
   MAKE_NODE(arg);
   $$->type = entry->type;
@@ -1406,12 +1438,12 @@ arg : lvalue {
     }
     else {
       $$->type = entry->type;
-      printf("argType: %s\n", t2s($$->type));
       // TODO: checar dimensoes, mas isso eh em tempo de excucao
     }
   }
   free($ID); $ID = NULL;
 }
+| num  // tinha adicionado de ultima hora, mas bugou :/
 
 num : V_INT {
   MAKE_NODE(num);
@@ -1521,20 +1553,21 @@ lvalue : ID {
   } else if(Type_Class(old->type) != TYPE_MAT) {
     ERRSHOW(printf("[Semantico] Variavel (%s:%s) nao eh matriz para ser indexada duplamente!\n", old->escopo, old->id));
   } else {
-      point_no_symentry(&old, &$$);
-      switch( old->type ) {
-        case TYPE_MAT_INT: $$->type = TYPE_INT; break;
-        case TYPE_MAT_FLOAT: $$->type = TYPE_FLOAT; break;
-        case TYPE_MAT_CHAR: $$->type = TYPE_CHAR; break;
-        default:
-          // nao deve entrar aqui...
-          ERRSHOW(printf("[Semantico] Erro: %s nao eh indexavel!\n",  old->id));
-      }
-      point_no_symentry(&old, &tok);    
+    $$->type = to_base_type( old->type );
+    // point_no_symentry(&old, &$$);
+    switch( old->type ) {
+      case TYPE_MAT_INT: $$->type = TYPE_INT; break;
+      case TYPE_MAT_FLOAT: $$->type = TYPE_FLOAT; break;
+      case TYPE_MAT_CHAR: $$->type = TYPE_CHAR; break;
+      default:
+        // nao deve entrar aqui...
+        ERRSHOW(printf("[Semantico] Erro: %s nao eh indexavel!\n",  old->id));
+    }
+    point_no_symentry(&old, &tok);    
   }
   int temp = temp_next();
-  printf("old->id: %s\n", old->id);
-  printf("old->ast_node: %p\n", old->ast_node);
+  // printf("old->id: %s\n", old->id);
+  // printf("old->ast_node: %p\n", old->ast_node);
   CODESHOW(printf("mov $%d, %s\n", temp, get_no_addr(old->ast_node)));
 
   CODESHOW(printf("mul $%d, %s, %d\n", temp = temp_next(), get_no_addr($3), old->col  ));
@@ -1548,7 +1581,7 @@ lvalue : ID {
   $$->temp_mat.line = old->line;
   $$->temp_mat.col = old->col;
 
-  assert($$->sym_entry);
+  // assert($$->sym_entry);
 }
 
 rvalue : expr 

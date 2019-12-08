@@ -14,7 +14,7 @@ int temp_next() {
 
 void new_context() {
   old_temp = temp;
-  temp = 0;
+  temp = -1;    // desse modo, parametros comecam em 0
 }
 void old_context() {
   temp = old_temp;

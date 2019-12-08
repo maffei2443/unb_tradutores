@@ -124,7 +124,7 @@ void No_Destroy(No* no) {
   if(no->tname_alloc) {
     DESTROY_PTR(no->tname);
   }
-  if (no->param) {
+  if (no->param || no->has_aux) {
     free_Param_Lis(no->param);
   }
   // no->sym_entry = NULL;  // NAO MEXR NA TABELA DE SIMBOLOS!
@@ -197,15 +197,17 @@ void add_Node_Next(No* no, No* next) {
 // Pega proximo, libera atual.
 // ... Ao final, atual serah o ultimo
 void free_Param_Lis(No* no) {
-  printf("[free_Param_Lis] %p\n", no);
+  // DBG(printf("[free_Param_Lis] %p\n", no));
   if(!no) return;
   No* param = no;
-  while(param->has_aux) {
-      printf("\t will free %p\n", param);
+  while(param->next_aux) {
+      // DBG(printf("will free %p\n", param));
       No* next = param->next_aux;
       No_Destroy(param);  // valgrind reclama; mas n dixa leak
       param = next;
   }
+  // printf("\t will free %p\n", param);
+  No_Destroy(param);
 }
 
 // Chama o "freelLis" para child,

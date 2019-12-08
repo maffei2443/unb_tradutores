@@ -183,6 +183,21 @@ char* widen_basic(char* src, Type t_src, Type t_dest) {
 // Em caso de variahvel global, retorna seu nome.
 // NAO POSSUI GERA COHDIGO, MAS PODE MODIFICAR temp pois chama temp_next
 char* get_no_val(No* no) {
+  if(!no) return calloc(1,1);
+  if(no->is_const) {
+    switch(no->type) {
+      case TYPE_INT: {
+        char* ret = itoa(no->ival, calloc(20, sizeof(char)));
+        // for debug purposes
+        return ret;
+      }
+      case TYPE_FLOAT: {
+        char* buf = calloc(20, sizeof(char));
+        sprintf(buf, "%f", no->fval);
+        return  buf;
+      }
+    }
+  }  
   if(no->sym_entry && no->sym_entry->is_global) {  // eh identificador GLOBAL   
     return str_ptr_clone(no->sym_entry->id);
   } 
@@ -212,8 +227,23 @@ char* get_no_addr(No* no) {
   // printf("Addr of >tname = %s\n", no->tname);
   
   if(!no) return calloc(10, sizeof(char));
+  if(no->is_const) {
+    switch(no->type) {
+      case TYPE_INT: {
+        char* ret = itoa(no->ival, calloc(20, sizeof(char)));
+        // for debug purposes
+        return ret;
+      }
+      case TYPE_FLOAT: {
+        char* buf = calloc(20, sizeof(char));
+        sprintf(buf, "%f", no->fval);
+        return  buf;
+      }
+    }
+  }
   char* tmp = get_no_val(no);
   char* ret;
+  // Caso especial de escalares
   if( no->sym_entry && no->sym_entry->is_global ) {
     ret = calloc(strlen(tmp) + 3, sizeof(char));
     ret[0] = '&';
@@ -230,8 +260,9 @@ char* get_mat_size(No* no) {
   if(no->temp_mat.line != -1 && no->temp_mat.col != -1) { // matriz temporaria
     return itoa( no->temp_mat.line * no->temp_mat.col , calloc(20, sizeof(char)));
   }
-  printf("no->sval, no->tname: %s : %s\n", no->sval, no->tname);
+  // printf("no->sval, no->tname: %s : %s\n", no->sval, no->tname);
   printf("line: %d, col: %d\n", no->temp_mat.line, no->temp_mat.col);
+  printf("[get_mat_size] abort");
   abort();
   // show_entry(no->sym_entry);
   assert(no->sym_entry);
