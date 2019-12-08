@@ -1,13 +1,20 @@
-mat int mi[2][3];
+mat int mi[2][3] = {0, 1, 2, 3, 4, 5};
+int show(int x) {
+	PRINT(x);
+	PRINT('');
+}
+
 int foo(int x, mat int mm) {
-	int a = 1;
+	// x = mm[1][1];
+	show(x);
+	x = mi[1][1];
+	show(x);
 	return x;
 }
 
 int main() {
-	// int p = 4;ss
-	// int m = 9;
-	int m = mi[1][2];
-	// int g = foo( 4 , mi(4)(7));
-	// PRINT(g);
+	// mat int mi[10][10];
+	// int m = mi[1][2];
+	int g = foo( 47 , mi(2)(3));
+	show(g);
 }

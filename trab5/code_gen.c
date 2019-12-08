@@ -242,6 +242,7 @@ char* get_no_addr(No* no) {
     }
   }
   char* tmp = get_no_val(no);
+  // DBG(printf("tmp: %s", tmp));
   char* ret;
   // Caso especial de escalares
   if( no->sym_entry && no->sym_entry->is_global ) {

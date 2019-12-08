@@ -357,7 +357,7 @@ typeAndNameSign : BASE_TYPE ID {
       err = 1;
     }
     else {
-      printf("\tDeclaracoes sob escopos distintos.\n");
+      DBG(printf("\tDeclaracoes sob escopos distintos.\n"));
     }
   }
 
@@ -406,7 +406,7 @@ typeAndNameSign : BASE_TYPE ID {
       err = 1;
     }
     else {
-      printf("\tDeclaracoes sob escopos distintos.\n");
+      DBG(printf("\tDeclaracoes sob escopos distintos.\n"));
     }
   }
 
@@ -483,7 +483,7 @@ typeAndNameSign : BASE_TYPE ID {
       err = 1;
     }
     else {
-      printf("\tDeclaracoes sob escopos distintos.\n");
+      DBG(printf("\tDeclaracoes sob escopos distintos.\n"));
     }
   }
 
@@ -1310,23 +1310,30 @@ call : ID '(' argList ')' {
             char* e = get_no_addr(arg);
             Type c1 = Type_Class( arg->type );
             if( c1 == TYPE_MAT || c1 == TYPE_ARRAY ) {   // matriz ou array
-              CODESHOW(printf("mov $%d, %s\n", temp, e+1));
-              CODESHOW(printf("param $%d\n", temp));
-              int temp = temp_next();
               // Empilhar dimensoes da matriz
-              e = get_no_addr(arg->child->n);
-              CODESHOW(printf("param %s\n", e)); free(e);
-              e = get_no_addr(arg->child->n->n);
-              CODESHOW(printf("param %s\n", e)); free(e);
-              Reset();
-
-              if(c1 == TYPE_MAT) {
-                DBG(printf("empilhar dimensoes"));
+              if(!arg->is_param) {    // se nao eh parametro, eh global ou local. De qqer jeito, empilha referencia
+                int temp = temp_next();
+                CODESHOW(printf("mov $%d, &%s\n", temp, arg->sym_entry->id));
+                CODESHOW(printf("param $%d\n", temp));
               }
-              } else {
+              else {
                 CODESHOW(printf("param %s\n", e));
               }
-              arity++;
+              if(c1 == TYPE_MAT) {
+                DBG(printf("empilhar dimensoes"));
+                e = get_no_addr(arg->child->n);
+                CODESHOW(printf("param %s\n", e)); free(e);
+                e = get_no_addr(arg->child->n->n);
+                CODESHOW(printf("param %s\n", e)); free(e);
+                DBG(printf("imensoes empilhadas"));
+                arity += 2;
+                Reset();
+              }
+            } else {
+              CODESHOW(printf("param %s\n", e));
+              free(e);
+            }
+            arity++;
           }
           
           CODESHOW(printf("call %s, %d\n", $ID, arity));
@@ -1416,6 +1423,8 @@ arg : lvalue {
   // BoldCyan();
 
   MAKE_NODE(arg);
+  point_no_symentry(&entry, &$$);
+  $$->sym_entry = entry;
   $$->type = entry->type;
   $$->is_arg = 1;
   entry->is_arg = 1;
@@ -1568,11 +1577,16 @@ lvalue : ID {
   int temp = temp_next();
   // printf("old->id: %s\n", old->id);
   // printf("old->ast_node: %p\n", old->ast_node);
-  CODESHOW(printf("mov $%d, %s\n", temp, get_no_addr(old->ast_node)));
+  if(!strcmp(old->escopo, GLOBAL_SCOPE)) { // SE EH GLOBAL, GG
+    CODESHOW(printf("mov $%d, %s\n", temp, get_no_addr(old->ast_node)));
+    CODESHOW(printf("mul $%d, %s, %d\n", temp = temp_next(), get_no_addr($3), old->col  ));  
+    CODESHOW(printf("add $%d, $%d, %s\n", temp, temp, get_no_addr($6)));
+  } else {
+    printf("NOOOG GLOBAL\n");
+    CODESHOW(printf("klasdkfls"));
+    abort();
+  }
 
-  CODESHOW(printf("mul $%d, %s, %d\n", temp = temp_next(), get_no_addr($3), old->col  ));
-  
-  CODESHOW(printf("add $%d, $%d, %s\n", temp, temp, get_no_addr($6)));
   temp = temp_next();
   CODESHOW(printf("mov $%d, $%d[$%d]\n", temp,temp-2 , temp-1));
   $$->addr = temp;

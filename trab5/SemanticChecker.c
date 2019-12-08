@@ -317,7 +317,7 @@ SymEntry* add_entry(SymEntry** reshi, char* id, int tag) {
       }
       else {
         neo_entry->next = SymEntry_New(id, tag, curr_scope);
-        printf(">>>>> add (%p) id, tag: %s, %s\n", neo_entry->next, id, t2s(tag));
+        DBG(printf(">>>>> add (%p) id, tag: %s, %s\n", neo_entry->next, id, t2s(tag)));
         neo_entry->next->local.line = numlines;
         neo_entry->next->local.col = currCol;
         return neo_entry->next;
