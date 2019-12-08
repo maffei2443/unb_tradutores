@@ -13,11 +13,11 @@ all: Tree.o lex.yy.o new_grammar.tab.o Prints.o Prints.c \
 
 lex.yy.o: lexico.l new_grammar.tab.o
 	flex lexico.l
-	gcc -c lex.yy.c
+	gcc $(FLAGS) -c lex.yy.c
 
 new_grammar.tab.o: new_grammar.y Common.o Common.h
 	bison $(BFLAGS) new_grammar.y
-	gcc -c new_grammar.tab.c
+	gcc $(FLAGS) -c new_grammar.tab.c
 
 SemanticChecker.tab.o: SemanticChecker.c SemanticChecker.h new_grammar.tab.h Common.o
 	gcc $(FLAGS) -c SemanticChecker.c
