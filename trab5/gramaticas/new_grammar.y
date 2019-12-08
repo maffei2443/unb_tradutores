@@ -1588,7 +1588,15 @@ lvalue : ID {
   }
 
   temp = temp_next();
-  CODESHOW(printf("mov $%d, $%d[$%d]\n", temp,temp-2 , temp-1));
+  char* lvalue_addr = calloc(10, sizeof(char));
+  sprintf(lvalue_addr, "$%d[$%d]", temp-2, temp-1);
+  
+  CODESHOW(printf("mov $%d, %s\n", temp,  lvalue_addr));
+  
+  $$->lvalue_addr = lvalue_addr;
+  
+  DBG(printf(lvalue_addr));
+  // abort();
   $$->addr = temp;
   free($ID); $ID = NULL;
   // Ainda que nao seja matriz, nao faz mal.

@@ -6,10 +6,10 @@ int show(int x) {
 
 int foo(int x, mat int mm) {
 	// x = mm[1][1];
-	show(x);
-	x = mi[1][1];
-	show(x);
-	return x;
+	// show(x);
+	mi[1][1] = 123;	
+	// show(x);
+	return mi[1][1];
 }
 
 int main() {

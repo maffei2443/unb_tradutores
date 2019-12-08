@@ -345,7 +345,7 @@ void check_type_and_convert_on_lr_attr(No* lvalue, No* rvalue) {
       else if (c1 == TYPE_SCALAR) { 
         DBG(printf("scalar on check_type_and_convert_on_lr_attr"));
         assert(lvalue->child->sym_entry);
-        Type t = lvalue->sym_entry->type;
+        Type t = lvalue->child->sym_entry->type;
         Type clt = Type_Class(t);
         if( clt != TYPE_SCALAR) {
           DBG(printf("%s", t2s(t)));
@@ -366,12 +366,14 @@ void check_type_and_convert_on_lr_attr(No* lvalue, No* rvalue) {
           right_addr = get_no_addr(rvalue);
           BoldCyan();
           printf("\tmov ");
-          if(left_addr[0] == '&') printf("%s, ",left_addr + 1);
-          else printf("%s, ",left_addr);
-          free(left_addr);
-          if(right_addr[0] == '&') printf("%s\n",right_addr + 1);
-          else printf("%s\n",right_addr);
-          free(right_addr);
+          if(!lvalue->lvalue_addr ) {
+            if(left_addr[0] == '&')printf("%s, ",left_addr + 1);
+            else printf("%s, ",left_addr);  free(left_addr);
+          } else {
+            printf("%s, ", lvalue->lvalue_addr);
+          }
+            if(right_addr[0] == '&') printf("%s\n",right_addr + 1);
+            else printf("%s\n",right_addr); free(right_addr);
         }
       }
     }

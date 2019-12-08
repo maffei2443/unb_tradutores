@@ -125,6 +125,10 @@ void No_Destroy(No* no) {
   //   DESTROY_PTR(no->scope);
   // Code_Destroy(no->code);
   // // free(no->code);
+  if(no->lvalue_addr) {
+    DESTROY_PTR(no->lvalue_addr);
+  }
+
   DESTROY_PTR(no);
 }
 

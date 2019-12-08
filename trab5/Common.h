@@ -196,6 +196,7 @@ typedef struct No {
   } temp_mat;
    // campo utilizado basicamente por EXPRESSOES, para usar como temporario (ver. pgn 389)
   //  Contudo, pode ser utilizado para outros fins, evidentemente
+  char* lvalue_addr;  // usado em coisas do tipo a[x][y] = z
 } No;
 
 unsigned long critical_error;
