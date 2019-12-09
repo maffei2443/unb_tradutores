@@ -39,7 +39,7 @@ FILE* arquivo_saida;
 #define ERRSHOW(X) \
   { critical_error++;\
   BoldRed(); \
-  printf("/* ");\
+  printf("///* ");\
   X;\
   printf("*/\n");Reset();}
 

@@ -53,7 +53,7 @@ again:
 // #0: &
 // #1: size_i
 // #2: size_j
-showMat_ij:
+__showMat_ij:
   mov $0, 0   // iterador i
   mov $5, 0   // iterador j
 pre_again_ij:
@@ -99,7 +99,7 @@ main:
   param $0
   param 2
   param 2
-  call showMat_ij, 3
+  call __showMat_ij, 3
 
 
 end:

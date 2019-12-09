@@ -26,7 +26,7 @@ again:
 // #0: &
 // #1: size_i
 // #2: size_j
-showMat_ij:
+__showMat_ij:
   mov $0, 0   // iterador i
   mov $5, 0   // iterador j
   pre_again_ij:
@@ -61,7 +61,7 @@ showMat_ij:
 // #2: size_j
 // #3: &1
 // #4: &2
-__mulMatInt_ikj:
+__mulScalarMat_ikj:
   mul $0, #0, #1
   mema $20, $0  // new_mat de tramanho  sie_i * size_k
 
@@ -117,19 +117,19 @@ main:
   param $0
   param 3
   param 3
-  call showMat_ij, 3
+  call __showMat_ij, 3
   param 3
   param 3
   param 3
   param $0
   param $0
-  call __mulMatInt_ikj, 5
+  call __mulScalarMat_ikj, 5
   
   pop $0
   param $0
   param 3
   param 3
-  call showMat_ij, 3
+  call __showMat_ij, 3
 
 end:
   nop

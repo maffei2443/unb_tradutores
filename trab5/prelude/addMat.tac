@@ -54,7 +54,7 @@ __subStart:
 	println $6
 	brz __subEnd, $3 
 	sub $3, $3, 1				
-	__jump subStart
+	jump __subStart
 __subEnd:
 	return $10
 		// calculando indice de acesso

@@ -1,3 +1,5 @@
+/* QUEBRADO */
+
 .table
 .code
 // Espera 2 parametros:

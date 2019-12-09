@@ -754,7 +754,7 @@ localStmt : call ';' {
     CODESHOW(printf("param %s\n", get_no_addr($3)));
     CODESHOW(printf("param %d\n", $3->temp_mat.line));
     CODESHOW(printf("param %d\n", $3->temp_mat.col));
-    CODESHOW(printf("call showMat_ij, 3\n"));
+    CODESHOW(printf("call __showMat_ij, 3\n"));
     DBG(printf("end showMat_ij"));
   } else {
     // Sei que nao deveria ser exatamente assim
@@ -775,7 +775,7 @@ localStmt : call ';' {
     CODESHOW(printf("param %s\n", get_no_addr($3)));
     CODESHOW(printf("param %d\n", $3->temp_mat.line));
     CODESHOW(printf("param %d\n", $3->temp_mat.col));
-    CODESHOW(printf("call showMat_ij, 3\n"));
+    CODESHOW(printf("call __ showMat_ij, 3\n"));
     DBG(printf("end showMat_ij"));
   } else {
     // Sei que nao deveria ser exatamente assim
@@ -1056,6 +1056,7 @@ expr : expr ARITM expr {
 
   MAKE_NODE(expr);
   $$->ival = $ARITM;
+  int op_code = $ARITM;
   No* e = $$, *e1 = $1, *e2 = $3;
   Type t1 = e1->type, t2 = e2->type;
   $$->type = bin_expr_type( t1, t2, $$->ival);
@@ -1108,7 +1109,50 @@ expr : expr ARITM expr {
       }
     }
   } else if (c1 == TYPE_SCALAR && c2 == TYPE_MAT) {
+    if(op_code == '*') {    
+      char* e = get_mat_base( $3 );
+      if(e[0] == '&') {
+        CODESHOW(printf("mov $%d, %s\n", temp_next(), e));
+        CODESHOW(printf("param %s\n", e));
+      } else {
+        CODESHOW(printf("param %s\n", e));
+      }
+      free(e);  
+      e = get_mat_size( $3 );
+      CODESHOW(printf("param %s\n", e));
+      
+      e = get_no_addr( $1 );
+      CODESHOW(printf("param %s\n", e));
+      free(e);
+
+      CODESHOW(printf("call __mulScalarMat_ikj, 3\n"));
+      $$->addr = temp_next();
+      CODESHOW(printf("pop $%d\n", $$->addr));
+      $$->type = t2;
+    }
     ERRSHOW("Nao deu tempo de implementar, mas era para ser possivel apenas somar/subtrair inteiro DE matriz\n");
+  } else if (c1 == TYPE_MAT && c2 == TYPE_SCALAR) {
+      char* e = get_no_addr( $1 );
+      if(e[0] == '&') {
+        CODESHOW(printf("mov $%d, %s\n", temp_next(), e));
+        CODESHOW(printf("param %s\n", e));
+      } else {
+        CODESHOW(printf("param %s\n", e));
+      }
+      free(e);  
+
+      e = get_mat_size( $3 );
+      CODESHOW(printf("param %s\n", e));
+      free(e);
+
+      e = get_no_addr( $1 );
+      CODESHOW(printf("param %s\n", e));
+      free(e);
+
+      CODESHOW(printf("call __divScalarMat, 3\n"));
+      $$->addr = temp_next();
+      CODESHOW(printf("pop $%d\n", $$->addr));
+
   }
   
   free(e2_addr);
@@ -1144,7 +1188,8 @@ expr : expr ARITM expr {
   }
   if($1->type == TYPE_INT && $3->type == TYPE_INT) {
     char *addr1 = get_no_addr($1), *addr2 = get_no_addr($3);
-    CODESHOW(printf("mod $%d, %s, %s\n", temp_next() ,addr1, addr2));
+    $$->addr = temp_next();
+    CODESHOW(printf("mod $%d, %s, %s\n", $$->addr ,addr1, addr2));
   } else {ERRSHOW(printf("mod com operandos nao inteiros! %s %% %s",
     t2s($1->type), t2s($3->type)));}
 }
@@ -1167,7 +1212,7 @@ expr : expr ARITM expr {
     char* e2 = get_mat_base($3);
     CODESHOW(printf("param %s\n", e1)); free(e1);
     CODESHOW(printf("param %s\n", e2)); free(e2);
-    CODESHOW(printf("call __mulMatInt_ikj, 5\n"));
+    CODESHOW(printf("call __mulScalarMat_ikj, 5\n"));
     int temp = temp_next();
     CODESHOW(printf("pop $%d\n", temp));
     DBG(printf("fim multiplicacao"));
