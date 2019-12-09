@@ -11,6 +11,7 @@ main:
 	println $0
 	println 'F'
 ///* lvalue type : float//*/
+	println $0
 	println $1
 	jump __yh42340xsAyb8
 __yh42340xsAyb8:
