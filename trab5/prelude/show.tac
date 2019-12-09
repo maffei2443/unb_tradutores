@@ -19,6 +19,24 @@ again:
   return #0 
 // END 
 
+// #0: &
+// #1: qtd
+// #2: escalar
+__mulScalarMat:
+  mov $0, 0
+  mema $5, #1
+__again_mulScalarMat:
+  mov $1, #0[$0]    // recuperar valor a ser multiplicado
+  mul $1, $1, #2    // multiplicar valor
+  mov $5[$0], $1    // salvar valor mutiplicado
+
+  add $0, $0, 1
+  mov $2, $0
+  sub $2, $2, #1
+  brnz __again_mulScalarMat, $2
+  return $5
+// END 
+
 
 // #0: &
 // #1: size_i
@@ -67,6 +85,19 @@ main:
   print 't'
   println ':'
   param $0
+  param 2
+  param 2
+  call showMat_ij, 3
+
+  param $0
+  param 4
+  param 2.0
+  call __mulScalarMat, 3
+  pop $4
+
+  println 
+
+  param $4
   param 2
   param 2
   call showMat_ij, 3

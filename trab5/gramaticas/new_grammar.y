@@ -788,7 +788,7 @@ localStmt : call ';' {
   $$->ival = $V_ASCII;
   add_Node_Child_If_Not_Null($$, Token_New("PRINT","PRINT"));
   switch($V_ASCII) {
-    case '\n': CODESHOW(printf("println ' '\n")); break;
+    case '\n': CODESHOW(printf("println \n")); break;
     default: CODESHOW(printf("print '%c'\n", $V_ASCII));
   }
   // printf("PRINT-abort");
