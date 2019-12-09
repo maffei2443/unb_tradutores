@@ -132,7 +132,7 @@ void show_num_list(No* num_list, Type t) {
 %token MAT_TYPE IF ID ICAST FCAST ELSE
 
 
-%token RETURN PRINT IREAD FREAD COPY
+%token RETURN PRINT IREAD FREAD COPY SHOW
 %token AND OR
 %token BIN_OP
 %token ERRU
@@ -762,6 +762,27 @@ localStmt : call ';' {
     CODESHOW(printf("print %s\n", e[0] == '&' ? e + 1 : e));
   }
 }
+| SHOW '(' rvalue ')' ';' {
+  MAKE_NODE(localStmt);
+  // abort();
+  No* print_no = Token_New("SHOW","SHOW");
+  add_Node_Child_If_Not_Null($$, print_no);
+  add_Node_Child_If_Not_Null($$, $rvalue);
+  Type t1 = $rvalue->type;
+  Type c1 = Type_Class(t1);
+  if( c1 == TYPE_MAT ) {
+    DBG("prelude showMat_ij")
+    CODESHOW(printf("param %s\n", get_no_addr($3)));
+    CODESHOW(printf("param %d\n", $3->temp_mat.line));
+    CODESHOW(printf("param %d\n", $3->temp_mat.col));
+    CODESHOW(printf("call showMat_ij, 3\n"));
+    DBG(printf("end showMat_ij"));
+  } else {
+    // Sei que nao deveria ser exatamente assim
+    char* e = get_no_addr($rvalue);
+    CODESHOW(printf("println %s\n", e[0] == '&' ? e + 1 : e));
+  }
+}
 | PRINT '(' V_ASCII ')' ';' {
   MAKE_NODE(localStmt);
   $$->ival = $V_ASCII;
@@ -769,6 +790,17 @@ localStmt : call ';' {
   switch($V_ASCII) {
     case '\n': CODESHOW(printf("println ' '\n")); break;
     default: CODESHOW(printf("print '%c'\n", $V_ASCII));
+  }
+  // printf("PRINT-abort");
+  // abort();
+}
+| SHOW '(' V_ASCII ')' ';' {
+  MAKE_NODE(localStmt);
+  $$->ival = $V_ASCII;
+  add_Node_Child_If_Not_Null($$, Token_New("SHOW","SHOW"));
+  switch($V_ASCII) {
+    case '\n': CODESHOW(printf("println ' '\n")); break;
+    default: CODESHOW(printf("println '%c'\n", $V_ASCII));
   }
   // printf("PRINT-abort");
   // abort();
@@ -1276,6 +1308,14 @@ expr : expr ARITM expr {
     ERRSHOW(
       printf("[Semantico] Erro: nao pode converter nao-escalar (e.g %s) para inteiro.\n", t2s($3->type))
       );
+  } else {
+    $$->addr = temp_next();
+    char* e = get_no_addr($3);
+    if($3->type == TYPE_FLOAT) {
+      CODESHOW(printf("fltoint $%d, %s\n", $$->addr, e ));
+    } else {
+      ERRSHOW(printf("Cast invalido : %s-> %s\n", t2s($3->type), t2s(TYPE_INT)));
+    }
   }
 }
 | FCAST '(' expr ')' {
@@ -1287,7 +1327,15 @@ expr : expr ARITM expr {
   if(Type_Class($3->type) != TYPE_SCALAR) {
     ERRSHOW(printf("[Semantico] Erro: nao pode converter nao-escalar (e.g %s) para inteiro.\n",
       t2s($3->type)));
-  }  
+  } else {
+    $$->addr = temp_next();
+    char* e = get_no_addr($3);
+    if($3->type == TYPE_INT) {
+      CODESHOW(printf("inttofl $%d, %s\n", $$->addr, e));
+    } else {
+      ERRSHOW(printf("[FCAST] Cast invalido : %s-> %s\n", t2s(TYPE_INT), t2s($3->type) ));
+    }
+  } 
 }
 | lvalue
 | call 
@@ -1502,6 +1550,7 @@ lvalue : ID {
       point_no_symentry(&entry, &$$);
       point_no_symentry(&entry, &tok);
       $$->type = entry->type;
+      WARSHOW(printf("lvalue type : %s", t2s($$->type)));
       // $$->is_arg = 
       // DBG(printf("lvalue %s type: %s\n", $ID, t2s($$->type)));
     }

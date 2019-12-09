@@ -42,7 +42,7 @@ comment \/\/.*
 base_types int|float|char
 types mat|{base_types}
 flux_control while|if|else|return
-reserved_words {types}|{flux_control}|"COPY"|"PRINT"|"IREAD"|"FREAD"|"ICAST"|"FCAST"|"ahead"|"def"
+reserved_words {types}|{flux_control}|"COPY"|"print"|"show"|"IREAD"|"FREAD"|"ICAST"|"FCAST"|"ahead"|"def"
 
 sep [ \t\n\(\)<>[\]\{},.;=]
 par [()]
@@ -287,7 +287,7 @@ achar '([a-zA-Z0-9_ +*/=\(\)\[\]\{\}!@#$%*\\/?§:;|-]?)'
       // showCopy(); currCol += yyleng;
       return COPY;
       break;
-    case 'P':
+    case 'p':
       // showPrint(); currCol += yyleng;
       return PRINT;
       break;
@@ -299,6 +299,10 @@ achar '([a-zA-Z0-9_ +*/=\(\)\[\]\{\}!@#$%*\\/?§:;|-]?)'
       currCol += yyleng;
       if(yy1 == 'R') return FREAD;
       else if (yy1 == 'C') return FCAST;
+    
+    case 's':
+      currCol += yyleng;
+      return SHOW;
     
   }
 }
