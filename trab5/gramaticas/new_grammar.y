@@ -1714,6 +1714,10 @@ int main(int argc){
   yyparse();
   LABELSHOW(printf(FINISH_PROGRAM ":\n"));
   CODESHOW(printf("nop\n"));
+  SymEntry* main_entry = last_decl( &reshi, "main" );
+  if( !main_entry || strcmp(main_entry->escopo, "0global") || main_entry->tag != TAG_DEF_FUN ) {
+    ERRSHOW(printf("ERRO : Deve haver uma funcao main"));
+  }
   WARSHOW(printf("-------TAC'S END---------"));
   if(root && argc == 2) {
     show_Sub_Tree(root, 1, SVAL);
