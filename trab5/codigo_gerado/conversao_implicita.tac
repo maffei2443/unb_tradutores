@@ -11,6 +11,7 @@ main:
 	add $2, $3, $1
 // scalar on check_type_and_convert_on_lr_attr
 	mov $1, $2
+	mov $1, $2
 ///* lvalue type : float//*/
 	println $1
 ///* lvalue type : int//*/

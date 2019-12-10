@@ -257,7 +257,6 @@ declOrdeclInitVar : typeAndNameSign ';' {
     ERRSHOW(printf("[Semantico] NAo foi possivel construir <declOrdeclInitVar> devido a erro semantico.\n"));
   }
   else {
-    // printf("typeAndNameSign '=' rvalue ';'\n");
     MAKE_NODE(declOrdeclInitVar);
     add_Node_Child_If_Not_Null($$, $typeAndNameSign);
     add_Node_Child_If_Not_Null($$, $rvalue);
@@ -269,7 +268,6 @@ declOrdeclInitVar : typeAndNameSign ';' {
 
     char* r;
     char* l = get_no_addr($1);    
-  // printf("Escopos: %s vs %s\n",curr_scope, GLOBAL_SCOPE);
     if(left_class == right_class || (left_class == TYPE_MAT && t2 == TYPE_LIST)) {      
       if(t1 == t2 || (left_class == TYPE_MAT && t2 == TYPE_LIST)) {
         if(!strcmp(curr_scope, GLOBAL_SCOPE)) {
@@ -332,7 +330,7 @@ declOrdeclInitVar : typeAndNameSign ';' {
         }
       } else if ( left_class == TYPE_MAT ) {
         if(right_class == TYPE_MAT) {
-          CODESHOW(printf("TODO: atribuicao de matriz para matriz: %s <- %s\n", 
+          WARSHOW(printf("TODO: atribuicao de matriz para matriz: %s <- %s\n", 
             t2s(t1), t2s(t2)));
         }
       } else if( left_class == TYPE_MAT) {
@@ -697,10 +695,96 @@ localStmt : call ';' {
   add_Node_Child_If_Not_Null($$, $rvalue);  
   check_type_and_convert_on_lr_attr($lvalue, $rvalue);
   Reset();
-  // FIM PARTE DO CAST
+  if($1 != NULL && $3 != NULL) {
+    MAKE_NODE(localStmtList);
+    add_Node_Child_If_Not_Null($$, $1);
+    add_Node_Child_If_Not_Null($$, $rvalue);
+    No* decl = $1, *rval = $3;
+    Type t1 = $1->type, t2 = $3->type;
+    
+    Type left_class = Type_Class(t1);
+    Type right_class = Type_Class(t2);
 
-  // INICIO PARTE DO MOV
+    char* r;
+    char* l = get_no_addr($1);    
+    if(left_class == right_class || (left_class == TYPE_MAT && t2 == TYPE_LIST)) {      
+      if(t1 == t2 || (left_class == TYPE_MAT && t2 == TYPE_LIST)) {
+        if(!strcmp(curr_scope, GLOBAL_SCOPE)) {
+          if(!$3->is_const) {
+            ERRSHOW(printf("Erro: inicializacao de global com valores nao constantes\n"));
+          } else {
+            // abort();
+            SymEntry* entry = $1->sym_entry;
+            if(left_class == TYPE_MAT) {
+              // abort();
+              GLOBALSHOW(
+                printf("%s %s[%d] = { ", t2s(to_base_type( entry->type )),entry->id,
+                $1->temp_mat.line * $1->temp_mat.col  );
+                show_num_list($rvalue, to_base_type($1->type));
+                fflush(stdout);
+                // for(int i = 0; i < $1->ival-1; i++) {
+                //   printf("0, ");
+                // }
+                printf("} // matriz\n");
+                // abort();
+              );
+            } else if(t1 == TYPE_FLOAT) {
+              LABELSHOW(printf(" = %f\n", $3->fval));
+            } else {
+              LABELSHOW(printf(" = %d\n", $3->ival));
+            }            
+          }
+        } else {
+          // abort();
+          CODESHOW( printf("mov %s, %s\n", get_no_val(decl), get_no_addr(rval)) );
+        }
+      } else {  // efetuar conversoes, jah que sao de mesma classe
+        // Converter do tipo de rvalue -> declOrInitVar 
+        if(left_class < right_class) {
+          printf("[Warning] Conversao %s -> %s vai perder informacao\n", t2s(t1), t2s(t2));
+          // r = narrow(rval,decl);
+          switch(left_class) {
+            case TYPE_MAT: CODESHOW(printf("Converter para matriz de int\n")); break;
+            case TYPE_ARRAY: CODESHOW(printf("Nao se pode operar sobre arrays %d\n", 2)); break;
+            case TYPE_SCALAR: CODESHOW(printf("Converter float -> int\n")); break;
+          } 
+        } else {  // conversao widen
+          CODESHOW(printf("Widening ..."));
+          r = widen(rval,decl);
+          switch(left_class) {
+            case TYPE_MAT: CODESHOW(printf("Convertes para matriz de float\n")); break;
+            case TYPE_ARRAY: CODESHOW(printf("Nao se pode operar sobre arrays %d\n", 2)); break;
+            case TYPE_SCALAR: { CODESHOW(printf("Convertendo... "));break;}
+          }
+          CODESHOW(printf("mov %s, %s\n", l, r));
+        }        
+      }
+    } else {
+      if( left_class == TYPE_SCALAR ) {
+        if (right_class == TYPE_SCALAR) {
+          printf("Atibuicao entre escalares ok\n");
+        }
+        else {
+          ERRSHOW(printf("[Semantico] Erro de Atribuicao: %s = %s\n!", t2s(t1), t2s(t2)));
+        }
+      } else if ( left_class == TYPE_MAT ) {
+        if(right_class == TYPE_MAT) {
+          WARSHOW(printf("TODO: atribuicao de matriz para matriz: %s <- %s\n", 
+            t2s(t1), t2s(t2)));
+        }
+      } else if( left_class == TYPE_MAT) {
+        if ($rvalue->type != TYPE_LIST_LIST) {
+          ERRSHOW(printf("[Semantico] Erro: inicializacao de matriz com %s\n", t2s($rvalue->type)));
+        }
+        else {
+          WARSHOW(printf("DEVENDO:INICIALIZAR MATRIZ COM NUMEROS"));
+        }
+      }
+    }
+    DESTROY_PTR(l); DESTROY_PTR(r);
+  }
   // ################# VAI VIRAR FUNCAO
+
 }
 | newFlowControl {
   MAKE_NODE(localStmt);
@@ -1276,22 +1360,33 @@ expr : expr ARITM expr {
     $$->addr = temp;
     char* op;
     switch($REL_OP) {
-      case GE:case LE: op = "sleq"; break;
-      case EQ:case NEQ: op = "seq"; break;
-      case '<':case '>': op = "slt"; break;
+      case LE:
+      case '>':
+        op = "sleq"; break;
+
+      case EQ:
+      case NEQ: 
+        op = "seq"; break;        
+      
+      case '<':
+      case GE:
+        op = "slt"; break;
     }
     switch($REL_OP) {
-      case LE: case EQ: case '<':
+      case LE:
+      case EQ: 
+      case '<':
         CODESHOW(printf("%s %s, %s, %s\n", op, t_addr, e1, e2));
         $$->addr = temp;
         break;
-      case GE: case '>': case NEQ: // operacoes nao implementadas nativamente pelo TAC
+      case '>': case NEQ: case GE:
         CODESHOW(printf("%s %s, %s, %s\n", op, t_addr, e1, e2));
-        CODESHOW(printf("not %s, %s\n", t_addr, t_addr));
+        CODESHOW(printf("not %s, %s\n", t_addr, t_addr));        
         $$->addr = temp;
         break;
       default: ERRSHOW(printf("operador relacional nao reconhecido"));abort();
     }
+    $$->addr = temp;
   }    
 }
 
@@ -1387,6 +1482,7 @@ expr : expr ARITM expr {
 | num 
 
 call : ID '(' argList ')' {
+  WARSHOW(printf("CALLLL\n"));
   MAKE_NODE(call);
   add_Node_Child_If_Not_Null($$, Token_New("ID", $ID));
   add_Node_Child_If_Not_Null($$, $argList);
@@ -1402,7 +1498,10 @@ call : ID '(' argList ')' {
   else{
     $$->type = aux->type;
     if(is_fun (aux->tag)) {
-      // printf("%s eh uma funcao!.\n", aux->id);
+      WARSHOW(printf("%s eh uma funcao!.\n", aux->id));
+      fflush(stdout);
+      WARSHOW(printf("%s!.\n", aux->id));
+      fflush(stdout);
       // Ver se assinatura bate com a declaracao!
       if(aux->ast_node) {
         int match = match_paramList(aux->ast_node->param, $argList);
@@ -1458,7 +1557,7 @@ call : ID '(' argList ')' {
           printf("[----Semantico----] Uso indevido de %s\n", $ID); 
         }
       } else {
-        printf("TODO : CHECAR SE ARGLIST EH VAZIO !!!\n");
+        WARSHOW(printf("TODO : CHECAR SE ARGLIST EH VAZIO !!!\n"));
       }      
     }
     else {

@@ -1,6 +1,4 @@
-.table
 .code
-
 main:
 	mov $0, 0
 __newWhile0:
@@ -28,6 +26,7 @@ __endFlow0:
 ///* lvalue type : int//*/
 	add $4, $0, 1
 // scalar on check_type_and_convert_on_lr_attr
+	mov $0, $4
 	mov $0, $4
 	jump __newWhile0
 __endWhile0:

@@ -2,25 +2,25 @@ int main() {
   // int a = 0-13;
   int a;
   IREAD(a);
-  if(a > 0) {
-    PRINT('G');
+  if(0) {
+    print('G');
   } else if (a > 0) {
-    PRINT('A');    PRINT('Q');
-    PRINT('U');    PRINT('I');
-    PRINT('');
-    if(1) {
-      PRINT('');
-    } else {PRINT(897);}
+    print('A');    print('Q');
+    print('U');    print('I');
+    print('');
+    if(0) {
+      print('');
+    } else {print(897);}
   } else {
-    PRINT(123456);
+    print(123456);
     if(1) {
-      PRINT(111);
+      print(111);
     } else {
-      PRINT(333);
+      print(333);
     }
   }
-  PRINT('e');
-  PRINT('n');
-  PRINT('d');
-  PRINT('');
+  print('e');
+  print('n');
+  print('d');
+  print('');
 }

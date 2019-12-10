@@ -1,26 +1,27 @@
-.table
-.code
 
+.table
+
+.code
 main:
-	scani $1
+///* lvalue type : int//*/
+	scani $0
 __newFlow0:
-	slt $3, 1, 0
-	not $3, $3
-	brz __afterIfBlock0, $3
+	brz __afterIfBlock0, 0
 	print 'G'
 	jump __endFlow0
 __afterIfBlock0:
-	slt $5, $1, 0
-	not $5, $5
-	brz __afterIfBlock1, $5
+///* lvalue type : int//*/
+	sleq $2, $0, 0
+	not $2, $2
+	brz __afterIfBlock1, $2
 	print 'A'
 	print 'Q'
 	print 'U'
 	print 'I'
-	println ' '
+	println 
 __newFlow1:
-	brz __afterIfBlock2, 1
-	println ' '
+	brz __afterIfBlock2, 0
+	println 
 	jump __endFlow1
 __afterIfBlock2:
 	print 897
@@ -51,10 +52,8 @@ __endFlow0:
 	print 'e'
 	print 'n'
 	print 'd'
-	println ' '
+	println 
 	jump __yh42340xsAyb8
 __yh42340xsAyb8:
 	nop
 ///* -------TAC'S END---------//*/
-
-
