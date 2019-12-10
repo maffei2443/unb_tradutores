@@ -1,23 +1,28 @@
 
 \begin{lstlisting}[texcl=true]
-program : globalStmtList 
+program : globalStmtList
+
 globalStmtList : globalStmtList globalStmt
-| 
+|
+
 globalStmt : defFun 
 | declFun ; 
 | declOrdeclInitVar
-| declFun error
-declFun : ahead BASE_TYPE ID 
+
+declFun : ahead BASE_TYPE ID ( paramListVoid )
+
+declOrdeclInitVar : typeAndNameSign ;
+| typeAndNameSign = rvalue ; 
+
 typeAndNameSign : BASE_TYPE ID 
 | BASE_TYPE ID [ num ] 
 | mat BASE_TYPE ID [ num ] [ num ] 
-declOrdeclInitVar : typeAndNameSign ;
-| typeAndNameSign = rvalue ; 
-| typeAndNameSign = rvalue error
+
 paramListVoid : paramList 
 | 
 paramList : paramList , param 
 | param 
+
 param : BASE_TYPE ID 
 | BASE_TYPE ID [ ] 
 | mat BASE_TYPE ID 
@@ -25,67 +30,69 @@ localStmtList : localStmtList localStmt
 | 
 localStmt : call ; 
 | lvalue = rvalue ;  
-| flowControl 
+| newFlowControl 
 | loop 
 | return expr ; 
-| return expr error
 | IREAD ( lvalue ) ; 
 | FREAD ( lvalue ) ; 
-| PRINT ( rvalue ) ; 
-| PRINT ( V_ASCII ) ; 
-| COPY ( lvalue lvalue ) ; 
-| ; 
+| print ( rvalue ) ; 
+| show ( rvalue ) ; 
+| print ( V_ASCII ) ; 
+| show ( V_ASCII ) ; 
+
+newFlowControl: countFlow flowControl
+
+countFlow :
+
 flowControl : if ( expr ) block else flowControl 
-| if ( expr ) block else block 
-| if ( expr ) block 
-| if ( expr error block else block 
-| if error expr ) block else block 
-| if ( error ) block 
+| block
+| ;
+
 loop : while ( expr ) block 
-defFun : BASE_TYPE ID (
-numListList :  numListList { numList } 
-| 
+
+defFun : BASE_TYPE ID ( paramListVoid ) { declList localStmt }
+
 numList : numList , num 
 | num 
-block : { localStmtList } 
+
+block : { localStmtList }
+
 declList : declList declOrdeclInitVar 
 | 
-expr : expr + expr 
-| expr - expr 
-| expr * expr 
-| expr / expr 
+
+expr : expr ARITM expr 
 | expr % expr 
 | expr @ expr 
 | expr @@ expr 
-| expr == expr 
-| expr != expr 
-| expr >= expr 
-| expr <= expr 
-| expr > expr 
-| expr < expr 
-| expr && expr 
+| expr REL_OP expr
+| expr BIN_LOGI expr 
 | expr || expr 
 | ! expr 
-| & expr 
 | ( expr ) 
 | ICAST ( expr ) 
 | FCAST ( expr ) 
 | lvalue
 | call 
 | num 
+
 call : ID ( argList ) 
-| ID (  ) 
+| ID (  )
+
 argList : argList , arg 
-| arg 
+| arg
+
 arg : lvalue 
-| ID ( expr ) ( expr ) 
+| ID ( expr ) ( expr )
+| num
+
 num : V_INT 
-| V_FLOAT 
+| V_FLOAT
+
 lvalue : ID 
 | ID [ expr ] 
-| ID [ expr ] [ expr ] 
+| ID [ expr ] [ expr ]
+
 rvalue : expr
 | { numList } 
-| [ numListList ]
 
 \end{lstlisting}

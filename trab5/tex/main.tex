@@ -71,7 +71,7 @@
 	keywordstyle=\bfseries,
 	showstringspaces=false,
 	texcl=<true|false>,
-	morekeywords={ahead, SCAN, PRINT, ICAST, FCAST, mat, IREAD, FREAD, COPY}
+	morekeywords={ahead, SCAN, print, show, ICAST, FCAST, mat, IREAD, FREAD}
 }
 
 \definecolor{mGreen}{rgb}{0,0.6,0}
@@ -223,13 +223,12 @@ Leonardo Maffei da Silva\thanks{leoitu22hotmail.com@gmail.com. \url{https://www.
 
 % resumo em português
 \begin{resumoumacoluna}
- Este documento atende os fins de documentação da quarta
- parte do projeto final da disciplina \textit{Tradutores},
- ministrada pela professora Dr.a Cláudia Nalon, no segundo semestre de 2019, na Universidade de Brasília. Tal artefato descreve um pouco da implementação do analisador semântico, bem como dificuldades encontradas durante tal processo. Para esta fase novamente refez-se a gramática, a fim de reduzir a quantidade de regras e tratar alguns \it{bugs} presentes na antiga, aproveitando o fato de que seria necessário a reimplementação completa do analisador sintático.
+ Este documento atende os fins de documentação do projeto final da disciplina \textit{Tradutores},
+ ministrada pela professora Dr.a Cláudia Nalon, no segundo semestre de 2019, na Universidade de Brasília. Tal artefato descreve um pouco da implementação de cada fase do compilador entregue como projeto final da disciplina, bem como dificuldades encontradas durante tal processo. Esta é a versão definitiva dos documentos entregues anteriormente, com destaque para a fase de \it{geração de código}.
  \vspace{\onelineskip}
  
  \noindent
- \textbf{Palavras-chave}: C, linguagem, matriz, primitiva.
+ \textbf{Palavras-chave}: C, mat, linguagem, matriz, primitiva.
 \end{resumoumacoluna}
 
 
@@ -245,48 +244,70 @@ Leonardo Maffei da Silva\thanks{leoitu22hotmail.com@gmail.com. \url{https://www.
 %\setlength{\grammarindent}{12em} % increase separation between LHS/RHS 
 
 \section{Introdução}
-Implementar-se-á, até a versão final deste artigo, um compilador para a linguagem C-mat, a qual consiste essencialmente de uma \it{extensão para um subconjunto da linguagem C}. C-mat permite a utilização de matrizes 2-D enquanto tipos de dados nativos da linguagem, sendo possível a realização de operações comumente realizadas quando são feitas operações entre matrizes (multiplicação, adição, subtração, adição de escalar, potenciação, etc). Para a implementação, serão utilizados os conhecimentos adquiridos na disciplina \textit{Tradutores}, ministrada pela professora \hyperref{http://lattes.cnpq.br/7793795625581127}{}{}{Cláudia Nalon}.
+Este documento serve aos fins de documentação do trabalho desenvolvido pelo autor ao longo do semestre, ao passo que cursava a disciplina  \href{https://matriculaweb.unb.br/graduacao/disciplina.aspx?cod=116459}{Tradutores}. Conforme proposto no primeiro relatório, foram implementadas operações de adição, subtração e multiplicação entre matrizes. Promessas não cumpridas, \it{bugs} e desafios encontrados ao longo do desenvolvimento do compilador serão devidamente relatados ao longo das subseções relativas à implementação de cada etapa do projeto. 
 
-\section{Usuário característico}
-Destina-se ao estudante de álgebra linear, o qual pode usar a linguagem para, por exemplo, confirmar se sua resolução de um sistema linear encontra-se correta, tudo isso de maneira rápida e eficiente.
+Para a implementação, foram utilizados conhecimentos adquiridos na disciplina \textit{Tradutores}, ministrada pela professora \hyperref{http://lattes.cnpq.br/7793795625581127}{}{}{Cláudia Nalon}, além de fontes outras como \it{YouTube} e \it{Stack Overflow}. Finalmente, ressalte-se a importância do suporte provido pela professora, a qual não mediu esforços para ajudar cada aluno que lhe solicitava auxílio.
 
-\section{Motivação}
-Durante a realização do curso de Cálculo Numérico, o grupo do autor notou a ausência dessa funcionalidade na linguagem C. Desse modo, foi necessária a simulação desse tipo de dados, à época implementada por meio de inúmeras funções. Se houvese um tipo nativo para matriz bem como operações elementares sobre seus elementos, teria sido de grande auxílio à codificação dos diversos métodos numéricos requeridos pela disciplina.
-\par
+
+\section{Breve descrição da linguagem implementada}
+
+\it{C-mat} permite a utilização de matrizes 2-D enquanto tipos de dados nativos da linguagem, sendo possível a realização de operações comumente realizadas quando são feitas operações entre matrizes (multiplicação, adição e subtração). Matrizes podem ter cmo tipo base inteiros ou número ponto-flutuante. Matrizes são estruturas \it{homogêneas}, assim como os \it{arrays} da linguagem. A principal diferença prática entre matrizes e \it{arrays} em C-mat é que estes não podem ser utilizados em operações aritméticas ou matricias.
+
+A menos do diferencial acima citado, C-mat é uma versão simplificada da consagrada linguagem C: possui mecanismos de controle de fluxo similar a C (if/else/while, porém com certas restrições), escopo global e de função (todo código interno a  uma função encontra-se sob o mesmo escopo da função), declarações de variáveis globais e locais, declaração prévia de função, passagem de argumentos por cópia e por referência e outros. Todos esses pontos serão detalhados mais adiante.
+
+\section{Motivação e Usuário característico}
+\it{C-mat} foi proposta tendo como motivação o desejo de possuir matriz como tipo de dados nativos em C, principalmente após experiência do autor com a disciplina de \href{https://matriculaweb.unb.br/graduacao/disciplina.aspx?cod=113417}{Cálculo Numérico}. Na ocasião, foi necessária a implementação de operação entre matrizes tais como: multipllicação, adição, subtração e operaçães sobre linhas. Tal experiência não foi nada agradável e, pensando nos alunos que programam em C e necessitam cursar a referida disciplina ou nos estudantes de álgebra linear (cuja necessidade de resolução de sistemas lineares é evidente), \it{C-mat} foi desenvolvida.
 
 
 \section{Gramática}
 
-Para esta fase, a diferença mais marcante na gramática está na especificação de precedência de operadores não mais inerente à gramática (conforme fora feito nos trabalhos anteriores), mas sim por meio das diretivas \it{\%left} e \it{\%right} do \it{bison}. Além disso, novas \it{features} foram adicionadas à gramática, a saber:
-\begin{itemize}
-	\item declaração e inicialização de variáveis em apenas um \it{statement}
-	\item não utilização da palavra reservada \bf{void} quando se define ou chama função sem parâmetros
-	\item pode-se ter \bf{;} como \it{statement} local (desse modo, mais de um ponto e vírgula não causa erro)	
-\end{itemize}
-Foram também retiradas algumas coisas, quais sejam:
-\begin{itemize}
-	\item remoção dos tipo \bf{char} e \bf{void}
-	\item remoção de regras que serviam como "demultiplexadoras dummy"  de operadores
-	\item declaração de variáveis deve vir antes dos demais \it{statements} de uma função
-\end{itemize}
-O tipo \bf{char} foi removido pois sua única função reside em servir de parâmetro ao comando \bf{PRINT}. Agora, não existe mais esse tipo de dado, mas é possível a criação de \it{statements} utilizando diretamente o caractere desejado (apenas letras e números da tabela \it{ascii}); por exemplo, \bf{PRINT('a')}. Vale ressaltar que para a impressão de quebra de linha, deve-se invocar o comando \bf{PRINT} passando-lhe como "argumento"  o "caractere vazio"; ou seja, deve-se 
-ter \bf{PRINT('')}.
+Ao longo do projeto, diversas gramáticas foram propostas para a linguagem: a entregava os construtos de programação necessários, mas não foi aceita pela professora dada a anonimicidade da fonte. Desse modo, refez-se a gramática para a entrega do analisador sintático. Entretanto, isso ainda não foi suficiente: a nova gramática era mais extensa do que o desejado, e também possuíam \it{bugs}. Não bastasse isso, para a entrega do analisador semântico \it{todo} o analisador sintático foi refeito, baseado nessa nova gramática, assim como o modo de impressão da árvore  abstrata.
 
-Além das adições / remoções enumeradas, foi adicionada uma regra específica para declaração de variáveis, separada da declaração de parâmetros, além da possibilidade de explicitar que um parâmetro é um vetor.
-A seguir, a especificação da nova gramática:
+Essa última versão apresentava de início menos regras em relação à anterior, sendo em geral de mais fácil manutenção, além de corrigir \it{bugs}. Para a fase final do projeto, as seguintes mudanças ocorreram na gramática:
+
+\begin{enumerate}
+	\item remoção da regra \it{numListList}, sendo que o construto \it{numList} passa a ser usado para inicialização de matrizes em C-mat
+	\item inclusão da regra \it{dummy} countNewFlow
+	\item inclusão da regra \it{newFlowControl}
+	\item remoção das regras de operações bit-a-bit
+	\item adição do operador módulo (\bf{\%})
+	\item possibilidade de passar constantes escalares como argumentos de funções (anteriormente, era necessário salvar tal valor em uma variável e passá-la por cópia)
+	
+\end{enumerate}
+
+
+A gramática final de \it{C-mat} difere da apresentada nas fases anteriores do projeto, com destaque para a alteração no que diz respeito às regras gramaticais responsáveis por permitir a utilização do construto \bf{if/else}. A seguir, encontra-se a gramática utilizada durante a apresentação final da disciplina a menos de construtos descartados, como \bf{numListList}:
 %% BEGIN GRAMÁTICA
-	\subfile{grammar.tex}
+\subfile{grammar.tex}
 %% END GRMÁTICA
 
-As palavras reservadas da linguagem aparecem em \bf{negrito} na gramática, os outros \it{tokens} estão em letras maiúsculas e as regras de produção estão em letras minúsculas (com eventuais letras maiúsculas entre as demais para facilitar a legibilidade).
+Conforme pode ser notado, a gramática da linguagem se assemelha bastante à linguagem C. De fato, enquanto versão simplificada de \it{C}, era esperado alguma, ou ainda bastante similaridade em relação a ela. Entretanto, note-se algumas limitações ou especificidades da gramática em relação a C, elencadas na subseção seguinte.
 
+
+As palavras reservadas da linguagem aparecem em \bf{negrito} na gramática, os outros \it{tokens} estão em letras maiúsculas e as regras de produção estão em letras minúsculas (com eventuais letras maiúsculas entre as demais para facilitar a legibilidade). Caracteres que não são letras e estão nos corpos das regras são ou operadores ou delimitadores (parêntese, chave, vírgula, ponto e vírgula). O \it{token} ARITM pode ser qualquer um dos quatro operadores aritméticos básicos e REL\_OP qualquer dos operadores relacionais existentes na linguagem C.
+
+\subsection{Limitações da gramática}
 As principais limitações impostas pela gramática de C-mat são listadas abaixo:
-\begin{itemize}
+\begin{enumerate}
 	\item declaração de variáveis apenas no escopo global ou no início de funções
 	\item matrizes são sempre bidimensionais
 	\item vetores são unidimensionais e suportam apenas os tipos \bf{int} e \bf{float}
-\end{itemize}
-Essas limitações tem por objetivo simplificar a implementação do tradutor dado o período de apenas um semestre e, por serem garantidas pela gramática, não requerem análise semântica.
+	\item declarações de variáveis locais devem ser realizadas todas antes de algum comando
+	\item necessidade da palavra reservada \bf{ahead} ao se declarar previamente uma função sem corpo
+	\item necesidade de haver um \it{else} para cada \it{if},
+	\item passagem de matriz como parâmetro e passagem de parâmetros em geral, a qual não precisa do operador \bf{\&} para passsar arrays e matrizes por referência. Contudo, escalares são sempre passados por cópia
+	\item ausência do operador \bf{-} unário
+	\item ausência de operadores que manipulam bits (shift, operações lógicas bit-a-bit)	
+\end{enumerate}
+Tais limitações tiverem por meta a redução da complexidade do tradutor hoje implementado. Algumas não foram planejadas de início, como a necessidade de palavra chave exclusiva para declarar a assinatura de uma função antes de sua definição, ao passo que outras a exemplo do segundo item foram pensadas para reduzir o escopo do projeto e permitir maios probabilidade de conclusão no prazo estipulado pela professora. 
+
+Contudo, houve também cortes os quais não se mostraram necessários ao final do projeto, por conta da facilidade de implementação dessas operações em virtude da linguagem alvo desse tradutor: é o caso das últimas duas limitações elencadas  acima, as quais ocorrem pois ao longo da implementação do projeto foi gasto bastante tempo à procura e resolvendo \it{bugs} e optou-se por não implementar tais funcionalidades. Entretando, posteriormente virificou-se a facilidade provida pela linguagem alvo no tocante a implementar tais funcionalidades.
+
+\subsection{Bugs na gramática}
+\label{grammarBugs}
+Para a fase de geração de código, a gramática em si não precisava ser tão alterada, mas implementar o \it{esquema de tradução} acabou por requerer algumas modificações, em especial a alteração da do corpo da regra \it{flowControl}, a qual continua sendo encaeável consigo mesma mas agora pode também derivar um bloco ou ponto e vírgula. Contudo, dada a similaridade das ações semânticas que devem ser executadas caso qualquer operador aritmético (+, -, *, /) seja encontrado, o autor optou por remover as 4 regras e substituir por apenas uma nova. Tal estratégia não causa erro sintático nem impossibilita a implementação do analisador sintático.
+
+Contudo, tal abordagem não funciona pois as precedências dos operadores aritméticos não são as mesmas entre todos. O correto seria a criação de uma função e simplesmente invocá-la durante a realização de ações semânticas em qualquer uma das regras de produção de expressões que contém tais operadores: expr + expr, expr - expr, expr * expr e expr / exp. Situação análoga ocorreu com os operadores lógicos \bf{\&\&} e \bf{||}, e também aos operadores relacionais >, <, >=, <=, != e ==. Entretanto, por estes últimos possuírem todos a mesma precência, não houve efeito colateral indesejado.
 % ----------------------------------------------------------
 % Introdução
 % ----------------------------------------------------------
@@ -300,15 +321,18 @@ Essas limitações tem por objetivo simplificar a implementação do tradutor da
 
 
 \section{Semântica}
-A principal mudança nessa nova fase do projeto está na impossibilidade de indexação de variáveis que não são vetores nem matrizes (ideia inicial do projeto). De resto, não houve grandes alterações. A semântica é em grande parte idêntica à da linguagem C, em especial nos pontos que possuem em comum (operações de adição, subtração, etc) e nos tipos básicos \it{int} e \it{float}. 
 
-Construtos de controle de fluxo se comportam de maneira idêntica à de C, embora seja necessário que todo \it{statement} \it{if}/\it{else} seja seguido por um bloco de código. O construto \it{while} tem funcionamento idêntico em ambas as linguagens; operações de \it{cast} devem ser feitas por meio dos operadores \it{ICAST} e \it{FCAST}, mas caso não sejam utilizados e conversão ainda pode ser feita, embora seja emitido mensagem de aviso ao usuário.
+Variáveis podem ser declaradas e inicializadas em apenas um comando, porém apenas uma pode ser declarada [e inicializa] por comando. Decisão tomada a fim de facilitar a implementação. Contudo, aqui há bugs relevantes, os quais estão devidamente reportados em \ref{semanticBugs}.
+
+Construtos de controle de fluxo se comportam de maneira idêntica à de C, embora seja necessário que todo \it{statement} \it{if}/\it{else} seja seguido por um bloco de código. O construto \it{while} tem funcionamento idêntico em ambas as linguagens; operações de \it{cast} devem ser feitas por meio dos operadores \it{ICAST} e \it{FCAST}, mas caso não sejam utilizados e conversão ainda pode ser feita (desde que o tipo destino seja superior ao tipo alvo), embora seja emitido mensagem de aviso ao usuário.
 
 Só é possível a realização de \it{cast} entre escalares (\bf{int} e \bf{float}); outras tentativas de conversão são caracterizadas como erros. C-mat possui apenas dois escopos: global e local. Caso uma variável utilizada dentro de uma função não tenha sido declarada, esta é buscada no escopo global. Caso não seja encontrada, é reportado erro. Não foi implementado o escopo de bloco com o
-único intuito de facilitar a implementação da análise semântica. Um dos motivos foi o débito relativo ao analisador sintático que para ser quitado requeriu, conforme citado em \ref{difSintatico}, quantia significativa de tempo.
+único intuito de facilitar a implementação da análise semântica.
 
-Operadores binários são de maneira geral associativos à esquerda, com exceção para o operador de potenciação de matriz \bf{@@}, visto que a operação de potenciação é associativa à direita tal qual na matemática usual. Há operadores para as seguintes operações:
-\begin{itemize}
+Os tipos de dados indexáveis em C-mat são matrizes e vetores, sendo as primeiras indexadas de maneira idêntica a vetores bidimensionais em C. Tais tipos são passados por referência para funções, enquanto inteiros e pontos flutuantes o são por cópia. Não é realizado nenhuma tipo de conversão entre tipos quando se invoca uma função; ou seja, o usuário deve garantir que os tipos dos argumentos passados batem com ordem e tipos dos parâmetros esperados pela função. Caso não haja tipos diferentes nos parâmetros e argumentos correspondentes, o compilador emite mensagem de erro.
+
+Operadores binários deveriam ser associativos à esquerda, com exceção para o operador de potenciação de matriz \bf{@@}, visto que a operação de potenciação é associativa à direita tal qual na matemática usual. Há operadores para as seguintes operações:
+\begin{enumerate}
 	\item adição/subtração
 	\item multiplicação/divisão
 	\item resto da divisão
@@ -318,21 +342,19 @@ Operadores binários são de maneira geral associativos à esquerda, com exceç�
 	\item operador endereço (\&)
 	\item multiplicação de matrizes
 	\item exponenciação de matrizes
-\end{itemize}
+\end{enumerate}
 
-Todas as operações acima, a menos das relacionadas a matrizes e do operador \bf{\%}, podem ser aplicadas a dois escalares quaisquer, embora caso esses operandos não sejam de mesmo tipo será mostrada mensagem de aviso ao usuário. Em caso de operação entre tipos distintos, é feita a conversão de tipos: inteiros são convertidos para ponto flutuante na maioria dos casos. Operadores relacionais são um caso especial; quando aparecem, o resultado da operação é sempre um \bf{inteiro}: 0 ou 1. O operador \bf{!} nada mais faz do que troca o valor de seu operando 0 para 1 ou de qualquer outro valor para 1. Em caso de o valor ser um ponto flutuante, a conversão para inteiro é feita, e então seu efeito é aplicado ao valor convertido. Em qualquer outro caso, considera-se que houve um erro.
+Os níveis de precedência foram acidentalmente trocadas por conta da situação explicada na seção \ref{grammarBugs}. Ao final, todos os operadores referidos nessa seção ficaram sendo associativos à esquerda, porém com o mesmo nível de precedência. Portanto, até que esse incômodo seja resolvido (ou seja, na próxima \it{release} de C-mat), recomenda-se a utilização de parênteses em basicamente qualquer expressão, por mais simples que seja. Resssalte-se que esse \it{bug} é de fácil correção e será corigido tão cedo quanto possível.
 
-É possível definir a assinatura de uma função antes de sua definição por meio da estrutura \bf{ahead} BASE\_TYPE ID; contudo, isso só pode ser feito uma vez para cada nome de função (limitação que não limita a expressividade da linguagem, porém facilitou a implementação). Desse modo, pode-se efetuar checagem de tipo e de parâmetros de funções sem que seja necessário percorrer a árvore abstrata mais de uma vez, e portanto é possível a implementação de recursão indireta em C-mat .
+Todas as operações acima, a menos das relacionadas a matrizes e do operador \bf{\%}, podem ser aplicadas a dois escalares quaisquer, embora caso esses operandos não sejam de mesmo tipo será mostrada mensagem de aviso ao usuário. Em caso de operação entre tipos distintos, é feita a conversão de tipos: inteiros são convertidos para ponto flutuante caso necessário (\it{narrow cast} deve ser feito explicitamente). Operadores relacionais são um caso especial; quando aparecem, o resultado da operação é sempre um \bf{inteiro}: 0 ou 1. O operador \bf{!} nada mais faz do que gerar 0 caso o operando não o seja e 1 caso contrário. Não é feita nenhuma checagem de tipos aqui; portanto, negar logicamente qualquer vetor ou matriz deve resultar em 0, visto que será negado o inteiro relativo ao endereço simbólico da base da estrutura composta.
 
-Conforme entregas passadas, há vetor como tipo de dados composto; porém, não é possível ter vetores multidimensionais e só é possível a instanciação de vetores de escalares. Matrizes podem ser contruídas
-enquanto tipos nativos da linguagem, em notação similar ao que seria um vetor bidimensional, porém com o
-adicional de see ner necessário informar qual o tipo escalar que a matriz armazena. Contudo, novamente por conta de
-possíveis problemas na hora da tradução, C-mat implementa apenas \it{matrizes 2D}. Ainda assim,
-acredita-se que grande parte dos problemas encontrados pelo usuário a que se destina C-mat não lidam com
-matrizes com mais de duas dimensões e, portanto, essa limitação não deve ser um problema de maneira
-geral.
+É possível definir a assinatura de uma função antes de sua definição por meio da estrutura \bf{ahead} BASE\_TYPE ID; contudo, isso só pode ser feito uma vez para cada nome de função (limitação que não limita a expressividade da linguagem, porém facilitou a implementação). Desse modo, pode-se efetuar checagem de tipo e de parâmetros de funções sem que seja necessário percorrer a árvore abstrata mais de uma vez, e portanto é possível a implementação de recursão indireta em C-mat.
+
+Conforme entregas passadas, há vetor como tipo de dados composto; porém, não é possível ter vetores multidimensionais e só é possível a instanciação de vetores de escalares (\bf{int} e \bf{float}). Matrizes podem ser contruídas enquanto tipos nativos da linguagem, em notação similar ao que seria um vetor bidimensional, porém com o adicional de ser necessário informar qual o tipo base da matriz Contudo, novamente por conta de possíveis problemas na hora da tradução, C-mat implementa apenas \it{matrizes 2D}. Ainda assim, acredita-se que grande parte dos problemas encontrados pelo usuário a que se destina C-mat não lidam com matrizes com mais de duas dimensões e, portanto, essa limitação não deve ser um problema de maneira geral.
 
 
+\subsection{Bugs}
+\label{semanticBugs}
 \iffalse
 \section{Exemplo de programa na linguagem}
 A seguir, trechos de código pertencente à nova linguagem.
