@@ -48,7 +48,7 @@ __copyN_end:
 // #0: &
 // #1: qtd
 // #2: escalar
-__mulScalarMat_ikj:
+__mulMatMat_ikj:
   mov $0, 0
   mema $5, #1
 __again_mulScalarMat:
@@ -72,7 +72,7 @@ main:
 	param $2
 	param 4
 	param 2
-	call __mulScalarMat_ikj, 3
+	call __mulMatMat_ikj, 3
 	pop $3
 ///* */
 	param $3    // src =2

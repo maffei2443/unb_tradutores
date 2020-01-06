@@ -45,7 +45,7 @@ __showMat_ij:
 // #3: &1
 // #4: &2
 
-__mulScalarMat_ikj:
+__mulMatMat_ikj:
   mul $0, #0, #1
   mema $20, $0  // new_mat de tramanho  sie_i * size_k
 
@@ -118,7 +118,7 @@ main:
 	mov $3, &mv
 	param $2
 	param $3
-	call __mulScalarMat_ikj, 5
+	call __mulMatMat_ikj, 5
 	pop $4
 // fim multiplicacao
 // multiplicacao de matrizes
@@ -128,7 +128,7 @@ main:
 	mov $5, &mi
 	param $4
 	param $5
-	call __mulScalarMat_ikj, 5
+	call __mulMatMat_ikj, 5
 	pop $6
 // fim multiplicacao
 	param $6    // src =2

@@ -4,7 +4,7 @@
 .code
 
 // 
-__mulScalarMat_ikj:
+__mulMatMat_ikj:
   mul $0, #0, #1
   mema $20, $0  // new_mat de tramanho  sie_i * size_k
 
@@ -197,7 +197,7 @@ main:
 	param 2 // j
 	param $0
 	param $0
-	call __mulScalarMat_ikj, 5
+	call __mulMatMat_ikj, 5
 	pop $11
 // fim multiplicacao
 	param $11    // src =2
