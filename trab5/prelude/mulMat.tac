@@ -61,7 +61,7 @@ __showMat_ij:
 // #2: size_j
 // #3: &1
 // #4: &2
-__mulScalarMat_ikj:
+__mulMatMat_ikj:
   mul $0, #0, #1
   mema $20, $0  // new_mat de tramanho  sie_i * size_k
 
@@ -123,7 +123,7 @@ main:
   param 3
   param $0
   param $0
-  call __mulScalarMat_ikj, 5
+  call __mulMatMat_ikj, 5
   
   pop $0
   param $0
