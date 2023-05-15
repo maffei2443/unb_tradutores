@@ -15,7 +15,12 @@ As etapdas do trabalho foram:
   2. pretendo futuramente reorganizar cada pasta, em especial as relativas às primeiras entregas, bem como remover arquivos auxiliares gerados pelo TexStudio.
 
   
-  [Flex]: https://github.com/westes/flex/
-  [Bison]: https://www.gnu.org/software/bison/
   
   
+## Referências
+
+1. [Flex: A Lexical Analyser][Flex]
+2. [Bison: a syntax parser generator][Bison]
+
+[Flex]: https://github.com/westes/flex/
+[Bison]: https://www.gnu.org/software/bison/
